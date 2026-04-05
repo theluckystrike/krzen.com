@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Getting Started with Model Optimization — Krzen</title>
+    <meta name="description" content="A practical guide to model optimization for deployment. Learn to quantize your first model, benchmark inference performance, and choose the right optimization strategy for your constraints.">
+    <meta name="keywords" content="model optimization beginner, quantization tutorial, getting started with GGUF, llama.cpp guide, model compression basics">
+    <meta name="robots" content="index, follow">
+
+    <meta property="og:title" content="Getting Started with Model Optimization — Krzen">
+    <meta property="og:description" content="A practical guide to model optimization. Quantize your first model and learn the fundamentals of efficient AI deployment.">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://krzen.com/blog/getting-started.html">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Getting Started with Model Optimization",
+        "url": "https://krzen.com/blog/getting-started.html",
+        "description": "A practical guide to model optimization for deployment.",
+        "isPartOf": { "@type": "WebSite", "name": "Krzen", "url": "https://krzen.com" }
+    }
+    </script>
+
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        html { scroll-behavior: smooth; }
+    </style>
+</head>
+<body class="bg-gray-950 text-gray-100">
+
+    <nav class="fixed top-0 w-full bg-gray-950/90 backdrop-blur-md z-50 border-b border-gray-800">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+            <a href="/" class="text-2xl font-800 tracking-tight" style="color: #f97316;">Krzen</a>
+            <div class="hidden md:flex gap-8 text-sm text-gray-400">
+                <a href="/" class="hover:text-white transition">Home</a>
+                <a href="/guides.html" class="hover:text-white transition">Guides</a>
+                <a href="/tools.html" class="hover:text-white transition">Tools</a>
+                <a href="/blog/getting-started.html" class="text-white transition">Blog</a>
+                <a href="/about.html" class="hover:text-white transition">About</a>
+            </div>
+        </div>
+    </nav>
+
+    <article class="pt-32 pb-20">
+        <div class="max-w-3xl mx-auto px-4">
+
+            <header class="mb-12">
+                <span class="text-xs font-600 uppercase tracking-wider" style="color: #f97316;">Blog</span>
+                <h1 class="text-3xl md:text-5xl font-800 tracking-tight mt-3 mb-4">Getting Started with Model Optimization</h1>
+                <p class="text-gray-400 text-lg leading-relaxed">A hands-on introduction to model compression and optimization. Go from a full-precision model to a quantized, deployable version in under an hour.</p>
+            </header>
+
+            <div class="prose prose-invert max-w-none">
+
+                <h2 class="text-2xl font-700 mt-12 mb-4">Why Optimize?</h2>
+                <p class="text-gray-300 leading-relaxed mb-4">
+                    A 7-billion parameter language model in 16-bit precision requires 14 GB of memory just to load the weights. At 32-bit, that doubles to 28 GB. Add the KV cache for inference, and you are looking at 20+ GB for a single model on a single user. This is not practical for most deployment scenarios. Model optimization techniques — primarily quantization, but also pruning and distillation — reduce these requirements dramatically. A 4-bit quantized 7B model fits in under 4 GB, runs on a laptop, and generates tokens at interactive speeds.
+                </p>
+                <p class="text-gray-300 leading-relaxed mb-4">
+                    Beyond memory savings, optimization improves inference speed because smaller data types require less memory bandwidth to load and fewer operations to process. On modern hardware where memory bandwidth is often the bottleneck for LLM inference, quantization can provide a 2-3x throughput improvement alongside the 4x memory reduction. This directly translates to lower cost per token in production deployments.
+                </p>
+
+                <h2 class="text-2xl font-700 mt-12 mb-4">Your First Quantization: GGUF with llama.cpp</h2>
+                <p class="text-gray-300 leading-relaxed mb-4">
+                    The easiest path to your first quantized model is converting a Hugging Face model to GGUF format using llama.cpp's conversion scripts. Here is the complete workflow:
+                </p>
+
+                <div class="bg-gray-900 rounded-xl p-6 my-6 overflow-x-auto">
+                    <pre class="text-sm text-gray-300"><code># Clone llama.cpp
+git clone https://github.com/ggerganov/llama.cpp
+cd llama.cpp && make -j
+
+# Install Python dependencies for conversion
+pip install -r requirements/requirements-convert_hf_to_gguf.txt
+
+# Convert a Hugging Face model to GGUF F16
+python convert_hf_to_gguf.py /path/to/model --outtype f16
+
+# Quantize to 4-bit (Q4_K_M is a good default)
+./llama-quantize model-f16.gguf model-q4_k_m.gguf Q4_K_M
+
+# Run inference
+./llama-cli -m model-q4_k_m.gguf -p "Hello, world!" -n 100</code></pre>
+                </div>
+
+                <p class="text-gray-300 leading-relaxed mb-4">
+                    The Q4_K_M quantization level offers an excellent balance of quality and size for most models. The "K" indicates k-quant methodology, which uses different bit-widths for different tensor types based on their sensitivity. "M" indicates medium quality — there is also "S" (small, more aggressive compression) and "L" (large, less compression). For most use cases, Q4_K_M is the recommended starting point.
+                </p>
+
+                <h2 class="text-2xl font-700 mt-12 mb-4">Measuring Quality Loss</h2>
+                <p class="text-gray-300 leading-relaxed mb-4">
+                    Quantization always involves some quality loss. The question is whether that loss matters for your use case. Perplexity is the standard metric for measuring language model quality — lower is better. llama.cpp includes a built-in perplexity measurement tool:
+                </p>
+
+                <div class="bg-gray-900 rounded-xl p-6 my-6 overflow-x-auto">
+                    <pre class="text-sm text-gray-300"><code># Measure perplexity on WikiText-2
+./llama-perplexity -m model-f16.gguf -f wikitext-2-raw/wiki.test.raw
+# Example output: perplexity = 5.82
+
+./llama-perplexity -m model-q4_k_m.gguf -f wikitext-2-raw/wiki.test.raw
+# Example output: perplexity = 5.91 (< 2% increase)</code></pre>
+                </div>
+
+                <p class="text-gray-300 leading-relaxed mb-4">
+                    A perplexity increase of less than 2% is typical for Q4_K_M and generally imperceptible in practical use. More aggressive quantization (Q2_K, Q3_K) shows larger perplexity increases and may noticeably degrade output quality for complex reasoning tasks. Always test on tasks representative of your actual workload, not just generic benchmarks.
+                </p>
+
+                <h2 class="text-2xl font-700 mt-12 mb-4">Choosing a Quantization Level</h2>
+                <p class="text-gray-300 leading-relaxed mb-4">
+                    GGUF provides a spectrum of quantization options. Here is a practical guide for common quantization levels and their tradeoffs for a 7B parameter model:
+                </p>
+                <p class="text-gray-300 leading-relaxed mb-4">
+                    <strong class="text-gray-100">Q8_0</strong> (7.2 GB): Minimal quality loss, best for when you have ample memory and want near-FP16 quality. <strong class="text-gray-100">Q6_K</strong> (5.5 GB): Excellent quality with meaningful size reduction. <strong class="text-gray-100">Q5_K_M</strong> (4.8 GB): Very good quality, noticeable only on demanding benchmarks. <strong class="text-gray-100">Q4_K_M</strong> (4.1 GB): The sweet spot for most deployments — good quality with major size savings. <strong class="text-gray-100">Q3_K_M</strong> (3.3 GB): Noticeable quality degradation on complex tasks, but usable for simpler applications. <strong class="text-gray-100">Q2_K</strong> (2.7 GB): Significant quality loss, only suitable when extreme compression is required.
+                </p>
+
+                <h2 class="text-2xl font-700 mt-12 mb-4">Beyond Quantization</h2>
+                <p class="text-gray-300 leading-relaxed mb-4">
+                    Once you are comfortable with quantization, explore the broader optimization landscape. ONNX export and optimization provides a cross-platform deployment path for non-LLM models like vision classifiers and object detectors. TensorRT compilation achieves the highest throughput on NVIDIA GPUs through aggressive kernel fusion and auto-tuning. Pruning combined with quantization achieves even more aggressive compression ratios. Knowledge distillation lets you train purpose-built smaller models that outperform generic quantized models for your specific task.
+                </p>
+                <p class="text-gray-300 leading-relaxed mb-4">
+                    The right optimization strategy depends on your deployment target, latency requirements, and quality constraints. Experiment-tracking methodologies such as those covered at <a href="https://abwex.com" class="text-orange-400 hover:text-orange-300 underline">Abwex</a> can help systematically evaluate different optimization configurations and make data-driven decisions about the right tradeoff for your production environment.
+                </p>
+
+                <h2 class="text-2xl font-700 mt-12 mb-4">Next Steps</h2>
+                <p class="text-gray-300 leading-relaxed mb-4">
+                    Start with the quantization workflow above on a model you are familiar with. Compare the quantized output against the original on your real use cases, not just benchmarks. Once you have built intuition for quantization quality tradeoffs, explore serving the quantized model via llama.cpp's server mode or Ollama for production use. The optimization journey from "it works on my GPU" to "it runs efficiently at scale" is one of the most valuable skills in modern AI engineering.
+                </p>
+            </div>
+
+        </div>
+    </article>
+
+    <footer class="py-12 border-t border-gray-800">
+        <div class="max-w-6xl mx-auto px-4 text-center">
+            <a href="/" class="text-xl font-700 mb-4 inline-block" style="color: #f97316;">Krzen</a>
+            <p class="text-gray-500 text-sm">&copy; 2025 Krzen. All rights reserved.</p>
+        </div>
+    </footer>
+
+</body>
+</html>
