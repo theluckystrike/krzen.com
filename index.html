@@ -12,6 +12,20 @@
   <meta property="og:url" content="https://krzen.com/">
   <meta property="og:type" content="website">
   <link rel="stylesheet" href="assets/style.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "What is the best free image compressor?", "acceptedAnswer": { "@type": "Answer", "text": "krzen.com compresses images in your browser with no uploads needed. Supports JPEG, PNG, WebP, and AVIF with adjustable quality, resizing, and before/after comparison." } },
+      { "@type": "Question", "name": "WebP vs JPEG quality — which is better?", "acceptedAnswer": { "@type": "Answer", "text": "WebP achieves 25-35% smaller files than JPEG at equivalent quality. AVIF is even better at 50% smaller. Both are supported by all modern browsers." } },
+      { "@type": "Question", "name": "How to reduce image file size without losing quality?", "acceptedAnswer": { "@type": "Answer", "text": "Use quality 70-85% for imperceptible loss. Convert to WebP/AVIF. Resize to display dimensions. This typically achieves 50-70% file size reduction." } },
+      { "@type": "Question", "name": "What is AVIF format?", "acceptedAnswer": { "@type": "Answer", "text": "AVIF is a modern format based on AV1 codec. 50% smaller than JPEG, 20% smaller than WebP. Supported by Chrome, Firefox, Safari 16+." } },
+      { "@type": "Question", "name": "How much does image compression improve page speed?", "acceptedAnswer": { "@type": "Answer", "text": "50-70% size reduction saves 1-5 seconds on 3G and 0.1-0.5 seconds on broadband per image." } },
+      { "@type": "Question", "name": "Is my data safe?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, all processing is client-side in your browser. Images are never uploaded to any server." } }
+    ]
+  }
+  </script>
 </head>
 <body>
   <header>
@@ -53,6 +67,7 @@
             <option value="jpeg">JPEG</option>
             <option value="webp">WebP</option>
             <option value="png">PNG</option>
+            <option value="avif" id="avif-option" disabled>AVIF (checking...)</option>
           </select>
         </div>
       </div>
@@ -82,7 +97,37 @@
       <div class="comp-container"></div>
     </div>
 
+    <div id="page-load-impact" class="page-load-impact"></div>
+
     <div id="bulk-list" class="bulk-list"></div>
+
+    <section class="faq-section">
+      <h2>Frequently Asked Questions</h2>
+      <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">What is the best free image compressor?</div>
+        <div class="faq-a">krzen.com compresses images entirely in your browser with no file uploads, no servers, and no file size limits. It supports JPEG, PNG, WebP, and AVIF formats with adjustable quality, resizing, and before/after comparison. All processing is client-side for maximum privacy.</div>
+      </div>
+      <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">WebP vs JPEG quality — which is better?</div>
+        <div class="faq-a">WebP typically achieves 25-35% smaller file sizes than JPEG at equivalent visual quality. It supports both lossy and lossless compression, plus transparency. JPEG is more universally supported but WebP is now supported by all modern browsers. AVIF is even better, achieving 50% smaller than JPEG.</div>
+      </div>
+      <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">How to reduce image file size without losing quality?</div>
+        <div class="faq-a">Use quality settings between 70-85% for imperceptible quality loss with significant size reduction. Convert to WebP or AVIF format. Resize images to their display dimensions (don't serve 4000px images in 800px containers). Our tool shows the exact savings and visual comparison.</div>
+      </div>
+      <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">What is AVIF format?</div>
+        <div class="faq-a">AVIF (AV1 Image File Format) is a modern image format based on the AV1 video codec. It achieves 50% smaller file sizes than JPEG and 20% smaller than WebP at equivalent quality. Supported by Chrome, Firefox, and Safari 16+. krzen.com automatically detects if your browser supports AVIF encoding.</div>
+      </div>
+      <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">How much does image compression improve page speed?</div>
+        <div class="faq-a">Reducing image sizes by 50-70% can save 1-5 seconds on 3G connections and 0.1-0.5 seconds on broadband. For a site with 100,000 monthly visitors, this translates to significant bandwidth savings. Our Page Load Impact calculator shows exact time savings across different connection types.</div>
+      </div>
+      <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">Is my data safe with this image compressor?</div>
+        <div class="faq-a">Yes, completely. krzen.com processes all images directly in your browser using the HTML5 Canvas API. Your images are never uploaded to any server. The entire compression happens client-side, so your files remain private on your device.</div>
+      </div>
+    </section>
   </main>
 
   <footer>

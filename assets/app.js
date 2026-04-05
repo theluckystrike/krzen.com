@@ -15,7 +15,7 @@
   }
 
   function getMimeType(format) {
-    var map = { jpeg: 'image/jpeg', webp: 'image/webp', png: 'image/png' };
+    var map = { jpeg: 'image/jpeg', webp: 'image/webp', png: 'image/png', avif: 'image/avif' };
     return map[format] || 'image/jpeg';
   }
 
@@ -118,6 +118,7 @@
       '<div class="result-item"><div class="value">' + formatSize(origSize) + '</div><div class="label">Original</div></div>' +
       '<div class="result-item"><div class="value">' + formatSize(compSize) + '</div><div class="label">Compressed</div></div>' +
       '<div class="result-item"><div class="value ' + (savings > 0 ? 'savings-positive' : '') + '">' + savings.toFixed(1) + '%</div><div class="label">Savings</div></div>';
+    showPageLoadImpact(origSize, compSize);
   }
 
   function showComparison(compCanvas) {
@@ -262,6 +263,76 @@
     reader.readAsDataURL(file);
   }
 
+  /* --- AVIF Support Detection --- */
+  function detectAvifSupport() {
+    var canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    var dataUrl = canvas.toDataURL('image/avif');
+    var avifOption = document.getElementById('avif-option');
+    if (avifOption) {
+      if (dataUrl.indexOf('data:image/avif') === 0) {
+        avifOption.disabled = false;
+        avifOption.textContent = 'AVIF';
+      } else {
+        avifOption.textContent = 'AVIF (not supported in this browser)';
+      }
+    }
+  }
+
+  /* --- Page Load Savings Estimator --- */
+  var CONNECTION_SPEEDS = {
+    '3G': 750 * 1024,       // 750 KB/s
+    '4G': 4 * 1024 * 1024,  // 4 MB/s
+    'Broadband': 25 * 1024 * 1024 // 25 MB/s
+  };
+
+  function showPageLoadImpact(origSize, compSize) {
+    var container = document.getElementById('page-load-impact');
+    if (!container) return;
+    var savedBytes = origSize - compSize;
+    if (savedBytes <= 0) {
+      container.innerHTML = '';
+      container.classList.remove('visible');
+      return;
+    }
+
+    var html = '<h3 class="impact-title">Page Load Impact</h3>';
+    html += '<div class="impact-grid">';
+    var speeds = Object.keys(CONNECTION_SPEEDS);
+    for (var i = 0; i < speeds.length; i++) {
+      var name = speeds[i];
+      var speed = CONNECTION_SPEEDS[name];
+      var savedSec = savedBytes / speed;
+      html += '<div class="impact-item">';
+      html += '<div class="impact-value">' + savedSec.toFixed(2) + 's</div>';
+      html += '<div class="impact-label">saved on ' + name + '</div>';
+      html += '</div>';
+    }
+    html += '</div>';
+
+    // Bandwidth savings for visitors
+    html += '<div class="bandwidth-section">';
+    html += '<h4 class="bandwidth-title">Monthly Bandwidth Savings</h4>';
+    var visitors = [1000, 10000, 100000];
+    html += '<div class="bandwidth-grid">';
+    for (var v = 0; v < visitors.length; v++) {
+      var totalSaved = savedBytes * visitors[v];
+      var savedStr;
+      if (totalSaved >= 1073741824) savedStr = (totalSaved / 1073741824).toFixed(1) + ' GB';
+      else if (totalSaved >= 1048576) savedStr = (totalSaved / 1048576).toFixed(1) + ' MB';
+      else savedStr = (totalSaved / 1024).toFixed(1) + ' KB';
+      html += '<div class="bandwidth-item">';
+      html += '<div class="bandwidth-value">' + savedStr + '</div>';
+      html += '<div class="bandwidth-label">' + visitors[v].toLocaleString() + ' visitors/mo</div>';
+      html += '</div>';
+    }
+    html += '</div></div>';
+
+    container.innerHTML = html;
+    container.classList.add('visible');
+  }
+
   // Init
   window.krzen = {
     compress: compress,
@@ -298,5 +369,7 @@
     slider.addEventListener('input', function() {
       display.textContent = slider.value;
     });
+
+    detectAvifSupport();
   });
 })();
