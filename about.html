@@ -1,111 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Krzen</title>
-    <meta name="description" content="Krzen is dedicated to model compression, quantization, pruning, and optimization techniques for deploying AI at the edge and in production. Learn about our mission.">
-    <meta name="keywords" content="about Krzen, model optimization resource, AI deployment, model compression">
-    <meta name="robots" content="index, follow">
-
-    <meta property="og:title" content="About Krzen">
-    <meta property="og:description" content="Krzen covers model compression and optimization for production AI deployment.">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://krzen.com/about.html">
-
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "WebPage",
-        "name": "About Krzen",
-        "url": "https://krzen.com/about.html",
-        "description": "Krzen covers model compression and optimization for production AI deployment.",
-        "isPartOf": { "@type": "WebSite", "name": "Krzen", "url": "https://krzen.com" }
-    }
-    </script>
-
-    <style>
-        * { font-family: 'Inter', sans-serif; }
-        html { scroll-behavior: smooth; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About | krzen.com</title>
+  <meta name="description" content="About krzen.com — a free, privacy-first image compressor that runs entirely in your browser.">
+  <link rel="canonical" href="https://krzen.com/about.html">
+  <link rel="stylesheet" href="assets/style.css">
 </head>
-<body class="bg-gray-950 text-gray-100">
+<body>
+  <header>
+    <div class="container">
+      <a href="/" class="logo">krzen</a>
+      <nav>
+        <a href="/">Tool</a>
+        <a href="/blog/">Blog</a>
+        <a href="/about.html">About</a>
+      </nav>
+    </div>
+  </header>
 
-    <nav class="fixed top-0 w-full bg-gray-950/90 backdrop-blur-md z-50 border-b border-gray-800">
-        <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-            <a href="/" class="text-2xl font-800 tracking-tight" style="color: #f97316;">Krzen</a>
-            <div class="hidden md:flex gap-8 text-sm text-gray-400">
-                <a href="/" class="hover:text-white transition">Home</a>
-                <a href="/guides.html" class="hover:text-white transition">Guides</a>
-                <a href="/tools.html" class="hover:text-white transition">Tools</a>
-                <a href="/blog/getting-started.html" class="hover:text-white transition">Blog</a>
-                <a href="/about.html" class="text-white transition">About</a>
-            </div>
-        </div>
-    </nav>
+  <main class="about-content">
+    <h1>About <span>krzen</span></h1>
+    <p>krzen.com is a free image compression tool that runs entirely in your browser using the Canvas API. No images are uploaded to any server. Everything is processed locally on your device.</p>
 
-    <header class="relative pt-32 pb-16 overflow-hidden">
-        <div class="absolute inset-0 bg-gradient-to-br from-orange-950 via-gray-950 to-amber-950"></div>
-        <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-orange-500/20 via-transparent to-transparent"></div>
-        <div class="relative z-10 max-w-4xl mx-auto px-4 text-center">
-            <h1 class="text-4xl md:text-6xl font-800 tracking-tight mb-6">
-                About <span style="color: #f97316;">Krzen</span>
-            </h1>
-            <p class="text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
-                Making AI models smaller, faster, and ready for the real world.
-            </p>
-        </div>
-    </header>
+    <h2>Features</h2>
+    <ul>
+      <li>Drag and drop or file picker for JPEG, PNG, and WebP</li>
+      <li>Quality slider (1-100) for precise compression control</li>
+      <li>Output format selection: JPEG, WebP, PNG</li>
+      <li>Resize with aspect ratio preservation</li>
+      <li>Before/after slider comparison</li>
+      <li>Compression stats: original size, compressed size, savings</li>
+      <li>Bulk mode: drop multiple images, compress individually</li>
+    </ul>
 
-    <section class="py-20">
-        <div class="max-w-3xl mx-auto px-4">
-            <h2 class="text-2xl font-700 mb-6">Our Mission</h2>
-            <p class="text-gray-300 leading-relaxed mb-4">
-                Krzen exists because the gap between training a model and deploying it efficiently is where most AI projects stall. A state-of-the-art model that requires four A100 GPUs for inference is not useful for most real-world applications. Model optimization — the art and science of making models smaller, faster, and cheaper to run while preserving their capabilities — is what bridges this gap. We provide the deep technical content practitioners need to close it.
-            </p>
-            <p class="text-gray-300 leading-relaxed mb-4">
-                Our content covers the full optimization stack: quantization (reducing numerical precision from 32-bit to 4-bit or lower), pruning (removing redundant parameters), knowledge distillation (training smaller models to mimic larger ones), and architecture optimization (designing efficient model structures from the start). We also cover the deployment side — inference engines like vLLM and TensorRT, edge deployment with ONNX Runtime and CoreML, and profiling tools that help you identify and eliminate bottlenecks.
-            </p>
-            <p class="text-gray-300 leading-relaxed mb-4">
-                Every guide is grounded in real benchmarks and practical experience. We do not just explain techniques in theory — we show you the actual memory savings, throughput improvements, and quality tradeoffs measured on real hardware with real models. This empirical approach ensures our recommendations work in practice, not just on paper.
-            </p>
-            <p class="text-gray-300 leading-relaxed mb-8">
-                Krzen is part of a network of specialized AI and ML resources. Our flagship resource, <a href="https://zovo.one" class="text-orange-400 hover:text-orange-300 underline">zovo.one</a>, provides a comprehensive directory of AI tools spanning the entire ecosystem. Together with our partner sites, we aim to cover every dimension of AI development from research to production.
-            </p>
+    <h2>How It Works</h2>
+    <p>The tool uses the HTML5 Canvas API to read your image, optionally resize it, then re-encode it using <code>canvas.toBlob()</code> with your chosen format and quality settings. This is the same compression pipeline used by modern browsers for native image rendering.</p>
 
-            <h2 class="text-2xl font-700 mb-6">Related Sites</h2>
-            <div class="grid sm:grid-cols-2 gap-4">
-                <a href="https://gpt0x.com" class="block bg-gray-800/50 rounded-xl p-5 border border-gray-700/50 hover:border-orange-500/30 transition">
-                    <h3 class="text-lg font-600 mb-1">GPT0X</h3>
-                    <p class="text-gray-400 text-sm">Advanced language model engineering, fine-tuning, and deployment.</p>
-                </a>
-                <a href="https://ml0x.com" class="block bg-gray-800/50 rounded-xl p-5 border border-gray-700/50 hover:border-orange-500/30 transition">
-                    <h3 class="text-lg font-600 mb-1">ML0X</h3>
-                    <p class="text-gray-400 text-sm">Foundational machine learning from first principles.</p>
-                </a>
-                <a href="https://abwex.com" class="block bg-gray-800/50 rounded-xl p-5 border border-gray-700/50 hover:border-orange-500/30 transition">
-                    <h3 class="text-lg font-600 mb-1">Abwex</h3>
-                    <p class="text-gray-400 text-sm">AI experimentation frameworks, A/B testing, and rapid prototyping.</p>
-                </a>
-                <a href="https://enhio.com" class="block bg-gray-800/50 rounded-xl p-5 border border-gray-700/50 hover:border-orange-500/30 transition">
-                    <h3 class="text-lg font-600 mb-1">Enhio</h3>
-                    <p class="text-gray-400 text-sm">AI-powered enhancement tools for images, audio, and video.</p>
-                </a>
-            </div>
-        </div>
-    </section>
+    <h2>Part of the zovo.one Network</h2>
+    <p>krzen.com is built by <a href="https://zovo.one">zovo.one</a>. More tools:</p>
+    <ul>
+      <li><a href="https://gen8x.com">gen8x.com</a> — color palette generator</li>
+      <li><a href="https://enhio.com">enhio.com</a> — text analysis and readability scoring</li>
+      <li><a href="https://abwex.com">abwex.com</a> — A/B test significance calculator</li>
+    </ul>
+  </main>
 
-    <footer class="py-12 border-t border-gray-800">
-        <div class="max-w-6xl mx-auto px-4 text-center">
-            <a href="/" class="text-xl font-700 mb-4 inline-block" style="color: #f97316;">Krzen</a>
-            <p class="text-gray-500 text-sm">&copy; 2025 Krzen. All rights reserved.</p>
-        </div>
-    </footer>
-
+  <footer>
+    <div class="container">
+      <span>Built by <a href="https://zovo.one">zovo.one</a> &middot; More tools: <a href="https://epochpilot.com">epochpilot.com</a>, <a href="https://gen8x.com">gen8x.com</a></span>
+      <span>&copy; 2025 krzen.com</span>
+    </div>
+  </footer>
 </body>
 </html>

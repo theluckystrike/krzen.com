@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Optimization for Web: The Complete 2025 Guide | krzen.com</title>
+  <meta name="description" content="Everything you need to know about optimizing images for web performance in 2025. Formats, compression, responsive images, CDNs, and Core Web Vitals.">
+  <link rel="canonical" href="https://krzen.com/blog/post-1.html">
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="/" class="logo">krzen</a>
+      <nav>
+        <a href="/">Tool</a>
+        <a href="/blog/">Blog</a>
+        <a href="/about.html">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <article class="blog-post">
+    <h1>Image Optimization for Web: The Complete 2025 Guide</h1>
+    <p class="meta">Published April 2025 &middot; 9 min read</p>
+
+    <p>Images account for an average of 50% of a web page's total weight. Optimizing them is the single most impactful performance improvement you can make. In 2025, the tools and formats have matured significantly, but many sites still serve unoptimized images that waste bandwidth and hurt Core Web Vitals scores.</p>
+
+    <h2>Why Image Optimization Matters More Than Ever</h2>
+    <p>Google's Core Web Vitals directly impact search rankings, and Largest Contentful Paint (LCP) is the metric most affected by images. If your hero image takes 4 seconds to load, your LCP fails regardless of how fast your server and JavaScript are. The target is LCP under 2.5 seconds.</p>
+    <p>Mobile users on cellular connections are the most affected. A 2MB hero image that loads in 500ms on fiber takes 8 seconds on a 3G connection. Since mobile traffic now exceeds desktop for most sites, optimizing for the slowest connection your users experience is not optional.</p>
+
+    <h2>Step 1: Choose the Right Format</h2>
+    <p>The format decision tree in 2025 is straightforward:</p>
+    <ul>
+      <li><strong>WebP</strong> — Default choice for most images. 25-35% smaller than JPEG at equivalent quality. 97% browser support. Use it for photos, illustrations, and thumbnails.</li>
+      <li><strong>AVIF</strong> — Next-generation format. 30-50% smaller than WebP. Browser support is at 92% and growing. Use it with a WebP fallback for maximum savings.</li>
+      <li><strong>JPEG</strong> — Fallback for older browsers. Still perfectly fine when you cannot serve WebP or AVIF.</li>
+      <li><strong>PNG</strong> — Only for images requiring transparency with hard edges (logos, icons). Use WebP with alpha channel instead when possible.</li>
+      <li><strong>SVG</strong> — For vector graphics: icons, logos, illustrations with flat colors. Infinitely scalable, tiny file sizes.</li>
+    </ul>
+    <p>For quick format conversion and compression, use <a href="https://krzen.com">krzen.com</a> which handles JPEG, WebP, and PNG conversion entirely in your browser.</p>
+
+    <h2>Step 2: Compress Aggressively</h2>
+    <p>Most images can be compressed 60-80% without visible quality loss. The key insight is that the human eye is much less sensitive to compression artifacts in photographs than most developers assume.</p>
+    <p>Practical quality settings:</p>
+    <ul>
+      <li><strong>Hero images</strong> — Quality 75-85 for WebP, 80-90 for JPEG. These are large and highly visible, so slightly higher quality is justified.</li>
+      <li><strong>Thumbnails</strong> — Quality 60-70. Small display size hides compression artifacts effectively.</li>
+      <li><strong>Background images</strong> — Quality 50-65. Often displayed behind text or overlays, making artifacts invisible.</li>
+      <li><strong>Product images</strong> — Quality 80-85. Users may zoom in, so preserve more detail.</li>
+    </ul>
+
+    <h2>Step 3: Serve Responsive Images</h2>
+    <p>Serving a 2000px image to a 400px phone screen wastes 80% of the pixels. HTML provides built-in solutions:</p>
+    <pre>&lt;picture&gt;
+  &lt;source srcset="hero.avif" type="image/avif"&gt;
+  &lt;source srcset="hero.webp" type="image/webp"&gt;
+  &lt;img
+    srcset="hero-400.jpg 400w,
+            hero-800.jpg 800w,
+            hero-1200.jpg 1200w"
+    sizes="(max-width: 600px) 400px,
+           (max-width: 1000px) 800px,
+           1200px"
+    src="hero-800.jpg"
+    alt="Description"
+    loading="lazy"
+    decoding="async"
+    width="1200" height="600"&gt;
+&lt;/picture&gt;</pre>
+    <p>The <code>srcset</code> attribute lets the browser choose the appropriate size. The <code>picture</code> element enables format negotiation. Together, they can reduce image payload by 70-80% for mobile users.</p>
+
+    <h2>Step 4: Lazy Load Below-the-Fold Images</h2>
+    <p>The <code>loading="lazy"</code> attribute defers loading images that are not visible in the viewport. This is now supported by all major browsers and requires zero JavaScript. Add it to every image except your hero/LCP image, which should load eagerly.</p>
+    <p>Critical detail: do not lazy load your LCP image. This is a common mistake that directly hurts your Core Web Vitals score. The LCP image should be loaded eagerly, possibly with a <code>fetchpriority="high"</code> attribute.</p>
+
+    <h2>Step 5: Specify Dimensions</h2>
+    <p>Always include <code>width</code> and <code>height</code> attributes on your <code>img</code> tags. This allows the browser to reserve space before the image loads, preventing Cumulative Layout Shift (CLS). Without dimensions, the page layout shifts as each image loads, which is jarring for users and penalized by Google.</p>
+    <pre>&lt;!-- Bad: causes layout shift --&gt;
+&lt;img src="photo.webp" alt="Photo"&gt;
+
+&lt;!-- Good: space reserved, no shift --&gt;
+&lt;img src="photo.webp" alt="Photo"
+     width="800" height="600"&gt;</pre>
+
+    <h2>Step 6: Use a CDN</h2>
+    <p>Image CDNs (Cloudflare Images, Imgix, Cloudinary) provide on-the-fly format conversion, resizing, and compression. Upload the highest quality source, and the CDN serves the optimal version based on the user's browser, device, and connection speed.</p>
+    <p>If you are on a budget, Cloudflare's free tier includes basic image optimization for sites proxied through their DNS. For static sites, pre-optimizing images with a tool like <a href="https://krzen.com">krzen.com</a> and serving them from a standard CDN achieves 90% of the benefit.</p>
+
+    <h2>Measurement</h2>
+    <p>After optimizing, validate with Lighthouse, PageSpeed Insights, or WebPageTest. Focus on LCP time (target under 2.5s), total image weight (aim for under 500KB per page for most sites), and CLS (target 0.1 or less). Run tests on both mobile and desktop connections for a complete picture. For more optimization tools, see <a href="https://epochpilot.com">epochpilot.com</a>.</p>
+  </article>
+
+  <footer>
+    <div class="container">
+      <span>Built by <a href="https://zovo.one">zovo.one</a> &middot; More tools: <a href="https://epochpilot.com">epochpilot.com</a>, <a href="https://gen8x.com">gen8x.com</a></span>
+      <span>&copy; 2025 krzen.com</span>
+    </div>
+  </footer>
+</body>
+</html>

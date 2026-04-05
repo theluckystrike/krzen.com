@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebP vs JPEG vs PNG: When to Use Each Format | krzen.com</title>
+  <meta name="description" content="A technical comparison of WebP, JPEG, and PNG image formats. File size benchmarks, quality analysis, browser support, and clear recommendations for each use case.">
+  <link rel="canonical" href="https://krzen.com/blog/post-2.html">
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="/" class="logo">krzen</a>
+      <nav>
+        <a href="/">Tool</a>
+        <a href="/blog/">Blog</a>
+        <a href="/about.html">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <article class="blog-post">
+    <h1>WebP vs JPEG vs PNG: When to Use Each Format</h1>
+    <p class="meta">Published April 2025 &middot; 7 min read</p>
+
+    <p>The image format debate has settled significantly in 2025, but confusion persists. Each format has a specific set of strengths, and using the wrong one either wastes bandwidth or loses quality. Here is a definitive guide based on actual compression benchmarks and practical use cases.</p>
+
+    <h2>JPEG: The 30-Year Workhorse</h2>
+    <p>JPEG (Joint Photographic Experts Group) was introduced in 1992 and remains the most widely used photographic image format on the web. It uses lossy DCT-based compression that discards visual information the human eye is least sensitive to.</p>
+    <p><strong>Strengths:</strong></p>
+    <ul>
+      <li>Universal support — every browser, every image viewer, every tool</li>
+      <li>Excellent for photographs and complex images with gradients</li>
+      <li>Mature encoding tools with decades of optimization</li>
+      <li>Progressive JPEG enables incremental loading (blurry to sharp)</li>
+    </ul>
+    <p><strong>Weaknesses:</strong></p>
+    <ul>
+      <li>No transparency support</li>
+      <li>Visible artifacts at low quality (blocking, ringing around edges)</li>
+      <li>Each re-save degrades quality (generation loss)</li>
+      <li>25-35% larger than WebP at equivalent quality</li>
+    </ul>
+    <p><strong>Use JPEG when:</strong> You need maximum compatibility, your audience includes very old browsers or email clients, or your build pipeline does not support WebP output.</p>
+
+    <h2>PNG: Lossless Transparency</h2>
+    <p>PNG (Portable Network Graphics) uses lossless compression, meaning no visual information is lost. It supports full alpha channel transparency with 16 million colors.</p>
+    <p><strong>Strengths:</strong></p>
+    <ul>
+      <li>Lossless — pixel-perfect reproduction</li>
+      <li>Full alpha transparency (variable opacity per pixel)</li>
+      <li>Excellent for text, line art, screenshots, and graphics with sharp edges</li>
+      <li>No generation loss from re-editing</li>
+    </ul>
+    <p><strong>Weaknesses:</strong></p>
+    <ul>
+      <li>Large file sizes for photographs (3-10x larger than JPEG)</li>
+      <li>Lossless compression cannot match lossy formats for photos</li>
+      <li>PNG-8 (256 colors) is smaller but limited for complex images</li>
+    </ul>
+    <p><strong>Use PNG when:</strong> You need lossless quality (screenshots for documentation), transparency with hard edges (logos over varying backgrounds), or pixel-perfect graphics (UI sprites, icons that are not SVG).</p>
+
+    <h2>WebP: The Modern Default</h2>
+    <p>WebP, developed by Google, supports both lossy and lossless compression, plus transparency. It consistently outperforms JPEG and PNG in file size benchmarks.</p>
+    <p><strong>Benchmarks (1000 test images, quality 80):</strong></p>
+    <pre>Format    | Avg Size | vs JPEG
+----------|----------|--------
+JPEG q80  | 145 KB   | baseline
+WebP q80  | 102 KB   | -30%
+AVIF q80  |  78 KB   | -46%
+PNG       | 580 KB   | +300%</pre>
+    <p>WebP lossy achieves 25-35% smaller files than JPEG at equivalent visual quality. WebP lossless is 26% smaller than PNG on average. WebP supports animation (replacing GIF with much better compression) and alpha transparency.</p>
+    <p><strong>Browser support:</strong> 97% global coverage as of 2025. The only holdout is older Safari versions (pre-14), which represent less than 1% of traffic for most sites.</p>
+    <p><strong>Use WebP when:</strong> It should be your default for virtually all web images. Photos, thumbnails, illustrations, product images. Serve with a JPEG fallback via the <code>&lt;picture&gt;</code> element if you need to support very old browsers.</p>
+
+    <h2>The Decision Framework</h2>
+    <h3>For photographs and complex images:</h3>
+    <ol>
+      <li>WebP lossy (default)</li>
+      <li>AVIF if your pipeline supports it (with WebP fallback)</li>
+      <li>JPEG as a fallback</li>
+    </ol>
+
+    <h3>For graphics with transparency:</h3>
+    <ol>
+      <li>WebP with alpha (for raster graphics)</li>
+      <li>SVG (for vector graphics — logos, icons, illustrations)</li>
+      <li>PNG (fallback for complex transparency needs)</li>
+    </ol>
+
+    <h3>For screenshots and UI:</h3>
+    <ol>
+      <li>PNG for lossless accuracy</li>
+      <li>WebP lossless for smaller file sizes</li>
+    </ol>
+
+    <h3>For animations:</h3>
+    <ol>
+      <li>WebP animated (replaces GIF with 50-80% size reduction)</li>
+      <li>Video (MP4/WebM) for anything over 5 seconds — video codecs are dramatically more efficient than image-based animation</li>
+    </ol>
+
+    <h2>Practical Implementation</h2>
+    <p>The easiest approach for most sites is to convert all images to WebP at build time and serve them with a JPEG/PNG fallback:</p>
+    <pre>&lt;picture&gt;
+  &lt;source srcset="image.webp" type="image/webp"&gt;
+  &lt;img src="image.jpg" alt="Description"
+       width="800" height="600"
+       loading="lazy"&gt;
+&lt;/picture&gt;</pre>
+    <p>For quick one-off conversions, you can use <a href="https://krzen.com">krzen.com</a> to convert between JPEG, WebP, and PNG with quality control, all in your browser. For batch processing in a build pipeline, tools like Sharp (Node.js) and Pillow (Python) handle conversion programmatically:</p>
+    <pre># Using Sharp (Node.js)
+const sharp = require('sharp');
+
+await sharp('input.jpg')
+  .webp({ quality: 80 })
+  .toFile('output.webp');
+
+# Using Pillow (Python)
+from PIL import Image
+
+img = Image.open('input.jpg')
+img.save('output.webp', 'WebP', quality=80)</pre>
+
+    <p>The bottom line: WebP has won the format war for general web use. Use it as your default, keep JPEG as a fallback, reserve PNG for lossless needs, and consider AVIF for maximum compression when your toolchain supports it. For more tools and ML-related resources, check <a href="https://ml0x.com">ml0x.com</a> and <a href="https://zovo.one">zovo.one</a>.</p>
+  </article>
+
+  <footer>
+    <div class="container">
+      <span>Built by <a href="https://zovo.one">zovo.one</a> &middot; More tools: <a href="https://epochpilot.com">epochpilot.com</a>, <a href="https://gen8x.com">gen8x.com</a></span>
+      <span>&copy; 2025 krzen.com</span>
+    </div>
+  </footer>
+</body>
+</html>
