@@ -1,5 +1,10 @@
 /* Image Compressor - krzen.com */
 (function() {
+
+function escapeHtml(str) {
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
   'use strict';
 
   var files = [];
@@ -79,7 +84,7 @@
     var el = document.getElementById('file-info');
     el.classList.add('visible');
     el.querySelector('.info-grid').innerHTML =
-      '<div class="info-item"><label>File Name</label><span>' + file.name + '</span></div>' +
+      '<div class="info-item"><label>File Name</label><span>' + escapeHtml(file.name) + '</span></div>' +
       '<div class="info-item"><label>Dimensions</label><span>' + w + ' x ' + h + '</span></div>' +
       '<div class="info-item"><label>File Size</label><span>' + formatSize(file.size) + '</span></div>' +
       '<div class="info-item"><label>Format</label><span>' + file.type.split('/')[1].toUpperCase() + '</span></div>';
@@ -219,7 +224,7 @@
     for (var i = 0; i < fileList.length; i++) {
       var item = document.createElement('div');
       item.className = 'bulk-item';
-      item.innerHTML = '<span class="name">' + fileList[i].name + '</span><span class="size">' + formatSize(fileList[i].size) + '</span><button class="btn" data-idx="' + i + '" style="padding:6px 14px;font-size:0.8rem;">Compress</button>';
+      item.innerHTML = '<span class="name">' + escapeHtml(fileList[i].name) + '</span><span class="size">' + formatSize(fileList[i].size) + '</span><button class="btn" data-idx="' + i + '" style="padding:6px 14px;font-size:0.8rem;">Compress</button>';
       list.appendChild(item);
     }
 
