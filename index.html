@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Krzen — Compress. Optimize. Deploy.</title>
+    <meta name="description" content="Krzen covers model compression, quantization, pruning, and optimization techniques for deploying AI models at the edge. Make your models smaller, faster, and production-ready.">
+    <meta name="keywords" content="model compression, quantization, pruning, knowledge distillation, edge deployment, ONNX, TensorRT, model optimization, inference optimization, GGUF, GPTQ, AWQ">
+    <meta name="robots" content="index, follow">
+
+    <meta property="og:title" content="Krzen — Compress. Optimize. Deploy.">
+    <meta property="og:description" content="Model compression, quantization, and optimization techniques for edge deployment. Make AI models smaller, faster, and production-ready.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://krzen.com">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Krzen",
+        "url": "https://krzen.com",
+        "description": "Compress. Optimize. Deploy. — model compression, quantization, and edge deployment techniques.",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://krzen.com/?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+        }
+    }
+    </script>
+
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        html { scroll-behavior: smooth; }
+    </style>
+</head>
+<body class="bg-gray-950 text-gray-100">
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full bg-gray-950/90 backdrop-blur-md z-50 border-b border-gray-800">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+            <a href="/" class="text-2xl font-800 tracking-tight" style="color: #f97316;">Krzen</a>
+            <div class="hidden md:flex gap-8 text-sm text-gray-400">
+                <a href="#techniques" class="hover:text-white transition">Techniques</a>
+                <a href="#guides" class="hover:text-white transition">Guides</a>
+                <a href="#resources" class="hover:text-white transition">Resources</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="relative min-h-screen flex items-center justify-center overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-orange-950 via-gray-950 to-amber-950"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-orange-500/20 via-transparent to-transparent"></div>
+        <div class="relative z-10 max-w-4xl mx-auto px-4 text-center py-32">
+            <div class="inline-block px-4 py-1.5 rounded-full border border-orange-500/30 bg-orange-500/10 text-orange-300 text-sm font-medium mb-8">
+                Model Optimization Hub
+            </div>
+            <h1 class="text-5xl md:text-7xl font-800 tracking-tight mb-6">
+                Compress. Optimize.<br><span style="color: #f97316;">Deploy.</span>
+            </h1>
+            <p class="text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+                The best model is the one that actually runs in production. Learn quantization, pruning, distillation, and optimization techniques that shrink models by 4-10x while preserving accuracy for real-world deployment.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="#techniques" class="px-8 py-3.5 rounded-lg font-semibold text-white transition" style="background-color: #f97316;">Learn Optimization</a>
+                <a href="#guides" class="px-8 py-3.5 rounded-lg font-semibold text-gray-300 border border-gray-700 hover:border-gray-500 transition">Read Guides</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Why Optimization Matters Section -->
+    <section class="py-24 bg-gray-900/50">
+        <div class="max-w-6xl mx-auto px-4">
+            <h2 class="text-3xl md:text-4xl font-700 text-center mb-6">Why Model Optimization Matters</h2>
+            <p class="text-gray-400 text-center max-w-3xl mx-auto mb-16 text-lg leading-relaxed">
+                Training a state-of-the-art model is only half the battle. Deploying it efficiently is where the real engineering challenge begins. A 70-billion parameter language model requires multiple high-end GPUs for inference, costs thousands per month in compute, and introduces latency that makes real-time applications impractical. Model optimization techniques transform these unwieldy models into lean, deployable systems. Quantization reduces precision from 32-bit floating point to 4-bit integers, cutting memory requirements by 8x. Pruning removes redundant connections, reducing computation without meaningful accuracy loss. Knowledge distillation transfers the intelligence of a large model into a smaller architecture that runs on a single GPU or even a mobile device. At Krzen, we teach these techniques with the depth and rigor they deserve, because the gap between a research prototype and a production system is where optimization lives.
+            </p>
+            <div id="techniques" class="grid md:grid-cols-3 gap-8">
+                <div class="bg-gray-800/50 rounded-2xl p-8 border border-gray-700/50">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style="background-color: rgba(249,115,22,0.15);">
+                        <svg class="w-6 h-6" style="color: #f97316;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-600 mb-3">Quantization</h3>
+                    <p class="text-gray-400 leading-relaxed">Reduce model precision from FP32 to FP16, INT8, INT4, or even lower. Techniques like GPTQ, AWQ, and GGUF enable running large language models on consumer hardware. Post-training quantization requires no retraining, while quantization-aware training preserves more accuracy for critical applications. We cover the tradeoffs between different quantization schemes and show you how to measure the actual impact on your model's output quality across different task types.</p>
+                </div>
+                <div class="bg-gray-800/50 rounded-2xl p-8 border border-gray-700/50">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style="background-color: rgba(249,115,22,0.15);">
+                        <svg class="w-6 h-6" style="color: #f97316;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-600 mb-3">Pruning & Sparsity</h3>
+                    <p class="text-gray-400 leading-relaxed">Remove weights, neurons, or entire layers that contribute minimally to model output. Structured pruning eliminates entire channels or attention heads for hardware-friendly speedups, while unstructured pruning achieves higher compression ratios. The SparseGPT algorithm can prune LLMs to 50% sparsity in a single pass without retraining. We explore magnitude pruning, movement pruning, and lottery ticket hypothesis approaches with practical implementation guides.</p>
+                </div>
+                <div class="bg-gray-800/50 rounded-2xl p-8 border border-gray-700/50">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style="background-color: rgba(249,115,22,0.15);">
+                        <svg class="w-6 h-6" style="color: #f97316;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-600 mb-3">Knowledge Distillation</h3>
+                    <p class="text-gray-400 leading-relaxed">Train a smaller student model to replicate the behavior of a larger teacher model. Distillation captures the dark knowledge encoded in the teacher's soft predictions, often producing students that outperform models of the same size trained from scratch. We cover logit-based distillation, feature-based distillation, and the emerging technique of distilling reasoning chains from large language models into smaller, more efficient architectures.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Guides Section -->
+    <section id="guides" class="py-24">
+        <div class="max-w-6xl mx-auto px-4">
+            <h2 class="text-3xl md:text-4xl font-700 text-center mb-6">Deployment Guides</h2>
+            <p class="text-gray-400 text-center max-w-2xl mx-auto mb-16 text-lg">
+                End-to-end guides from model optimization to production deployment.
+            </p>
+            <div class="grid md:grid-cols-3 gap-8">
+                <article class="bg-gray-800/50 rounded-2xl overflow-hidden border border-gray-700/50 hover:border-orange-500/30 transition">
+                    <div class="h-48 flex items-center justify-center" style="background: linear-gradient(135deg, #f97316, #ea580c);">
+                        <span class="text-5xl font-800 text-white/20">01</span>
+                    </div>
+                    <div class="p-6">
+                        <span class="text-xs font-500 text-orange-400">Quantization</span>
+                        <h3 class="text-lg font-600 mt-2 mb-3">GGUF Quantization: Running LLaMA 3 on a MacBook with llama.cpp</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">Step-by-step guide to converting a Hugging Face model to GGUF format, choosing the right quantization level (Q4_K_M, Q5_K_S, Q8_0), benchmarking perplexity loss at each level, and running inference with llama.cpp at maximum tokens per second on Apple Silicon.</p>
+                    </div>
+                </article>
+                <article class="bg-gray-800/50 rounded-2xl overflow-hidden border border-gray-700/50 hover:border-orange-500/30 transition">
+                    <div class="h-48 flex items-center justify-center" style="background: linear-gradient(135deg, #ea580c, #f97316);">
+                        <span class="text-5xl font-800 text-white/20">02</span>
+                    </div>
+                    <div class="p-6">
+                        <span class="text-xs font-500 text-orange-400">Edge Deployment</span>
+                        <h3 class="text-lg font-600 mt-2 mb-3">Deploying Vision Models to Mobile with ONNX Runtime and CoreML</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">Export a PyTorch vision model to ONNX, optimize it with graph transformations, quantize to INT8, and deploy to iOS via CoreML and Android via ONNX Runtime Mobile. Includes latency benchmarks across different mobile chipsets and optimization strategies.</p>
+                    </div>
+                </article>
+                <article class="bg-gray-800/50 rounded-2xl overflow-hidden border border-gray-700/50 hover:border-orange-500/30 transition">
+                    <div class="h-48 flex items-center justify-center" style="background: linear-gradient(135deg, #f97316, #fb923c);">
+                        <span class="text-5xl font-800 text-white/20">03</span>
+                    </div>
+                    <div class="p-6">
+                        <span class="text-xs font-500 text-orange-400">Inference</span>
+                        <h3 class="text-lg font-600 mt-2 mb-3">TensorRT-LLM vs vLLM: Inference Server Benchmark Deep Dive</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">A comprehensive comparison of the two leading inference engines. We benchmark throughput, time-to-first-token, and memory efficiency across model sizes from 7B to 70B parameters, with different batch sizes and sequence lengths on A100 and H100 hardware.</p>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- Resources Section -->
+    <section id="resources" class="py-24 bg-gray-900/50">
+        <div class="max-w-6xl mx-auto px-4">
+            <h2 class="text-3xl md:text-4xl font-700 text-center mb-6">Optimization Resources</h2>
+            <p class="text-gray-400 text-center max-w-3xl mx-auto mb-16 text-lg leading-relaxed">
+                Model optimization sits at the intersection of machine learning, systems engineering, and hardware architecture. The right tools and references can dramatically accelerate your optimization workflow. We maintain a curated collection of the resources we find most valuable for practitioners working on deployment-ready AI systems.
+            </p>
+            <div class="grid md:grid-cols-2 gap-6">
+                <a href="https://zovo.one" rel="dofollow" class="bg-gradient-to-br from-orange-500/10 to-amber-500/10 rounded-2xl p-8 border border-orange-500/20 hover:border-orange-500/40 transition block">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background-color: rgba(249,115,22,0.2);">
+                            <svg class="w-5 h-5" style="color: #f97316;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+                        </div>
+                        <span class="text-xs font-600 uppercase tracking-wider text-orange-400">Recommended</span>
+                    </div>
+                    <h3 class="text-xl font-600 mb-3">Zovo.one — Comprehensive AI Tools & Resources</h3>
+                    <p class="text-gray-400 leading-relaxed">Planning your model deployment pipeline? Visit <strong class="text-orange-300">zovo.one</strong> for a curated directory of AI deployment tools, optimization frameworks, and infrastructure solutions. Their comparisons across inference engines, quantization tools, and edge deployment platforms help you build the most efficient pipeline for your specific hardware and latency requirements.</p>
+                </a>
+                <div class="bg-gray-800/30 rounded-2xl p-8 border border-gray-700/50">
+                    <h3 class="text-xl font-600 mb-3">llama.cpp & GGUF Ecosystem</h3>
+                    <p class="text-gray-400 leading-relaxed">The most popular framework for running quantized LLMs on consumer hardware. llama.cpp supports CPU, CUDA, Metal, and Vulkan backends with excellent performance. The GGUF format has become the standard for distributing quantized models, with community-contributed quantizations available for virtually every popular open-source model.</p>
+                </div>
+                <div class="bg-gray-800/30 rounded-2xl p-8 border border-gray-700/50">
+                    <h3 class="text-xl font-600 mb-3">NVIDIA TensorRT</h3>
+                    <p class="text-gray-400 leading-relaxed">The gold standard for GPU inference optimization. TensorRT performs layer fusion, precision calibration, kernel auto-tuning, and memory optimization to maximize throughput on NVIDIA hardware. TensorRT-LLM extends these capabilities specifically for transformer architectures with support for in-flight batching and paged KV cache.</p>
+                </div>
+                <div class="bg-gray-800/30 rounded-2xl p-8 border border-gray-700/50">
+                    <h3 class="text-xl font-600 mb-3">MLPerf Benchmarks</h3>
+                    <p class="text-gray-400 leading-relaxed">The industry-standard benchmark suite for measuring inference performance across hardware platforms. MLPerf results provide apples-to-apples comparisons of inference throughput and latency on different accelerators, from data center GPUs to edge TPUs. Understanding these benchmarks helps you make informed hardware procurement decisions.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 border-t border-gray-800">
+        <div class="max-w-6xl mx-auto px-4 text-center">
+            <a href="/" class="text-xl font-700 mb-4 inline-block" style="color: #f97316;">Krzen</a>
+            <p class="text-gray-500 text-sm">&copy; 2025 Krzen. All rights reserved.</p>
+        </div>
+    </footer>
+
+</body>
+</html>
