@@ -20,9 +20,7 @@ Drag one or more images onto the drop zone (or click to select files). The compr
 
 - Vanilla JavaScript (no frameworks, no dependencies)
 - Client-side only — your data never leaves your browser
-- Part of the [Zovo Tools](https://zovo.one) open network
 
-## Related Tools
 
 - [Color Palette Generator](https://gen8x.com) — create color schemes for your image-heavy designs
 - [Developer Toolkit](https://kappakit.com) — Base64 encode images for inline embedding
