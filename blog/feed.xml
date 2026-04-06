@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Image Compressor — Compress Images Online Blog</title>
+  <link href="https://krzen.com/blog/" rel="alternate"/>
+  <link href="https://krzen.com/blog/feed.xml" rel="self"/>
+  <id>https://krzen.com/blog/</id>
+  <updated>2026-04-06T00:00:00Z</updated>
+  <author><name>Image Compressor — Compress Images Online</name></author>
+  <entry>
+    <title>Image Optimization for Web: The Complete 2025 Guide | krzen.com</title>
+    <link href="https://krzen.com/blog/post-1.html" rel="alternate"/>
+    <id>https://krzen.com/blog/post-1.html</id>
+    <updated>2026-04-06T00:00:00Z</updated>
+    <summary>Everything you need to know about optimizing images for web performance in 2025. Formats, compression, responsive images, CDNs, and Core Web Vitals.</summary>
+  </entry>
+  <entry>
+    <title>WebP vs JPEG vs PNG: When to Use Each Format | krzen.com</title>
+    <link href="https://krzen.com/blog/post-2.html" rel="alternate"/>
+    <id>https://krzen.com/blog/post-2.html</id>
+    <updated>2026-04-06T00:00:00Z</updated>
+    <summary>A technical comparison of WebP, JPEG, and PNG image formats. File size benchmarks, quality analysis, browser support, and clear recommendations for each use case.</summary>
+  </entry>
+</feed>
