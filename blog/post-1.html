@@ -106,6 +106,8 @@
     <p>The <code>loading="lazy"</code> attribute defers loading images that are not visible in the viewport. This is now supported by all major browsers and requires zero JavaScript. Add it to every image except your hero/LCP image, which should load eagerly.</p>
     <p>Critical detail: do not lazy load your LCP image. This is a common mistake that directly hurts your Core Web Vitals score. The LCP image should be loaded eagerly, possibly with a <code>fetchpriority="high"</code> attribute.</p>
 
+    <p>For complementary developer tools like hash generators and Base64 encoders, check out <a href="https://kappakit.com/tools/">KappaKit's developer toolkit</a>.</p>
+
     <h2>Step 5: Specify Dimensions</h2>
     <p>Always include <code>width</code> and <code>height</code> attributes on your <code>img</code> tags. This allows the browser to reserve space before the image loads, preventing Cumulative Layout Shift (CLS). Without dimensions, the page layout shifts as each image loads, which is jarring for users and penalized by Google.</p>
     <pre>&lt;!-- Bad: causes layout shift --&gt;
