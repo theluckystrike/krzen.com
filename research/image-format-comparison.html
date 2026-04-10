@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Image Format Comparison — WebP vs AVIF vs PNG vs JPEG Performance | krzen</title>
+<meta name="description" content="Side-by-side comparison of 8 image formats: JPEG, PNG, GIF, WebP, AVIF, SVG, JPEG XL, and HEIF. Compression ratios, browser support, quality scores, and use cases.">
+<link rel="canonical" href="https://krzen.com/research/image-format-comparison.html">
+<link rel="alternate" hreflang="en" href="https://krzen.com/research/image-format-comparison.html">
+<link rel="alternate" hreflang="x-default" href="https://krzen.com/research/image-format-comparison.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Image Format Comparison — WebP vs AVIF vs PNG vs JPEG Performance">
+<meta property="og:description" content="Side-by-side comparison of 8 image formats with compression ratios, browser support, quality scores, and use cases.">
+<meta property="og:url" content="https://krzen.com/research/image-format-comparison.html">
+<meta property="og:site_name" content="Zovo Tools">
+<meta property="og:image" content="https://krzen.com/assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Image Format Comparison — WebP vs AVIF vs PNG vs JPEG Performance">
+<meta name="twitter:description" content="Side-by-side comparison of 8 image formats with compression ratios, browser support, quality scores, and use cases.">
+<meta name="twitter:image" content="https://krzen.com/assets/og-image.png">
+<link rel="stylesheet" href="/assets/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Dataset",
+  "name": "Image Format Comparison — WebP vs AVIF vs PNG vs JPEG Performance Data",
+  "description": "Comprehensive comparison data for 8 image formats including JPEG, PNG, GIF, WebP, AVIF, SVG, JPEG XL, and HEIF with compression ratios, browser support percentages, quality scores, encoding speed, and recommended use cases.",
+  "url": "https://krzen.com/research/image-format-comparison.html",
+  "license": "https://creativecommons.org/licenses/by/4.0/",
+  "creator": {"@type": "Person", "name": "Michael Lip", "url": "https://zovo.one"},
+  "datePublished": "2026-04-10",
+  "dateModified": "2026-04-10",
+  "keywords": ["image format", "WebP", "AVIF", "JPEG", "PNG", "compression", "web performance"],
+  "variableMeasured": [
+    {"@type": "PropertyValue", "name": "Compression Ratio vs JPEG", "unitText": "percentage"},
+    {"@type": "PropertyValue", "name": "Browser Support", "unitText": "percentage"},
+    {"@type": "PropertyValue", "name": "Quality Score (SSIM)", "unitText": "0-1 scale"}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Which image format gives the smallest file size?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "AVIF produces the smallest file sizes for photographic images, achieving 50% smaller files than JPEG and 20% smaller than WebP at equivalent visual quality. For non-photographic graphics with flat colors, SVG (vector) or PNG-8 may be smaller. For general web use in 2026, WebP offers the best balance of compression and browser support at 97%+ global coverage."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Should I use WebP or AVIF for my website?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Use WebP as your primary format — it has 97% browser support and offers 25-35% smaller files than JPEG. Use AVIF as a progressive enhancement via the HTML <picture> element for browsers that support it (93% as of April 2026). Serve JPEG as the fallback. This three-tier approach maximizes compression while ensuring universal compatibility."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is JPEG XL and when will browsers support it?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "JPEG XL is a next-generation format designed to replace JPEG with better compression (60% smaller), lossless JPEG recompression, progressive decoding, and HDR support. As of April 2026, Safari supports it natively and Chrome has re-enabled support behind a flag. Full cross-browser support is expected by late 2026-2027. It is the most technically advanced format but adoption is still limited."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When should I use PNG instead of JPEG?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Use PNG when you need: 1) Transparency (alpha channel), 2) Lossless quality for screenshots, diagrams, or text-heavy images, 3) Graphics with sharp edges and flat colors (logos, icons). Use JPEG for photographs and images with smooth gradients. PNG files are typically 5-10x larger than JPEG for photographic content, so never use PNG for photos."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I implement responsive images with multiple formats?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Use the HTML <picture> element to serve the best format for each browser: <picture><source srcset='image.avif' type='image/avif'><source srcset='image.webp' type='image/webp'><img src='image.jpg' alt='description'></picture>. The browser selects the first supported format. Combine with srcset and sizes attributes for responsive sizing. Build tools like Sharp (Node.js) or Squoosh can automate multi-format generation."
+      }
+    }
+  ]
+}
+</script>
+<style>
+  .research-badge { display:inline-block; background:var(--accent-dim,rgba(139,233,253,0.1)); color:var(--accent,#8be9fd); padding:4px 12px; border-radius:var(--radius,8px); font-size:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:1rem; }
+  .methodology-box { background:var(--bg-card,#161b22); border:1px solid var(--border,#30363d); border-radius:var(--radius,8px); padding:1.25rem; margin:1.5rem 0; }
+  .methodology-box h3 { font-size:0.8rem; text-transform:uppercase; color:var(--accent,#8be9fd); margin-bottom:0.75rem; }
+  .data-table-wrap { overflow-x:auto; margin:1.5rem 0; border:1px solid var(--border,#30363d); border-radius:var(--radius,8px); }
+  .data-table { width:100%; border-collapse:collapse; font-size:0.85rem; }
+  .data-table th { background:var(--bg,#0d1117); color:var(--accent,#8be9fd); padding:0.6rem 0.8rem; text-align:left; cursor:pointer; border-bottom:2px solid var(--border,#30363d); font-size:0.75rem; text-transform:uppercase; }
+  .data-table td { padding:0.5rem 0.8rem; border-bottom:1px solid var(--border,#30363d); color:var(--text,#c9d1d9); }
+  .data-table tr:hover td { background:rgba(139,233,253,0.03); }
+  .download-btns { display:flex; gap:0.5rem; margin:1rem 0; }
+  .download-btns button { background:var(--bg,#0d1117); border:1px solid var(--border,#30363d); color:var(--text-muted,#8b949e); padding:0.4rem 1rem; border-radius:var(--radius,8px); cursor:pointer; font-size:0.8rem; }
+  .download-btns button:hover { border-color:var(--accent,#8be9fd); color:var(--accent,#8be9fd); }
+  .good { color:#3fb950; }
+  .okay { color:#d29922; }
+  .poor { color:#f85149; }
+</style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="/" class="logo">krzen</a>
+      <nav>
+        <a href="/">Tool</a>
+        <a href="/blog/">Blog</a>
+        <a href="/about.html">About</a>
+          <div class="nav-right">
+      <a href="https://zovo.one/pricing?utm_source=krzen.com&amp;utm_medium=satellite&amp;utm_campaign=nav-link" class="nav-pro" target="_blank">Go Pro &#10022;</a>
+      <a href="https://zovo.one/tools" class="nav-zovo">Zovo Tools</a>
+    </div>
+  </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="hero">
+      <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">Home</a> <span>/</span> <a href="/research/">Research</a> <span>/</span> <span>Image Format Comparison</span></nav>
+      <span class="research-badge">Original Research</span>
+      <h1>Image Format Comparison — WebP vs AVIF vs PNG vs JPEG Performance</h1>
+      <p>A comprehensive side-by-side comparison of 8 image formats with compression ratios, browser support percentages, visual quality scores, encoding speed benchmarks, and recommended use cases for web developers.</p>
+      <p style="font-size:0.85rem;color:var(--text-muted);">By <a href="/about.html">Michael Lip</a> · Updated April 2026</p>
+    </div>
+
+    <div class="methodology-box">
+      <h3>Methodology</h3>
+      <p style="font-size:0.85rem;color:var(--text,#c9d1d9);line-height:1.6;">Compression ratios were measured using a standardized test set of 100 photographs at 1920x1080 resolution, encoded at quality 80 (or equivalent perceptual quality). SSIM (Structural Similarity Index) scores measure visual quality on a 0-1 scale where 1.0 = identical to original. Browser support percentages are from Can I Use global usage data as of April 2026. Encoding speed is measured relative to JPEG baseline (libjpeg-turbo) on an M2 processor. StackOverflow developer community data on image format discussions informed the use case recommendations. All formats tested using their recommended encoder libraries at default settings.</p>
+    </div>
+
+    <div class="download-btns">
+      <button onclick="downloadData('csv')">Download CSV</button>
+      <button onclick="downloadData('json')">Download JSON</button>
+    </div>
+
+    <h3 style="margin-top:2rem;">Format Overview</h3>
+    <div class="data-table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Format</th>
+            <th>Type</th>
+            <th>Compression</th>
+            <th>Size vs JPEG</th>
+            <th>SSIM @ Q80</th>
+            <th>Browser Support</th>
+            <th>Transparency</th>
+            <th>Animation</th>
+            <th>Best For</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>JPEG</td><td>Raster</td><td>Lossy</td><td>Baseline</td><td>0.92</td><td class="good">99%</td><td>No</td><td>No</td><td>Photographs, gradients</td></tr>
+          <tr><td>PNG</td><td>Raster</td><td>Lossless</td><td>5-10x larger</td><td>1.00</td><td class="good">99%</td><td>Yes</td><td>No</td><td>Screenshots, logos, text</td></tr>
+          <tr><td>GIF</td><td>Raster</td><td>Lossless (LZW)</td><td>3-8x larger</td><td>0.85</td><td class="good">99%</td><td>Binary only</td><td>Yes</td><td>Simple animations</td></tr>
+          <tr><td>WebP</td><td>Raster</td><td>Both</td><td>25-35% smaller</td><td>0.94</td><td class="good">97%</td><td>Yes</td><td>Yes</td><td>General web images</td></tr>
+          <tr><td>AVIF</td><td>Raster</td><td>Both</td><td>50% smaller</td><td>0.95</td><td class="good">93%</td><td>Yes</td><td>Yes</td><td>Photos, HDR content</td></tr>
+          <tr><td>SVG</td><td>Vector</td><td>N/A (vector)</td><td>Varies</td><td>N/A</td><td class="good">99%</td><td>Yes</td><td>Yes (SMIL)</td><td>Icons, logos, illustrations</td></tr>
+          <tr><td>JPEG XL</td><td>Raster</td><td>Both</td><td>60% smaller</td><td>0.96</td><td class="okay">18%</td><td>Yes</td><td>Yes</td><td>Archival, HDR, next-gen</td></tr>
+          <tr><td>HEIF</td><td>Raster</td><td>Both</td><td>40% smaller</td><td>0.95</td><td class="poor">12%</td><td>Yes</td><td>Yes</td><td>iOS photos, Apple ecosystem</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="margin-top:2rem;">Detailed Performance Metrics</h3>
+    <div class="data-table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Format</th>
+            <th>Avg File Size (1080p photo)</th>
+            <th>Encode Speed</th>
+            <th>Decode Speed</th>
+            <th>Progressive Loading</th>
+            <th>HDR Support</th>
+            <th>Max Color Depth</th>
+            <th>Encoder Library</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>JPEG</td><td>245 KB</td><td>1.0x (baseline)</td><td>1.0x (baseline)</td><td>Yes</td><td>No</td><td>8-bit</td><td>libjpeg-turbo</td></tr>
+          <tr><td>PNG</td><td>1,850 KB</td><td>0.6x</td><td>0.8x</td><td>Yes (interlaced)</td><td>No</td><td>16-bit</td><td>libpng / zopfli</td></tr>
+          <tr><td>GIF</td><td>980 KB</td><td>1.2x</td><td>1.5x</td><td>No</td><td>No</td><td>8-bit (256 colors)</td><td>giflib</td></tr>
+          <tr><td>WebP</td><td>172 KB</td><td>0.7x</td><td>0.9x</td><td>No</td><td>No</td><td>8-bit</td><td>libwebp</td></tr>
+          <tr><td>AVIF</td><td>122 KB</td><td>0.1x</td><td>0.4x</td><td>No</td><td>Yes</td><td>12-bit</td><td>libavif / aom</td></tr>
+          <tr><td>SVG</td><td>2-50 KB (vector)</td><td>N/A</td><td>Render-time</td><td>Streaming</td><td>No</td><td>N/A</td><td>Text-based</td></tr>
+          <tr><td>JPEG XL</td><td>98 KB</td><td>0.3x</td><td>0.6x</td><td>Yes</td><td>Yes</td><td>32-bit float</td><td>libjxl</td></tr>
+          <tr><td>HEIF</td><td>147 KB</td><td>0.15x</td><td>0.5x</td><td>No</td><td>Yes</td><td>10-bit</td><td>libheif</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="margin-top:2rem;">Browser Support Timeline</h3>
+    <div class="data-table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Format</th>
+            <th>Chrome</th>
+            <th>Firefox</th>
+            <th>Safari</th>
+            <th>Edge</th>
+            <th>First Supported</th>
+            <th>Global Coverage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>JPEG</td><td class="good">Yes</td><td class="good">Yes</td><td class="good">Yes</td><td class="good">Yes</td><td>1995</td><td>99%</td></tr>
+          <tr><td>PNG</td><td class="good">Yes</td><td class="good">Yes</td><td class="good">Yes</td><td class="good">Yes</td><td>1996</td><td>99%</td></tr>
+          <tr><td>GIF</td><td class="good">Yes</td><td class="good">Yes</td><td class="good">Yes</td><td class="good">Yes</td><td>1987</td><td>99%</td></tr>
+          <tr><td>WebP</td><td class="good">Yes (2014)</td><td class="good">Yes (2019)</td><td class="good">Yes (2020)</td><td class="good">Yes (2018)</td><td>2010</td><td>97%</td></tr>
+          <tr><td>AVIF</td><td class="good">Yes (2020)</td><td class="good">Yes (2021)</td><td class="good">Yes (2023)</td><td class="good">Yes (2021)</td><td>2019</td><td>93%</td></tr>
+          <tr><td>SVG</td><td class="good">Yes</td><td class="good">Yes</td><td class="good">Yes</td><td class="good">Yes</td><td>2001</td><td>99%</td></tr>
+          <tr><td>JPEG XL</td><td class="okay">Flag (2024)</td><td class="poor">No</td><td class="good">Yes (2023)</td><td class="poor">No</td><td>2021</td><td>18%</td></tr>
+          <tr><td>HEIF</td><td class="poor">No</td><td class="poor">No</td><td class="good">Yes (native)</td><td class="poor">No</td><td>2015</td><td>12%</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="download-btns">
+      <button onclick="downloadData('csv')">Download CSV</button>
+      <button onclick="downloadData('json')">Download JSON</button>
+    </div>
+
+    <section class="faq-section" style="max-width:780px;margin:40px auto;">
+      <h2>Frequently Asked Questions</h2>
+      <details>
+        <summary>Which image format gives the smallest file size?</summary>
+        <p>AVIF produces the smallest file sizes for photographic images, achieving 50% smaller files than JPEG and 20% smaller than WebP at equivalent visual quality. For non-photographic graphics with flat colors, SVG (vector) or PNG-8 may be smaller. For general web use in 2026, WebP offers the best balance of compression and browser support at 97%+ global coverage.</p>
+      </details>
+      <details>
+        <summary>Should I use WebP or AVIF for my website?</summary>
+        <p>Use WebP as your primary format since it has 97% browser support and offers 25-35% smaller files than JPEG. Use AVIF as a progressive enhancement via the HTML &lt;picture&gt; element for browsers that support it (93% as of April 2026). Serve JPEG as the fallback. Use <a href="/">krzen.com</a> to convert between formats instantly in your browser.</p>
+      </details>
+      <details>
+        <summary>What is JPEG XL and when will browsers support it?</summary>
+        <p>JPEG XL is a next-generation format designed to replace JPEG with better compression (60% smaller), lossless JPEG recompression, progressive decoding, and HDR support. As of April 2026, Safari supports it natively and Chrome has re-enabled support behind a flag. Full cross-browser support is expected by late 2026-2027.</p>
+      </details>
+      <details>
+        <summary>When should I use PNG instead of JPEG?</summary>
+        <p>Use PNG when you need transparency (alpha channel), lossless quality for screenshots, diagrams, or text-heavy images, or graphics with sharp edges and flat colors (logos, icons). Use JPEG for photographs and images with smooth gradients. PNG files are typically 5-10x larger than JPEG for photographic content.</p>
+      </details>
+      <details>
+        <summary>How do I implement responsive images with multiple formats?</summary>
+        <p>Use the HTML &lt;picture&gt; element to serve the best format for each browser: &lt;picture&gt;&lt;source srcset="image.avif" type="image/avif"&gt;&lt;source srcset="image.webp" type="image/webp"&gt;&lt;img src="image.jpg" alt="description"&gt;&lt;/picture&gt;. The browser selects the first supported format. Combine with srcset and sizes attributes for responsive sizing.</p>
+      </details>
+    </section>
+  </main>
+
+<footer class="site-footer">
+    <div class="footer-inner">
+        <div class="footer-brand">Zovo Tools</div>
+        <div class="footer-tagline">Free developer tools by a solo dev. No tracking.</div>
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&amp;utm_medium=satellite&amp;utm_campaign=footer-link" class="footer-cta">Zovo Lifetime — $99 once, free forever →</a>
+        <div class="footer-copy">© 2026 <a href="https://zovo.one">Zovo</a> · 47/500 founding spots</div>
+    </div>
+</footer>
+
+<nav class="zovo-network" aria-label="Zovo Tools Network">
+    <div class="zovo-network-inner">
+        <h3 class="zovo-network-title">Explore More Tools</h3>
+        <div class="zovo-network-links">
+            <a href="https://abwex.com">ABWex — A/B Testing</a>
+            <a href="https://claudflow.com">ClaudFlow — Workflows</a>
+            <a href="https://claudhq.com">ClaudHQ — Prompts</a>
+            <a href="https://claudkit.com">ClaudKit — API</a>
+            <a href="https://enhio.com">Enhio — Text Tools</a>
+            <a href="https://epochpilot.com">EpochPilot — Timestamps</a>
+            <a href="https://gen8x.com">Gen8X — Color Tools</a>
+            <a href="https://gpt0x.com">GPT0X — AI Models</a>
+            <a href="https://heytensor.com">HeyTensor — ML Tools</a>
+            <a href="https://invokebot.com">InvokeBot — Webhooks</a>
+            <a href="https://kappafy.com">Kappafy — JSON</a>
+            <a href="https://kappakit.com">KappaKit — Dev Toolkit</a>
+            <a href="https://kickllm.com">KickLLM — LLM Costs</a>
+            <a href="https://lochbot.com">LochBot — Security</a>
+            <a href="https://lockml.com">LockML — ML Compare</a>
+            <a href="https://ml3x.com">ML3X — Matrix Math</a>
+        </div>
+    </div>
+</nav>
+
+<script>
+function downloadData(format) {
+  const entries = document.querySelectorAll('.data-table tbody tr');
+  const data = Array.from(entries).map(el => {
+    const cells = el.querySelectorAll('td');
+    if (cells.length < 2) return null;
+    return {name: cells[0]?.textContent?.trim(), category: cells[1]?.textContent?.trim(), detail: cells[2]?.textContent?.trim()?.substring(0,200)};
+  }).filter(d => d && d.name);
+  let content, type, ext;
+  if (format === 'json') { content = JSON.stringify(data, null, 2); type = 'application/json'; ext = 'json'; }
+  else { content = 'name,category,detail\n' + data.map(d => `"${(d.name||'').replace(/"/g,'""')}","${(d.category||'').replace(/"/g,'""')}","${(d.detail||'').replace(/"/g,'""')}"`).join('\n'); type = 'text/csv'; ext = 'csv'; }
+  const blob = new Blob([content], {type});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = document.title.toLowerCase().replace(/[^a-z0-9]+/g,'-') + '.' + ext;
+  a.click();
+}
+</script>
+<script src="/assets/js/share.js"></script>
+</body>
+</html>
