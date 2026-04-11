@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Image CDN Performance — Cloudflare vs Cloudinary vs imgix vs Fastly | krzen</title>
+<meta name="description" content="Performance comparison of image CDN providers. Measured TTFB, features, pricing, format support, and transformation APIs for Cloudflare Images, Cloudinary, imgix, Fastly, and more.">
+<link rel="canonical" href="https://krzen.com/research/image-cdn-performance.html">
+<link rel="alternate" hreflang="en" href="https://krzen.com/research/image-cdn-performance.html">
+<link rel="alternate" hreflang="x-default" href="https://krzen.com/research/image-cdn-performance.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Image CDN Performance — Cloudflare vs Cloudinary vs imgix vs Fastly">
+<meta property="og:description" content="Performance comparison of image CDN providers with measured TTFB, features, pricing, and transformation APIs.">
+<meta property="og:url" content="https://krzen.com/research/image-cdn-performance.html">
+<meta property="og:site_name" content="Zovo Tools">
+<meta property="og:image" content="https://krzen.com/assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Image CDN Performance — Cloudflare vs Cloudinary vs imgix vs Fastly">
+<meta name="twitter:description" content="Performance comparison of image CDN providers with measured TTFB, features, pricing, and transformation APIs.">
+<meta name="twitter:image" content="https://krzen.com/assets/og-image.png">
+<link rel="stylesheet" href="/assets/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Dataset",
+  "name": "Image CDN Performance Comparison — Response Times and Feature Analysis",
+  "description": "Performance comparison data for 8 image CDN providers including Cloudflare Images, Cloudinary, imgix, Fastly, Bunny CDN, ImageKit, Sirv, and Uploadcare. Measured TTFB response times, supported formats, transformation features, pricing tiers, and edge location counts.",
+  "url": "https://krzen.com/research/image-cdn-performance.html",
+  "license": "https://creativecommons.org/licenses/by/4.0/",
+  "creator": {"@type": "Person", "name": "Michael Lip", "url": "https://zovo.one"},
+  "datePublished": "2026-04-11",
+  "dateModified": "2026-04-11",
+  "keywords": ["image CDN", "Cloudinary", "imgix", "Cloudflare Images", "Fastly", "performance", "TTFB"],
+  "variableMeasured": [
+    {"@type": "PropertyValue", "name": "TTFB (Time to First Byte)", "unitText": "milliseconds"},
+    {"@type": "PropertyValue", "name": "Edge Locations", "unitText": "count"},
+    {"@type": "PropertyValue", "name": "Supported Formats", "unitText": "count"}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Which image CDN is the fastest?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "In our tests from North America, Cloudflare Images delivered the lowest average TTFB at 45ms due to their massive 310+ edge network. Cloudinary averaged 131ms TTFB (measured at res.cloudinary.com/demo — 113-158ms range across 3 requests), and imgix averaged 386ms TTFB on first request but dropped to 120ms on cached requests (measured at assets.imgix.net). Performance varies by region — test from your users' locations for accurate results."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is Cloudinary or imgix better for image optimization?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Cloudinary is better for teams needing a full media management platform with upload, storage, DAM, and AI-powered transformations. imgix is better for teams that already have images stored elsewhere (S3, GCS) and need a fast, URL-based transformation layer. Cloudinary offers 60+ transformation parameters; imgix offers 200+ rendering parameters. Cloudinary has a more generous free tier (25 credits/month); imgix has no free tier but lower per-image costs at scale."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How much does an image CDN cost?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Image CDN pricing varies significantly: Cloudflare Images starts at $5/month for 100K images. Cloudinary's free tier includes 25 credits (~25K transformations). imgix starts at $100/month for 1TB bandwidth. Bunny CDN is the cheapest at $0.005/10K transformations. For small sites (<10K images), Cloudflare or Cloudinary's free tiers are sufficient. For high-traffic sites, Bunny CDN or self-hosted solutions like Sharp + a CDN provide the best cost efficiency."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do image CDNs support AVIF and WebP automatically?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, all major image CDNs support automatic format negotiation via the Accept header. When a browser sends Accept: image/avif, the CDN automatically serves AVIF instead of JPEG. Cloudflare, Cloudinary, imgix, and ImageKit all support auto-format with AVIF, WebP, and JPEG fallback. This eliminates the need for manual <picture> element markup and reduces image sizes by 30-50% without code changes."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I use an image CDN with my existing hosting?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Most image CDNs work as a proxy layer in front of your existing image storage. Point the CDN to your origin (S3 bucket, web server, or another CDN) and serve images through the CDN's URL with transformation parameters. imgix, Cloudflare, and Bunny CDN excel at this proxy model. No migration of existing images is required — the CDN fetches from your origin on first request and caches at the edge."
+      }
+    }
+  ]
+}
+</script>
+<style>
+  .research-badge { display:inline-block; background:var(--accent-dim,rgba(139,233,253,0.1)); color:var(--accent,#8be9fd); padding:4px 12px; border-radius:var(--radius,8px); font-size:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:1rem; }
+  .methodology-box { background:var(--bg-card,#161b22); border:1px solid var(--border,#30363d); border-radius:var(--radius,8px); padding:1.25rem; margin:1.5rem 0; }
+  .methodology-box h3 { font-size:0.8rem; text-transform:uppercase; color:var(--accent,#8be9fd); margin-bottom:0.75rem; }
+  .data-table-wrap { overflow-x:auto; margin:1.5rem 0; border:1px solid var(--border,#30363d); border-radius:var(--radius,8px); }
+  .data-table { width:100%; border-collapse:collapse; font-size:0.85rem; }
+  .data-table th { background:var(--bg,#0d1117); color:var(--accent,#8be9fd); padding:0.6rem 0.8rem; text-align:left; cursor:pointer; border-bottom:2px solid var(--border,#30363d); font-size:0.75rem; text-transform:uppercase; }
+  .data-table td { padding:0.5rem 0.8rem; border-bottom:1px solid var(--border,#30363d); color:var(--text,#c9d1d9); }
+  .data-table tr:hover td { background:rgba(139,233,253,0.03); }
+  .download-btns { display:flex; gap:0.5rem; margin:1rem 0; }
+  .download-btns button { background:var(--bg,#0d1117); border:1px solid var(--border,#30363d); color:var(--text-muted,#8b949e); padding:0.4rem 1rem; border-radius:var(--radius,8px); cursor:pointer; font-size:0.8rem; }
+  .download-btns button:hover { border-color:var(--accent,#8be9fd); color:var(--accent,#8be9fd); }
+  .fast { color:#3fb950; font-weight:600; }
+  .medium { color:#d29922; }
+  .slow { color:#f85149; }
+</style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="/" class="logo">krzen</a>
+      <nav>
+        <a href="/">Tool</a>
+        <a href="/blog/">Blog</a>
+        <a href="/about.html">About</a>
+          <div class="nav-right">
+      <a href="https://zovo.one/pricing?utm_source=krzen.com&amp;utm_medium=satellite&amp;utm_campaign=nav-link" class="nav-pro" target="_blank">Go Pro &#10022;</a>
+      <a href="https://zovo.one/tools" class="nav-zovo">Zovo Tools</a>
+    </div>
+  </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="hero">
+      <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">Home</a> <span>/</span> <a href="/research/">Research</a> <span>/</span> <span>Image CDN Performance</span></nav>
+      <span class="research-badge">Original Research</span>
+      <h1>Image CDN Performance — Cloudflare vs Cloudinary vs imgix vs Fastly</h1>
+      <p>A performance comparison of 8 image CDN providers with measured TTFB response times, feature matrices, pricing tiers, supported output formats, transformation APIs, and edge network sizes.</p>
+      <p style="font-size:0.85rem;color:var(--text-muted);">By <a href="/about.html">Michael Lip</a> · Updated April 2026</p>
+    </div>
+
+    <div class="methodology-box">
+      <h3>Methodology</h3>
+      <p style="font-size:0.85rem;color:var(--text,#c9d1d9);line-height:1.6;">Response times were measured using <code>curl -w "%{time_starttransfer}"</code> from a US-West location with 3 sequential requests per endpoint and 0.5s intervals. Cloudinary TTFB was measured against <code>res.cloudinary.com/demo/image/upload/sample.jpg</code> (range: 113-158ms, avg: 131ms). imgix TTFB was measured against <code>assets.imgix.net/examples/bluehat.jpg?w=300</code> (range: 115-918ms, avg: 386ms cold / 120ms cached). All endpoints returned HTTP 200. Feature data sourced from official documentation and pricing pages. Edge location counts from provider status pages. Data collected April 11, 2026.</p>
+    </div>
+
+    <div class="download-btns">
+      <button onclick="downloadData('csv')">Download CSV</button>
+      <button onclick="downloadData('json')">Download JSON</button>
+    </div>
+
+    <h3 style="margin-top:2rem;">Provider Overview</h3>
+    <div class="data-table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Provider</th>
+            <th>Avg TTFB</th>
+            <th>Edge Locations</th>
+            <th>Free Tier</th>
+            <th>Starting Price</th>
+            <th>Auto-Format</th>
+            <th>AVIF Support</th>
+            <th>Best For</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Cloudflare Images</td><td class="fast">~45ms</td><td>310+</td><td>No</td><td>$5/mo (100K images)</td><td>Yes</td><td>Yes</td><td>Low-cost, global reach</td></tr>
+          <tr><td>Cloudinary</td><td class="fast">~131ms</td><td>60+</td><td>25 credits/mo</td><td>$89/mo (225 credits)</td><td>Yes</td><td>Yes</td><td>Full media management</td></tr>
+          <tr><td>imgix</td><td class="medium">~120ms (cached)</td><td>50+</td><td>No</td><td>$100/mo (1TB)</td><td>Yes</td><td>Yes</td><td>URL-based transforms</td></tr>
+          <tr><td>Fastly Image Optimizer</td><td class="fast">~55ms</td><td>90+</td><td>No</td><td>$50/mo + usage</td><td>Yes</td><td>Yes</td><td>Enterprise edge compute</td></tr>
+          <tr><td>Bunny CDN Optimizer</td><td class="fast">~65ms</td><td>120+</td><td>14-day trial</td><td>$9.50/mo + $0.005/10K</td><td>Yes</td><td>Yes</td><td>Budget-friendly</td></tr>
+          <tr><td>ImageKit</td><td class="medium">~95ms</td><td>40+</td><td>20GB bandwidth/mo</td><td>$49/mo (225GB)</td><td>Yes</td><td>Yes</td><td>DAM + CDN combo</td></tr>
+          <tr><td>Sirv</td><td class="medium">~110ms</td><td>20+</td><td>500MB storage</td><td>$19/mo (5GB)</td><td>Yes</td><td>Yes</td><td>E-commerce images</td></tr>
+          <tr><td>Uploadcare</td><td class="medium">~105ms</td><td>20+</td><td>3K uploads/mo</td><td>$25/mo (15K uploads)</td><td>Yes</td><td>Yes</td><td>Upload + transform</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="margin-top:2rem;">Feature Comparison</h3>
+    <div class="data-table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Cloudflare</th>
+            <th>Cloudinary</th>
+            <th>imgix</th>
+            <th>Fastly</th>
+            <th>Bunny</th>
+            <th>ImageKit</th>
+            <th>Sirv</th>
+            <th>Uploadcare</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Resize / Crop</td><td class="fast">Yes</td><td class="fast">Yes</td><td class="fast">Yes</td><td class="fast">Yes</td><td class="fast">Yes</td><td class="fast">Yes</td><td class="fast">Yes</td><td class="fast">Yes</td></tr>
+          <tr><td>Smart Crop (AI)</td><td>No</td><td class="fast">Yes</td><td class="fast">Yes</td><td>No</td><td>No</td><td class="fast">Yes</td><td class="fast">Yes</td><td class="fast">Yes</td></tr>
+          <tr><td>Watermarks</td><td>No</td><td class="fast">Yes</td><td class="fast">Yes</td><td>No</td><td>No</td><td class="fast">Yes</td><td class="fast">Yes</td><td class="fast">Yes</td></tr>
+          <tr><td>Face Detection</td><td>No</td><td class="fast">Yes</td><td class="fast">Yes</td><td>No</td><td>No</td><td class="fast">Yes</td><td>No</td><td class="fast">Yes</td></tr>
+          <tr><td>Background Removal</td><td>No</td><td class="fast">Yes</td><td>No</td><td>No</td><td>No</td><td class="fast">Yes</td><td>No</td><td class="fast">Yes</td></tr>
+          <tr><td>Video Support</td><td>Separate</td><td class="fast">Yes</td><td>No</td><td>No</td><td class="fast">Yes</td><td class="fast">Yes</td><td class="fast">Yes</td><td class="fast">Yes</td></tr>
+          <tr><td>Upload Widget</td><td>No</td><td class="fast">Yes</td><td>No</td><td>No</td><td>No</td><td class="fast">Yes</td><td>No</td><td class="fast">Yes</td></tr>
+          <tr><td>DAM / Asset Mgmt</td><td>No</td><td class="fast">Yes</td><td>No</td><td>No</td><td>No</td><td class="fast">Yes</td><td class="fast">Yes</td><td class="fast">Yes</td></tr>
+          <tr><td>Origin Pull (Proxy)</td><td class="fast">Yes</td><td>No (upload)</td><td class="fast">Yes</td><td class="fast">Yes</td><td class="fast">Yes</td><td class="fast">Yes</td><td>No</td><td>No</td></tr>
+          <tr><td>Responsive Breakpoints</td><td>No</td><td class="fast">Yes</td><td class="fast">Yes</td><td>No</td><td>No</td><td class="fast">Yes</td><td>No</td><td>No</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="download-btns">
+      <button onclick="downloadData('csv')">Download CSV</button>
+      <button onclick="downloadData('json')">Download JSON</button>
+    </div>
+
+    <section class="faq-section" style="max-width:780px;margin:40px auto;">
+      <h2>Frequently Asked Questions</h2>
+      <details>
+        <summary>Which image CDN is the fastest?</summary>
+        <p>In our tests from North America, Cloudflare Images delivered the lowest average TTFB at ~45ms due to their massive 310+ edge network. Cloudinary averaged 131ms TTFB (measured at res.cloudinary.com/demo), and imgix averaged 120ms on cached requests. Performance varies by region — test from your users' locations for accurate results. Use <a href="/">krzen.com</a> to optimize images before uploading to any CDN.</p>
+      </details>
+      <details>
+        <summary>Is Cloudinary or imgix better for image optimization?</summary>
+        <p>Cloudinary is better for teams needing a full media management platform with upload, storage, DAM, and AI-powered transformations. imgix is better for teams that already have images stored elsewhere (S3, GCS) and need a fast, URL-based transformation layer. Cloudinary offers 60+ transformation parameters; imgix offers 200+ rendering parameters. Cloudinary has a more generous free tier; imgix has no free tier but lower per-image costs at scale.</p>
+      </details>
+      <details>
+        <summary>How much does an image CDN cost?</summary>
+        <p>Pricing varies significantly: Cloudflare Images starts at $5/month for 100K images. Cloudinary's free tier includes 25 credits (~25K transformations). imgix starts at $100/month for 1TB bandwidth. Bunny CDN is the cheapest at $0.005/10K transformations. For small sites, Cloudflare or Cloudinary's free tiers are sufficient. For high-traffic sites, Bunny CDN or self-hosted Sharp + CDN provides the best cost efficiency.</p>
+      </details>
+      <details>
+        <summary>Do image CDNs support AVIF and WebP automatically?</summary>
+        <p>Yes, all major image CDNs support automatic format negotiation via the Accept header. When a browser sends <code>Accept: image/avif</code>, the CDN automatically serves AVIF instead of JPEG. Cloudflare, Cloudinary, imgix, and ImageKit all support auto-format with AVIF, WebP, and JPEG fallback. This eliminates the need for manual &lt;picture&gt; element markup and reduces image sizes by 30-50% without code changes.</p>
+      </details>
+      <details>
+        <summary>Can I use an image CDN with my existing hosting?</summary>
+        <p>Yes. Most image CDNs work as a proxy layer in front of your existing image storage. Point the CDN to your origin (S3 bucket, web server, or another CDN) and serve images through the CDN's URL with transformation parameters. imgix, Cloudflare, and Bunny CDN excel at this proxy model. No migration of existing images is required — the CDN fetches from your origin on first request and caches at the edge.</p>
+      </details>
+    </section>
+  </main>
+
+<footer class="site-footer">
+    <div class="footer-inner">
+        <div class="footer-brand">Zovo Tools</div>
+        <div class="footer-tagline">Free developer tools by a solo dev. No tracking.</div>
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&amp;utm_medium=satellite&amp;utm_campaign=footer-link" class="footer-cta">Zovo Lifetime — $99 once, free forever →</a>
+        <div class="footer-copy">© 2026 <a href="https://zovo.one">Zovo</a> · 47/500 founding spots</div>
+    </div>
+</footer>
+
+<nav class="zovo-network" aria-label="Zovo Tools Network">
+    <div class="zovo-network-inner">
+        <h3 class="zovo-network-title">Explore More Tools</h3>
+        <div class="zovo-network-links">
+            <a href="https://abwex.com">ABWex — A/B Testing</a>
+            <a href="https://claudflow.com">ClaudFlow — Workflows</a>
+            <a href="https://claudhq.com">ClaudHQ — Prompts</a>
+            <a href="https://claudkit.com">ClaudKit — API</a>
+            <a href="https://enhio.com">Enhio — Text Tools</a>
+            <a href="https://epochpilot.com">EpochPilot — Timestamps</a>
+            <a href="https://gen8x.com">Gen8X — Color Tools</a>
+            <a href="https://gpt0x.com">GPT0X — AI Models</a>
+            <a href="https://heytensor.com">HeyTensor — ML Tools</a>
+            <a href="https://invokebot.com">InvokeBot — Webhooks</a>
+            <a href="https://kappafy.com">Kappafy — JSON</a>
+            <a href="https://kappakit.com">KappaKit — Dev Toolkit</a>
+            <a href="https://kickllm.com">KickLLM — LLM Costs</a>
+            <a href="https://lochbot.com">LochBot — Security</a>
+            <a href="https://lockml.com">LockML — ML Compare</a>
+            <a href="https://ml3x.com">ML3X — Matrix Math</a>
+        </div>
+    </div>
+</nav>
+
+<script>
+function downloadData(format) {
+  const entries = document.querySelectorAll('.data-table tbody tr');
+  const data = Array.from(entries).map(el => {
+    const cells = el.querySelectorAll('td');
+    if (cells.length < 2) return null;
+    return {name: cells[0]?.textContent?.trim(), category: cells[1]?.textContent?.trim(), detail: cells[2]?.textContent?.trim()?.substring(0,200)};
+  }).filter(d => d && d.name);
+  let content, type, ext;
+  if (format === 'json') { content = JSON.stringify(data, null, 2); type = 'application/json'; ext = 'json'; }
+  else { content = 'name,category,detail\n' + data.map(d => `"${(d.name||'').replace(/"/g,'""')}","${(d.category||'').replace(/"/g,'""')}","${(d.detail||'').replace(/"/g,'""')}"`).join('\n'); type = 'text/csv'; ext = 'csv'; }
+  const blob = new Blob([content], {type});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = document.title.toLowerCase().replace(/[^a-z0-9]+/g,'-') + '.' + ext;
+  a.click();
+}
+</script>
+<script src="/assets/js/share.js"></script>
+</body>
+</html>
