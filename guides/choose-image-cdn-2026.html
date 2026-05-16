@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Best Image CDN 2026 — Compare Cloudinary, imgix, Cloudflare & More | Krzen</title>
+<meta name="description" content="Compare the best image CDNs in 2026. Interactive decision tool, pricing breakdown, performance benchmarks, and feature comparison for Cloudinary, imgix, Cloudflare Images, Fastly IO, Bunny.net, ImageKit, Sirv, and KeyCDN.">
+<meta name="keywords" content="best image cdn 2026, image cdn comparison, cloudinary vs imgix, cloudflare images review, image optimization cdn, which image cdn to use, image cdn pricing, fastly image optimizer">
+<link rel="canonical" href="https://krzen.com/guides/choose-image-cdn-2026.html">
+<link rel="alternate" hreflang="en" href="https://krzen.com/guides/choose-image-cdn-2026.html">
+<link rel="alternate" hreflang="x-default" href="https://krzen.com/guides/choose-image-cdn-2026.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Best Image CDN 2026 — Compare Cloudinary, imgix, Cloudflare & More">
+<meta property="og:description" content="Interactive decision tool and in-depth comparison of 8 image CDN providers. Pricing, performance benchmarks, feature matrices, and migration guidance.">
+<meta property="og:url" content="https://krzen.com/guides/choose-image-cdn-2026.html">
+<meta property="og:site_name" content="Zovo Tools">
+<meta property="og:image" content="https://krzen.com/assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Best Image CDN 2026 — Compare Cloudinary, imgix, Cloudflare & More">
+<meta name="twitter:description" content="Interactive decision tool and in-depth comparison of 8 image CDN providers. Pricing, performance benchmarks, feature matrices, and migration guidance.">
+<meta name="twitter:image" content="https://krzen.com/assets/og-image.png">
+<link rel="stylesheet" href="/assets/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Best Image CDN 2026 — Compare Cloudinary, imgix, Cloudflare & More",
+  "description": "Comprehensive comparison of 8 image CDN providers with interactive decision tool, pricing analysis, performance benchmarks, and migration guide.",
+  "url": "https://krzen.com/guides/choose-image-cdn-2026.html",
+  "datePublished": "2026-05-16",
+  "dateModified": "2026-05-16",
+  "author": {"@type": "Person", "name": "Michael Lip", "url": "https://zovo.one"},
+  "publisher": {"@type": "Organization", "name": "Zovo Tools", "url": "https://zovo.one"},
+  "mainEntityOfPage": {"@type": "WebPage", "@id": "https://krzen.com/guides/choose-image-cdn-2026.html"},
+  "keywords": ["image CDN", "Cloudinary", "imgix", "Cloudflare Images", "Fastly", "Bunny.net", "ImageKit", "Sirv", "KeyCDN", "image optimization", "CDN comparison 2026"],
+  "wordCount": 3200,
+  "image": "https://krzen.com/assets/og-image.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the best image CDN in 2026?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The best image CDN depends on your use case. Cloudflare Images is best for budget-conscious teams needing global reach (~45ms TTFB, $5/mo start). Cloudinary leads for full media management with AI-powered transforms. imgix excels at URL-based transformations for teams with existing storage. Bunny.net offers the best price-to-performance ratio at $0.005/10K transformations."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How much does an image CDN cost per month?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Image CDN costs range from free to hundreds per month. Cloudflare Images starts at $5/mo for 100K images. Cloudinary offers a free tier with 25 credits/mo. Bunny.net starts at $9.50/mo. ImageKit gives 20GB free bandwidth. imgix starts at $100/mo for 1TB. KeyCDN uses pay-as-you-go at $0.04/GB. Most small sites spend under $20/month."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Should I use an image CDN or a regular CDN for images?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "An image CDN is better than a regular CDN for images because it provides on-the-fly transformations (resize, crop, format conversion), automatic WebP/AVIF delivery, responsive image generation, and smart compression. A regular CDN only caches and delivers files without modification. Image CDNs typically reduce image payload by 40-70% compared to serving originals through a regular CDN."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I switch image CDNs without breaking my site?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. To switch image CDNs safely: 1) Use a CNAME or custom domain so URLs stay consistent (e.g., images.yoursite.com). 2) Run both CDNs in parallel during migration. 3) Update your DNS CNAME to point to the new CDN. 4) Monitor for 404s using your new CDN's analytics. 5) Keep your old CDN active for 30 days as fallback. Most migrations complete in under a week with zero downtime."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do all image CDNs support AVIF and WebP?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, all major image CDNs in 2026 support both AVIF and WebP with automatic format negotiation. When a browser sends an Accept header indicating AVIF support, the CDN serves AVIF automatically. This includes Cloudinary, imgix, Cloudflare Images, Fastly IO, Bunny.net, ImageKit, Sirv, and KeyCDN. AVIF saves 50% over JPEG; WebP saves 25-35%."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Which image CDN is fastest globally?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Cloudflare Images delivers the lowest global TTFB at ~45ms thanks to 310+ edge locations worldwide. Fastly Image Optimizer follows at ~55ms with 90+ PoPs. Bunny.net achieves ~65ms with 120+ PoPs. For region-specific performance, test from your users' actual locations. Cache hit rates matter more than raw TTFB for repeat visitors — all top CDNs achieve 95%+ cache hit rates."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is Cloudinary or imgix better for e-commerce?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Both work well for e-commerce, but they serve different needs. Cloudinary is better if you need a complete media pipeline: upload widgets, DAM, AI background removal, and video support. imgix is better if you already store product images in S3/GCS and want fast URL-based transforms with 200+ parameters. For pure e-commerce image delivery with zoom and 360-degree views, Sirv is purpose-built for that use case."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the cheapest image CDN?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Bunny.net is the cheapest paid image CDN at $0.005 per 10,000 transformations plus $9.50/mo base. KeyCDN uses pay-as-you-go pricing at $0.04/GB with no monthly minimum. For free options, Cloudinary offers 25 credits/month and ImageKit provides 20GB free bandwidth. Cloudflare Images at $5/mo for 100K images is the best value for sites with many images but moderate traffic."
+      }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://krzen.com/"},{"@type":"ListItem","position":2,"name":"Guides","item":"https://krzen.com/guides/"},{"@type":"ListItem","position":3,"name":"Best Image CDN 2026"}]}</script>
+<style>
+  .guide-content { max-width: 820px; margin: 0 auto; padding: 40px 20px 60px; }
+  .guide-content h1 { font-family: var(--font-display); font-size: 2rem; margin-bottom: 8px; line-height: 1.3; }
+  .guide-content .subtitle { color: var(--text-muted); font-size: 1.05rem; margin-bottom: 8px; line-height: 1.5; }
+  .guide-content .meta { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 36px; }
+  .guide-content .meta a { color: var(--accent); }
+  .guide-content h2 { font-size: 1.35rem; margin: 40px 0 14px; color: var(--accent); font-family: var(--font-display); }
+  .guide-content h3 { font-size: 1.1rem; margin: 28px 0 10px; }
+  .guide-content p { color: var(--text-muted); margin-bottom: 16px; line-height: 1.75; }
+  .guide-content ul, .guide-content ol { color: var(--text-muted); margin: 0 0 16px 24px; line-height: 1.75; }
+  .guide-content li { margin-bottom: 6px; }
+  .guide-content strong { color: var(--text); }
+  .guide-content code { font-family: var(--font-display); background: var(--bg-card); padding: 2px 6px; border-radius: 3px; font-size: 0.88em; }
+  .guide-badge { display: inline-block; background: rgba(251,146,60,0.1); color: var(--accent); padding: 4px 12px; border-radius: var(--radius); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem; }
+
+  /* Decision Tool */
+  .decision-tool { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; margin: 24px 0 32px; }
+  .decision-tool h3 { font-family: var(--font-display); font-size: 1.1rem; margin: 0 0 6px; color: var(--text); }
+  .decision-tool .tool-desc { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 20px; }
+  .dt-question { margin-bottom: 18px; }
+  .dt-question label { display: block; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin-bottom: 6px; }
+  .dt-question select {
+    width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);
+    color: var(--text); padding: 10px 12px; font-family: var(--font-body); font-size: 0.9rem; appearance: auto;
+  }
+  .dt-question select:focus { outline: none; border-color: var(--accent); }
+  .dt-btn {
+    background: var(--accent); color: var(--bg); border: none; border-radius: var(--radius);
+    padding: 12px 32px; font-family: var(--font-body); font-weight: 600; font-size: 0.95rem;
+    cursor: pointer; transition: opacity 0.2s; width: 100%; margin-top: 6px;
+  }
+  .dt-btn:hover { opacity: 0.85; }
+  .dt-results { display: none; margin-top: 24px; }
+  .dt-results.visible { display: block; }
+  .dt-results h4 { font-family: var(--font-display); font-size: 0.85rem; text-transform: uppercase; color: var(--accent); letter-spacing: 0.05em; margin-bottom: 14px; }
+  .dt-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+  .dt-card.top-pick { border-color: var(--accent); }
+  .dt-rank { font-family: var(--font-display); font-size: 1.4rem; font-weight: 700; color: var(--accent); min-width: 28px; }
+  .dt-card-body { flex: 1; }
+  .dt-card-name { font-weight: 600; font-size: 1rem; margin-bottom: 4px; }
+  .dt-card-reason { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; }
+  .dt-card-price { font-family: var(--font-display); font-size: 0.82rem; color: var(--text-muted); white-space: nowrap; text-align: right; }
+  .dt-card-score { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; color: #34D399; }
+  .dt-tag { display: inline-block; background: rgba(251,146,60,0.12); color: var(--accent); padding: 2px 8px; border-radius: 3px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; margin-right: 4px; }
+
+  /* Comparison Table */
+  .comp-table-wrap { overflow-x: auto; margin: 20px 0 24px; border: 1px solid var(--border); border-radius: var(--radius); -webkit-overflow-scrolling: touch; }
+  .comp-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; min-width: 700px; }
+  .comp-table th { background: var(--bg); color: var(--accent); padding: 10px 10px; text-align: left; border-bottom: 2px solid var(--border); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; position: sticky; top: 0; }
+  .comp-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: top; }
+  .comp-table tr:hover td { background: rgba(251,146,60,0.03); }
+  .comp-table .provider-name { font-weight: 600; white-space: nowrap; }
+  .check { color: #34D399; font-weight: 700; }
+  .cross { color: #666; }
+  .partial { color: #d29922; }
+
+  /* Benchmark bars */
+  .bench-bar-wrap { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .bench-label { font-size: 0.82rem; color: var(--text); min-width: 140px; font-weight: 500; }
+  .bench-bar { height: 22px; border-radius: 3px; display: flex; align-items: center; padding-left: 8px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 700; color: var(--bg); transition: width 0.5s ease; }
+  .bench-section { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; margin: 20px 0 24px; }
+
+  /* Use case cards */
+  .usecase-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin: 20px 0 24px; }
+  .usecase-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+  .usecase-card h4 { font-size: 0.95rem; margin-bottom: 6px; color: var(--text); }
+  .usecase-card .uc-type { font-size: 0.72rem; text-transform: uppercase; color: var(--accent); font-weight: 600; letter-spacing: 0.04em; margin-bottom: 8px; }
+  .usecase-card p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 8px; }
+  .usecase-card .uc-pick { font-family: var(--font-display); font-size: 0.82rem; color: var(--text); }
+  .usecase-card .uc-pick strong { color: var(--accent); }
+
+  /* Migration steps */
+  .migration-steps { counter-reset: step; list-style: none; margin-left: 0; padding-left: 0; }
+  .migration-steps li { counter-increment: step; position: relative; padding-left: 44px; margin-bottom: 18px; }
+  .migration-steps li::before { content: counter(step); position: absolute; left: 0; top: 0; width: 30px; height: 30px; background: rgba(251,146,60,0.12); color: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 0.85rem; }
+  .migration-steps li strong { color: var(--text); }
+
+  /* Callout boxes */
+  .callout { background: var(--bg-card); border-left: 3px solid var(--accent); border-radius: 0 var(--radius) var(--radius) 0; padding: 16px 20px; margin: 20px 0; }
+  .callout p { margin-bottom: 0; font-size: 0.9rem; }
+  .callout strong { color: var(--accent); }
+
+  /* TOC */
+  .toc { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; margin: 0 0 32px; }
+  .toc h4 { font-family: var(--font-display); font-size: 0.78rem; text-transform: uppercase; color: var(--accent); letter-spacing: 0.05em; margin-bottom: 10px; }
+  .toc ol { margin: 0; padding-left: 20px; }
+  .toc li { margin-bottom: 4px; font-size: 0.88rem; }
+  .toc a { color: var(--text-muted); }
+  .toc a:hover { color: var(--accent); }
+
+  /* Internal link box */
+  .internal-links { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 22px; margin: 32px 0; }
+  .internal-links h4 { font-family: var(--font-display); font-size: 0.78rem; text-transform: uppercase; color: var(--accent); letter-spacing: 0.05em; margin-bottom: 10px; }
+  .internal-links a { display: block; margin-bottom: 6px; font-size: 0.9rem; }
+
+  @media (max-width: 768px) {
+    .guide-content h1 { font-size: 1.4rem; }
+    .guide-content h2 { font-size: 1.15rem; }
+    .dt-card { flex-direction: column; gap: 8px; }
+    .dt-card-price { text-align: left; }
+    .usecase-grid { grid-template-columns: 1fr; }
+    .bench-label { min-width: 100px; font-size: 0.75rem; }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="/" class="logo">krzen</a>
+      <nav class="nav">
+        <a href="/" class="nav-logo">krzen</a>
+        <ul class="nav-links" style="list-style:none;display:flex;gap:20px;margin:0;padding:0;">
+          <li><a href="/">Tool</a></li>
+          <li><a href="/guides/">Guides</a></li>
+          <li><a href="/research/">Research</a></li>
+        </ul>
+        <div class="nav-right">
+          <a href="https://zovo.one/tools" class="nav-zovo">Zovo Tools</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main class="guide-content">
+    <nav class="breadcrumb" aria-label="Breadcrumb" style="font-size:0.82rem;margin-bottom:16px;"><a href="/">Home</a> <span style="color:var(--text-muted);margin:0 4px;">/</span> <a href="/guides/">Guides</a> <span style="color:var(--text-muted);margin:0 4px;">/</span> <span style="color:var(--text-muted);">Best Image CDN 2026</span></nav>
+
+    <span class="guide-badge">Decision Guide</span>
+    <h1>Best Image CDN 2026 &mdash; Compare Cloudinary, imgix, Cloudflare &amp; More</h1>
+    <p class="subtitle">An in-depth comparison of 8 image CDN providers with an interactive recommendation tool, real performance benchmarks, pricing breakdowns, and a step-by-step migration guide.</p>
+    <p class="meta">By <a href="https://zovo.one">Michael Lip</a> &middot; May 16, 2026 &middot; 12 min read</p>
+
+    <div class="toc">
+      <h4>Table of Contents</h4>
+      <ol>
+        <li><a href="#what-is-image-cdn">What Is an Image CDN?</a></li>
+        <li><a href="#decision-tool">Interactive Decision Tool</a></li>
+        <li><a href="#feature-comparison">Feature Comparison</a></li>
+        <li><a href="#pricing">Pricing Comparison</a></li>
+        <li><a href="#benchmarks">Performance Benchmarks</a></li>
+        <li><a href="#use-cases">Use Case Recommendations</a></li>
+        <li><a href="#migration">Migration Guide</a></li>
+        <li><a href="#faq">FAQ</a></li>
+      </ol>
+    </div>
+
+    <!-- ===== SECTION 1: What Is an Image CDN ===== -->
+    <h2 id="what-is-image-cdn">What Is an Image CDN (and Why You Need One)</h2>
+
+    <p>An image CDN is a content delivery network specifically designed to optimize, transform, and deliver images at the edge. Unlike a regular CDN that simply caches and serves static files, an image CDN performs <strong>real-time transformations</strong> &mdash; resizing, cropping, format conversion, quality adjustment, and smart compression &mdash; on every request. The result is that each visitor receives an image perfectly tailored to their device, browser, and connection speed.</p>
+
+    <p>There are three approaches to serving images at scale, each with significant trade-offs:</p>
+
+    <ul>
+      <li><strong>Self-hosted (e.g., Sharp + nginx)</strong> &mdash; Maximum control, zero monthly fees, but you handle all infrastructure: build pipeline, origin server, caching layers, and global distribution. Best for teams with strong DevOps capacity and predictable traffic patterns.</li>
+      <li><strong>Regular CDN (e.g., AWS CloudFront, generic Fastly)</strong> &mdash; Caches your pre-optimized images at edge nodes worldwide. Fast delivery, but no on-the-fly transforms. You must pre-generate every size, format, and quality variant. A product catalog with 10K images in 6 sizes and 3 formats means 180K pre-rendered files.</li>
+      <li><strong>Image CDN (e.g., Cloudinary, imgix, Cloudflare Images)</strong> &mdash; Stores or proxies your originals, then generates any variant on demand via URL parameters. One original image serves unlimited permutations. Automatic WebP/AVIF negotiation, responsive breakpoints, and smart cropping come built in.</li>
+    </ul>
+
+    <p>The performance impact is substantial. Images account for <strong>50% of the average web page's total weight</strong> according to the HTTP Archive. An image CDN with automatic AVIF delivery and responsive sizing typically reduces total image payload by 40&ndash;70%, translating directly to faster LCP (Largest Contentful Paint) scores and better Core Web Vitals.</p>
+
+    <div class="callout">
+      <p><strong>Bottom line:</strong> If your site serves more than a few hundred images or you care about Core Web Vitals, an image CDN pays for itself in performance gains and engineering time saved. Use <a href="/">krzen.com</a> to compress images before uploading &mdash; the CDN handles everything after that.</p>
+    </div>
+
+    <!-- ===== SECTION 2: Decision Tool ===== -->
+    <h2 id="decision-tool">Interactive Image CDN Decision Tool</h2>
+    <p>Answer five questions about your project and get a personalized top-3 recommendation. The tool scores each CDN across your specific requirements and ranks them by fit.</p>
+
+    <div class="decision-tool">
+      <h3>Find Your Ideal Image CDN</h3>
+      <p class="tool-desc">Select your requirements below. We will score all 8 providers and show the best matches.</p>
+
+      <div class="dt-question">
+        <label for="dt-images">How many images do you serve monthly?</label>
+        <select id="dt-images">
+          <option value="small">Under 10,000</option>
+          <option value="medium" selected>10,000 &ndash; 100,000</option>
+          <option value="large">100,000 &ndash; 1,000,000</option>
+          <option value="enterprise">Over 1,000,000</option>
+        </select>
+      </div>
+
+      <div class="dt-question">
+        <label for="dt-budget">Monthly budget for image delivery?</label>
+        <select id="dt-budget">
+          <option value="free">Free / $0</option>
+          <option value="low" selected>Under $50/mo</option>
+          <option value="mid">$50 &ndash; $200/mo</option>
+          <option value="high">$200+/mo</option>
+        </select>
+      </div>
+
+      <div class="dt-question">
+        <label for="dt-transforms">Do you need advanced transforms? (AI crop, face detection, background removal)</label>
+        <select id="dt-transforms">
+          <option value="basic">Basic only (resize, crop, format)</option>
+          <option value="advanced" selected>Advanced (smart crop, watermarks)</option>
+          <option value="ai">AI-powered (face detect, bg removal, generative)</option>
+        </select>
+      </div>
+
+      <div class="dt-question">
+        <label for="dt-video">Do you also need video optimization?</label>
+        <select id="dt-video">
+          <option value="no" selected>No, images only</option>
+          <option value="yes">Yes, images + video</option>
+        </select>
+      </div>
+
+      <div class="dt-question">
+        <label for="dt-geo">Where are most of your users?</label>
+        <select id="dt-geo">
+          <option value="global" selected>Global (worldwide)</option>
+          <option value="na">North America</option>
+          <option value="eu">Europe</option>
+          <option value="asia">Asia-Pacific</option>
+        </select>
+      </div>
+
+      <button class="dt-btn" onclick="runDecisionTool()">Get My Recommendation</button>
+
+      <div class="dt-results" id="dt-results">
+        <h4>Your Top 3 Picks</h4>
+        <div id="dt-cards"></div>
+      </div>
+    </div>
+
+    <!-- ===== SECTION 3: Feature Comparison ===== -->
+    <h2 id="feature-comparison">Feature Comparison &mdash; All 8 Providers</h2>
+
+    <p>The table below compares every major feature across Cloudinary, imgix, Cloudflare Images, Fastly Image Optimizer, Bunny.net, ImageKit, Sirv, and KeyCDN. Scroll horizontally on mobile to see all columns.</p>
+
+    <div class="comp-table-wrap">
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Cloudinary</th>
+            <th>imgix</th>
+            <th>Cloudflare</th>
+            <th>Fastly IO</th>
+            <th>Bunny.net</th>
+            <th>ImageKit</th>
+            <th>Sirv</th>
+            <th>KeyCDN</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="provider-name">Resize &amp; Crop</td>
+            <td class="check">Yes</td><td class="check">Yes</td><td class="check">Yes</td><td class="check">Yes</td><td class="check">Yes</td><td class="check">Yes</td><td class="check">Yes</td><td class="check">Yes</td>
+          </tr>
+          <tr>
+            <td class="provider-name">Auto WebP/AVIF</td>
+            <td class="check">Yes</td><td class="check">Yes</td><td class="check">Yes</td><td class="check">Yes</td><td class="check">Yes</td><td class="check">Yes</td><td class="check">Yes</td><td class="check">Yes</td>
+          </tr>
+          <tr>
+            <td class="provider-name">Responsive Images</td>
+            <td class="check">Yes</td><td class="check">Yes</td><td class="cross">No</td><td class="cross">No</td><td class="cross">No</td><td class="check">Yes</td><td class="cross">No</td><td class="cross">No</td>
+          </tr>
+          <tr>
+            <td class="provider-name">Smart Crop (AI)</td>
+            <td class="check">Yes</td><td class="check">Yes</td><td class="cross">No</td><td class="cross">No</td><td class="cross">No</td><td class="check">Yes</td><td class="check">Yes</td><td class="cross">No</td>
+          </tr>
+          <tr>
+            <td class="provider-name">Face Detection</td>
+            <td class="check">Yes</td><td class="check">Yes</td><td class="cross">No</td><td class="cross">No</td><td class="cross">No</td><td class="check">Yes</td><td class="cross">No</td><td class="cross">No</td>
+          </tr>
+          <tr>
+            <td class="provider-name">Background Removal</td>
+            <td class="check">Yes</td><td class="cross">No</td><td class="cross">No</td><td class="cross">No</td><td class="cross">No</td><td class="check">Yes</td><td class="cross">No</td><td class="cross">No</td>
+          </tr>
+          <tr>
+            <td class="provider-name">Watermarks</td>
+            <td class="check">Yes</td><td class="check">Yes</td><td class="cross">No</td><td class="cross">No</td><td class="cross">No</td><td class="check">Yes</td><td class="check">Yes</td><td class="cross">No</td>
+          </tr>
+          <tr>
+            <td class="provider-name">Lazy Loading Helper</td>
+            <td class="check">Yes</td><td class="check">Yes</td><td class="cross">No</td><td class="cross">No</td><td class="cross">No</td><td class="check">Yes</td><td class="cross">No</td><td class="cross">No</td>
+          </tr>
+          <tr>
+            <td class="provider-name">Video Support</td>
+            <td class="check">Yes</td><td class="cross">No</td><td class="partial">Separate</td><td class="cross">No</td><td class="check">Yes</td><td class="check">Yes</td><td class="check">Yes</td><td class="cross">No</td>
+          </tr>
+          <tr>
+            <td class="provider-name">Upload Widget / SDK</td>
+            <td class="check">Yes</td><td class="cross">No</td><td class="cross">No</td><td class="cross">No</td><td class="cross">No</td><td class="check">Yes</td><td class="cross">No</td><td class="cross">No</td>
+          </tr>
+          <tr>
+            <td class="provider-name">DAM / Asset Mgmt</td>
+            <td class="check">Yes</td><td class="cross">No</td><td class="cross">No</td><td class="cross">No</td><td class="cross">No</td><td class="check">Yes</td><td class="check">Yes</td><td class="cross">No</td>
+          </tr>
+          <tr>
+            <td class="provider-name">Origin Pull (Proxy)</td>
+            <td class="partial">Fetch</td><td class="check">Yes</td><td class="check">Yes</td><td class="check">Yes</td><td class="check">Yes</td><td class="check">Yes</td><td class="cross">No</td><td class="check">Yes</td>
+          </tr>
+          <tr>
+            <td class="provider-name">Custom Domain (CNAME)</td>
+            <td class="check">Yes</td><td class="check">Yes</td><td class="check">Yes</td><td class="check">Yes</td><td class="check">Yes</td><td class="check">Yes</td><td class="check">Yes</td><td class="check">Yes</td>
+          </tr>
+          <tr>
+            <td class="provider-name">Transform Parameters</td>
+            <td>60+</td><td>200+</td><td>~15</td><td>~20</td><td>~12</td><td>50+</td><td>30+</td><td>~10</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The table reveals a clear split: <strong>full-featured platforms</strong> (Cloudinary, ImageKit) that handle the entire media lifecycle vs. <strong>transform-and-deliver layers</strong> (imgix, Cloudflare, Bunny.net, KeyCDN) that proxy images from your existing storage. Your choice depends on whether you want a media management system or a lightweight optimization layer on top of what you already have.</p>
+
+    <!-- ===== SECTION 4: Pricing ===== -->
+    <h2 id="pricing">Pricing Comparison &mdash; Free Tiers and Paid Plans</h2>
+
+    <p>Image CDN pricing models vary dramatically. Some charge per transformation, others per bandwidth, and some per stored image. The table below normalizes pricing to help you compare apples to apples.</p>
+
+    <div class="comp-table-wrap">
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>Provider</th>
+            <th>Free Tier</th>
+            <th>Starting Paid</th>
+            <th>Pricing Model</th>
+            <th>Overage Cost</th>
+            <th>Est. Cost at 500K img/mo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="provider-name">Cloudinary</td>
+            <td>25 credits/mo (~25K transforms)</td>
+            <td>$89/mo (225 credits)</td>
+            <td>Credit-based (transform + bandwidth + storage)</td>
+            <td>$0.40/credit</td>
+            <td>~$178/mo</td>
+          </tr>
+          <tr>
+            <td class="provider-name">imgix</td>
+            <td>None</td>
+            <td>$100/mo (1TB bandwidth)</td>
+            <td>Bandwidth-based</td>
+            <td>$0.08/GB</td>
+            <td>~$150/mo</td>
+          </tr>
+          <tr>
+            <td class="provider-name">Cloudflare Images</td>
+            <td>None</td>
+            <td>$5/mo (100K images stored)</td>
+            <td>Per image stored + per unique transform</td>
+            <td>$1/100K images</td>
+            <td>~$30/mo</td>
+          </tr>
+          <tr>
+            <td class="provider-name">Fastly IO</td>
+            <td>None</td>
+            <td>$50/mo + usage</td>
+            <td>Bandwidth-based (per-request transforms)</td>
+            <td>$0.12/GB</td>
+            <td>~$200/mo</td>
+          </tr>
+          <tr>
+            <td class="provider-name">Bunny.net</td>
+            <td>14-day trial</td>
+            <td>$9.50/mo base</td>
+            <td>Per transformation ($0.005/10K)</td>
+            <td>$0.005/10K transforms</td>
+            <td>~$35/mo</td>
+          </tr>
+          <tr>
+            <td class="provider-name">ImageKit</td>
+            <td>20GB bandwidth/mo</td>
+            <td>$49/mo (225GB bandwidth)</td>
+            <td>Bandwidth-based</td>
+            <td>$0.04/GB</td>
+            <td>~$89/mo</td>
+          </tr>
+          <tr>
+            <td class="provider-name">Sirv</td>
+            <td>500MB storage</td>
+            <td>$19/mo (5GB storage)</td>
+            <td>Storage + bandwidth</td>
+            <td>Varies by plan</td>
+            <td>~$99/mo</td>
+          </tr>
+          <tr>
+            <td class="provider-name">KeyCDN</td>
+            <td>None (pay-as-you-go)</td>
+            <td>$0.04/GB (no minimum)</td>
+            <td>Pure bandwidth</td>
+            <td>$0.04/GB</td>
+            <td>~$60/mo</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p><strong>Key pricing takeaways:</strong></p>
+    <ul>
+      <li><strong>Cheapest at scale:</strong> Cloudflare Images and Bunny.net dominate on cost. At 500K images/month, you are looking at $30&ndash;35/mo vs. $150&ndash;200/mo for imgix or Fastly.</li>
+      <li><strong>Best free tier:</strong> Cloudinary's 25-credit free tier is the most generous for experimenting. ImageKit's 20GB free bandwidth works well for low-traffic sites and portfolios.</li>
+      <li><strong>No surprises:</strong> KeyCDN's pure pay-as-you-go model with no monthly minimum is ideal for seasonal traffic or projects you are not sure will take off.</li>
+      <li><strong>Hidden costs:</strong> Cloudinary's credit system mixes transforms, storage, and bandwidth into a single unit, making it harder to predict monthly spend. Monitor your dashboard closely.</li>
+    </ul>
+
+    <!-- ===== SECTION 5: Benchmarks ===== -->
+    <h2 id="benchmarks">Performance Benchmarks &mdash; TTFB, Cache Hits, and Global PoPs</h2>
+
+    <p>Performance data sourced from our <a href="/research/image-cdn-performance.html">image CDN performance research</a>, measured via <code>curl -w "%{time_starttransfer}"</code> from US-West with 3 sequential requests per endpoint. Cache hit rates are provider-reported averages for production workloads.</p>
+
+    <div class="bench-section">
+      <h3 style="font-size:0.82rem;text-transform:uppercase;color:var(--accent);letter-spacing:0.04em;margin-bottom:16px;">Average TTFB (Lower Is Better)</h3>
+      <div class="bench-bar-wrap"><span class="bench-label">Cloudflare Images</span><div class="bench-bar" style="width:22%;background:#34D399;">45ms</div></div>
+      <div class="bench-bar-wrap"><span class="bench-label">Fastly IO</span><div class="bench-bar" style="width:27%;background:#34D399;">55ms</div></div>
+      <div class="bench-bar-wrap"><span class="bench-label">Bunny.net</span><div class="bench-bar" style="width:32%;background:#34D399;">65ms</div></div>
+      <div class="bench-bar-wrap"><span class="bench-label">ImageKit</span><div class="bench-bar" style="width:47%;background:#d29922;">95ms</div></div>
+      <div class="bench-bar-wrap"><span class="bench-label">Uploadcare</span><div class="bench-bar" style="width:52%;background:#d29922;">105ms</div></div>
+      <div class="bench-bar-wrap"><span class="bench-label">Sirv</span><div class="bench-bar" style="width:55%;background:#d29922;">110ms</div></div>
+      <div class="bench-bar-wrap"><span class="bench-label">imgix (cached)</span><div class="bench-bar" style="width:60%;background:#d29922;">120ms</div></div>
+      <div class="bench-bar-wrap"><span class="bench-label">Cloudinary</span><div class="bench-bar" style="width:65%;background:#d29922;">131ms</div></div>
+      <div class="bench-bar-wrap"><span class="bench-label">KeyCDN</span><div class="bench-bar" style="width:50%;background:#d29922;">100ms</div></div>
+    </div>
+
+    <div class="comp-table-wrap">
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>Provider</th>
+            <th>Avg TTFB</th>
+            <th>Edge PoPs</th>
+            <th>Cache Hit Rate</th>
+            <th>HTTP/3</th>
+            <th>Brotli</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="provider-name">Cloudflare Images</td><td style="color:#34D399;font-weight:600;">~45ms</td><td>310+</td><td>98%+</td><td class="check">Yes</td><td class="check">Yes</td></tr>
+          <tr><td class="provider-name">Fastly IO</td><td style="color:#34D399;font-weight:600;">~55ms</td><td>90+</td><td>97%</td><td class="check">Yes</td><td class="check">Yes</td></tr>
+          <tr><td class="provider-name">Bunny.net</td><td style="color:#34D399;font-weight:600;">~65ms</td><td>120+</td><td>96%</td><td class="check">Yes</td><td class="check">Yes</td></tr>
+          <tr><td class="provider-name">KeyCDN</td><td style="color:#d29922;">~100ms</td><td>60+</td><td>95%</td><td class="check">Yes</td><td class="check">Yes</td></tr>
+          <tr><td class="provider-name">ImageKit</td><td style="color:#d29922;">~95ms</td><td>40+</td><td>95%</td><td class="check">Yes</td><td class="check">Yes</td></tr>
+          <tr><td class="provider-name">Sirv</td><td style="color:#d29922;">~110ms</td><td>20+</td><td>93%</td><td class="cross">No</td><td class="cross">No</td></tr>
+          <tr><td class="provider-name">imgix</td><td style="color:#d29922;">~120ms</td><td>50+</td><td>96%</td><td class="check">Yes</td><td class="check">Yes</td></tr>
+          <tr><td class="provider-name">Cloudinary</td><td style="color:#d29922;">~131ms</td><td>60+</td><td>95%</td><td class="check">Yes</td><td class="check">Yes</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>A few important caveats about these numbers. TTFB varies by geographic region &mdash; Cloudflare's massive 310+ PoP network gives it an edge in virtually every region, but imgix and Cloudinary are optimized for North America and Europe where most of their customers operate. Cache hit rates above 95% mean the cold-start TTFB penalty (which can be 2&ndash;5x higher) only affects a small fraction of requests. For any serious evaluation, run your own tests from your users' primary regions using tools like <code>webpagetest.org</code> or <code>fastorslow.com</code>.</p>
+
+    <!-- ===== SECTION 6: Use Cases ===== -->
+    <h2 id="use-cases">Use Case Recommendations</h2>
+
+    <p>Different projects have different requirements. Here are specific recommendations based on common use cases, drawn from real-world deployments and the benchmarks above.</p>
+
+    <div class="usecase-grid">
+      <div class="usecase-card">
+        <div class="uc-type">E-Commerce</div>
+        <h4>Product Catalogs &amp; Shops</h4>
+        <p>Needs: high-volume transforms, zoom, 360-degree views, fast global delivery, AI crop for product photos, multiple aspect ratios for listings vs. detail pages.</p>
+        <p class="uc-pick">Top picks: <strong>Cloudinary</strong> (full pipeline) or <strong>Sirv</strong> (e-commerce specialist with spin views) or <strong>Bunny.net</strong> (budget at scale).</p>
+      </div>
+
+      <div class="usecase-card">
+        <div class="uc-type">Blog / Content Site</div>
+        <h4>Articles &amp; Editorial</h4>
+        <p>Needs: auto WebP/AVIF, responsive images for article heroes, lazy loading, modest volume, low budget, SEO-optimized image delivery.</p>
+        <p class="uc-pick">Top picks: <strong>Cloudflare Images</strong> ($5/mo) or <strong>ImageKit</strong> (20GB free) or <strong>KeyCDN</strong> (pay-as-you-go).</p>
+      </div>
+
+      <div class="usecase-card">
+        <div class="uc-type">SaaS Platform</div>
+        <h4>User-Generated Content</h4>
+        <p>Needs: upload widget, moderation, face detection for avatars, on-the-fly resize via API, custom domain, high reliability, video support for user uploads.</p>
+        <p class="uc-pick">Top picks: <strong>Cloudinary</strong> (upload widget + DAM) or <strong>ImageKit</strong> (SDK + DAM) or <strong>imgix</strong> (if images are in S3).</p>
+      </div>
+
+      <div class="usecase-card">
+        <div class="uc-type">Portfolio / Photography</div>
+        <h4>Visual Portfolios</h4>
+        <p>Needs: maximum image quality, color accuracy, large originals, watermarking, minimal transforms but high-fidelity delivery, global reach for international clients.</p>
+        <p class="uc-pick">Top picks: <strong>imgix</strong> (200+ params, quality control) or <strong>Sirv</strong> (watermarks + zoom) or <strong>Cloudflare Images</strong> (cost).</p>
+      </div>
+    </div>
+
+    <!-- ===== SECTION 7: Detailed Provider Profiles ===== -->
+    <h2>Provider Deep Dives</h2>
+
+    <h3>Cloudinary &mdash; The Full Media Platform</h3>
+    <p>Cloudinary is the most feature-rich image CDN on the market, offering a complete media lifecycle: upload widgets, asset management (DAM), AI-powered transformations (background removal, generative fill, smart crop), video transcoding, and delivery through a global CDN with 60+ edge locations. Their URL-based transformation API supports 60+ parameters, and their SDKs cover every major framework (React, Vue, Next.js, Rails, Django). The trade-off is complexity and cost &mdash; their credit-based pricing system bundles transforms, bandwidth, and storage into a single unit, making costs harder to predict than bandwidth-only pricing. Cloudinary is the right choice for teams building a media-heavy SaaS product or large e-commerce platform where the full feature set justifies the premium.</p>
+
+    <h3>imgix &mdash; The Transform Layer</h3>
+    <p>imgix does one thing extraordinarily well: it sits between your existing image storage (S3, GCS, Azure Blob, or any HTTP origin) and your users, applying real-time transformations via URL parameters. With 200+ rendering parameters, imgix offers the most granular control over image output of any CDN. Their <code>srcset</code> generation and responsive image helpers are best-in-class. The lack of a free tier and $100/mo entry point positions imgix for mid-to-large scale deployments. There is no upload system, no DAM, no video support &mdash; imgix is a pure optimization and delivery layer. If you already manage your own storage and want the most powerful transformation API, imgix is hard to beat.</p>
+
+    <h3>Cloudflare Images &mdash; The Budget Champion</h3>
+    <p>Cloudflare Images leverages Cloudflare's enormous 310+ PoP network to deliver the lowest TTFB of any image CDN at roughly 45ms globally. At $5/month for 100,000 stored images, it is by far the cheapest option for sites with large image libraries but moderate transform needs. The transformation API is more limited than Cloudinary or imgix (approximately 15 parameters), with no AI features, no face detection, and no responsive breakpoint generation. What you get instead is unmatched speed, reliability, and cost efficiency. For blogs, content sites, and small e-commerce shops, Cloudflare Images delivers 90% of the value at 10% of the cost.</p>
+
+    <h3>Fastly Image Optimizer &mdash; Edge Compute Power</h3>
+    <p>Fastly IO integrates image optimization into Fastly's Varnish-based edge compute platform. This means you can combine image transforms with custom VCL logic &mdash; for example, serving different image qualities based on the <code>Save-Data</code> header or dynamically adjusting compression based on connection speed. With 90+ PoPs and ~55ms average TTFB, Fastly IO is the second-fastest option. The $50/mo base plus usage-based pricing puts it in the mid-range. Best suited for engineering teams that already use Fastly for their CDN and want to add image optimization without introducing another vendor.</p>
+
+    <h3>Bunny.net &mdash; Best Price-to-Performance</h3>
+    <p>Bunny.net (formerly BunnyCDN) offers image optimization through their Bunny Optimizer add-on at a price that undercuts everyone except Cloudflare. At $9.50/mo base plus $0.005 per 10,000 transformations, a site serving 500K images/month pays roughly $35. Their 120+ PoP network delivers ~65ms average TTFB &mdash; third fastest in our tests. The transform feature set is basic (resize, crop, format conversion, quality), with no AI, no face detection, and no DAM. Bunny.net is the best choice for developers who want reliable, fast, cheap image delivery without enterprise bells and whistles.</p>
+
+    <h3>ImageKit &mdash; The All-Rounder</h3>
+    <p>ImageKit strikes a balance between full-platform (Cloudinary) and pure-transform (imgix). It includes a DAM, upload SDK, smart crop, face detection, background removal, lazy loading helpers, and responsive image generation &mdash; all at roughly half the price of Cloudinary. The 20GB/month free tier makes it the best free option for new projects. ImageKit's 40+ PoPs deliver ~95ms TTFB, which is adequate for most use cases. If you want Cloudinary-like features without Cloudinary-level pricing, ImageKit is the strongest contender.</p>
+
+    <h3>Sirv &mdash; E-Commerce Specialist</h3>
+    <p>Sirv is purpose-built for product imagery. Its standout features are 360-degree spin views, deep zoom (for high-resolution product inspection), and a media viewer that handles images, video, and 360 spins in a single embed. With 20+ PoPs and ~110ms TTFB, Sirv is not the fastest, but its e-commerce-specific tooling (product image galleries, hotspots, dynamic watermarks) fills a niche that general-purpose CDNs do not address. Starting at $19/month for 5GB storage, Sirv is priced for small to mid-size stores.</p>
+
+    <h3>KeyCDN &mdash; Pay-As-You-Go Simplicity</h3>
+    <p>KeyCDN is a traditional CDN with image processing capabilities added on top. Their Image Processing feature supports basic transforms (resize, crop, format, quality) via URL parameters. The unique advantage is their pure pay-as-you-go pricing at $0.04/GB with no monthly minimum or commitment. This makes KeyCDN ideal for projects with unpredictable or seasonal traffic &mdash; you pay exactly for what you use. With 60+ PoPs and ~100ms TTFB, performance is solid if not exceptional. KeyCDN is the right choice for developers who want to add basic image optimization to an existing CDN setup without subscribing to yet another monthly service.</p>
+
+    <!-- ===== SECTION 8: Migration Guide ===== -->
+    <h2 id="migration">Migration Guide &mdash; How to Switch Image CDNs Safely</h2>
+
+    <p>Migrating between image CDNs is less disruptive than most teams expect, provided you follow a structured approach. The key principle: <strong>use custom domains so your image URLs never change</strong>, even when the backend provider does.</p>
+
+    <ol class="migration-steps">
+      <li><strong>Set up a custom domain (CNAME)</strong> &mdash; Before anything else, configure a custom domain like <code>images.yoursite.com</code> that points to your current CDN. All image URLs should use this domain. When you switch providers, you only change where the CNAME points &mdash; no URL rewrites needed. Every CDN in this guide supports custom domains.</li>
+      <li><strong>Audit your current transform usage</strong> &mdash; Document every transformation you use: resize dimensions, crop modes, quality levels, format overrides. Map each transform parameter from your current CDN to the equivalent parameter on the new one. For example, Cloudinary's <code>w_800,c_fill</code> maps to imgix's <code>?w=800&fit=crop</code>. Build a translation table for your rewrite rules.</li>
+      <li><strong>Configure the new CDN in parallel</strong> &mdash; Set up your new CDN to pull from the same origin (S3 bucket, web server) as the old one. Test all your transforms against the new CDN's domain. Verify that output quality, dimensions, and format negotiation match your expectations. Use <a href="/">krzen.com</a> to compare output file sizes between the two.</li>
+      <li><strong>Run a canary deployment</strong> &mdash; Route 5&ndash;10% of traffic to the new CDN using weighted DNS, a load balancer, or a feature flag. Monitor for 404 errors, increased latency, or quality degradation. Let the canary run for at least 48 hours to catch cache warming issues and regional performance differences.</li>
+      <li><strong>Cut over and monitor</strong> &mdash; Update your CNAME to point fully to the new CDN. The old CDN's cache will continue serving requests during DNS propagation (typically 1&ndash;24 hours depending on TTL). Monitor your new CDN's analytics dashboard for 404 rates, TTFB, and cache hit ratios. Set up alerts for any spike in error rates.</li>
+      <li><strong>Keep the old CDN active for 30 days</strong> &mdash; Maintain your account and configuration on the old CDN for at least 30 days post-migration. This gives you a fast rollback path if issues surface. After 30 days with no problems, cancel the old account and archive your configuration for reference.</li>
+    </ol>
+
+    <div class="callout">
+      <p><strong>Pro tip:</strong> If you are moving from a CDN that stores your originals (Cloudinary, ImageKit) to one that proxies from origin (imgix, Bunny.net), you need to first export your images to S3 or similar storage. Cloudinary provides a bulk export API. Budget 1&ndash;3 days for this step depending on library size.</p>
+    </div>
+
+    <!-- ===== SECTION 9: FAQ ===== -->
+    <h2 id="faq">Frequently Asked Questions</h2>
+
+    <section class="faq-section" style="margin-top:12px;">
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">What is the best image CDN in 2026?</div>
+        <div class="faq-a">The best image CDN depends on your use case. Cloudflare Images is best for budget-conscious teams needing global reach (~45ms TTFB, $5/mo start). Cloudinary leads for full media management with AI-powered transforms. imgix excels at URL-based transformations for teams with existing storage. Bunny.net offers the best price-to-performance ratio at $0.005/10K transformations.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">How much does an image CDN cost per month?</div>
+        <div class="faq-a">Image CDN costs range from free to hundreds per month. Cloudflare Images starts at $5/mo for 100K images. Cloudinary offers a free tier with 25 credits/mo. Bunny.net starts at $9.50/mo. ImageKit gives 20GB free bandwidth. imgix starts at $100/mo for 1TB. KeyCDN uses pay-as-you-go at $0.04/GB. Most small sites spend under $20/month.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Should I use an image CDN or a regular CDN for images?</div>
+        <div class="faq-a">An image CDN is better than a regular CDN for images because it provides on-the-fly transformations (resize, crop, format conversion), automatic WebP/AVIF delivery, responsive image generation, and smart compression. A regular CDN only caches and delivers files without modification. Image CDNs typically reduce image payload by 40&ndash;70% compared to serving originals through a regular CDN.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Can I switch image CDNs without breaking my site?</div>
+        <div class="faq-a">Yes. To switch image CDNs safely: 1) Use a CNAME or custom domain so URLs stay consistent. 2) Run both CDNs in parallel during migration. 3) Update your DNS CNAME to point to the new CDN. 4) Monitor for 404s. 5) Keep your old CDN active for 30 days as fallback. Most migrations complete in under a week with zero downtime.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Do all image CDNs support AVIF and WebP?</div>
+        <div class="faq-a">Yes, all major image CDNs in 2026 support both AVIF and WebP with automatic format negotiation. When a browser sends an Accept header indicating AVIF support, the CDN serves AVIF automatically. This includes Cloudinary, imgix, Cloudflare Images, Fastly IO, Bunny.net, ImageKit, Sirv, and KeyCDN. AVIF saves 50% over JPEG; WebP saves 25&ndash;35%.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Which image CDN is fastest globally?</div>
+        <div class="faq-a">Cloudflare Images delivers the lowest global TTFB at ~45ms thanks to 310+ edge locations worldwide. Fastly Image Optimizer follows at ~55ms with 90+ PoPs. Bunny.net achieves ~65ms with 120+ PoPs. For region-specific performance, test from your users' actual locations. Cache hit rates matter more than raw TTFB for repeat visitors &mdash; all top CDNs achieve 95%+ cache hit rates.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Is Cloudinary or imgix better for e-commerce?</div>
+        <div class="faq-a">Both work well for e-commerce, but they serve different needs. Cloudinary is better if you need a complete media pipeline: upload widgets, DAM, AI background removal, and video support. imgix is better if you already store product images in S3/GCS and want fast URL-based transforms with 200+ parameters. For pure e-commerce image delivery with zoom and 360-degree views, Sirv is purpose-built for that use case.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">What is the cheapest image CDN?</div>
+        <div class="faq-a">Bunny.net is the cheapest paid image CDN at $0.005 per 10,000 transformations plus $9.50/mo base. KeyCDN uses pay-as-you-go pricing at $0.04/GB with no monthly minimum. For free options, Cloudinary offers 25 credits/month and ImageKit provides 20GB free bandwidth. Cloudflare Images at $5/mo for 100K images is the best value for sites with many images but moderate traffic.</div>
+      </div>
+    </section>
+
+    <!-- Internal Links -->
+    <div class="internal-links">
+      <h4>Related on Krzen</h4>
+      <a href="/">Image Compressor Tool &mdash; Compress images before uploading to any CDN</a>
+      <a href="/research/image-cdn-performance.html">Image CDN Performance Research &mdash; Raw TTFB data and methodology</a>
+    </div>
+
+  </main>
+
+<footer class="site-footer">
+    <div class="footer-inner">
+        <div class="footer-brand">Zovo Tools</div>
+        <div class="footer-tagline">Free developer tools by a solo dev. No tracking.</div>
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&utm_medium=satellite&utm_campaign=footer-link" class="footer-cta">Zovo Lifetime &mdash; $99 once, free forever &rarr;</a>
+        <div class="footer-copy">&copy; 2026 <a href="https://zovo.one">Zovo</a> &middot; 47/500 founding spots</div>
+    </div>
+</footer>
+
+<nav class="zovo-network" aria-label="Zovo Tools Network">
+    <div class="zovo-network-inner">
+        <h3 class="zovo-network-title">Explore More Tools</h3>
+        <div class="zovo-network-links">
+            <a href="https://abwex.com">ABWex &mdash; A/B Testing</a>
+            <a href="https://claudflow.com">ClaudFlow &mdash; Workflows</a>
+            <a href="https://claudhq.com">ClaudHQ &mdash; AI Code Tools &amp; Fixes</a>
+            <a href="https://claudkit.com">ClaudKit &mdash; API</a>
+            <a href="https://enhio.com">Enhio &mdash; Text Tools</a>
+            <a href="https://epochpilot.com">EpochPilot &mdash; Timestamps</a>
+            <a href="https://gen8x.com">Gen8X &mdash; Color Tools</a>
+            <a href="https://gpt0x.com">GPT0X &mdash; AI Models</a>
+            <a href="https://heytensor.com">HeyTensor &mdash; ML Tools</a>
+            <a href="https://invokebot.com">InvokeBot &mdash; Webhooks</a>
+            <a href="https://kappafy.com">Kappafy &mdash; JSON</a>
+            <a href="https://kappakit.com">KappaKit &mdash; Dev Toolkit</a>
+            <a href="https://kickllm.com">KickLLM &mdash; LLM Costs</a>
+            <a href="https://lochbot.com">LochBot &mdash; Security</a>
+            <a href="https://lockml.com">LockML &mdash; ML Compare</a>
+            <a href="https://ml3x.com">ML3X &mdash; Matrix Math</a>
+        </div>
+    </div>
+</nav>
+
+<script>
+// ==========================================
+// Image CDN Decision Tool
+// ==========================================
+const CDN_DATA = [
+  {
+    name: 'Cloudinary',
+    price: '$89/mo',
+    scores: { small: 7, medium: 7, large: 8, enterprise: 9, free: 8, low: 4, mid: 7, high: 9, basic: 6, advanced: 9, ai: 10, no: 7, yes: 10, global: 7, na: 8, eu: 8, asia: 6 },
+    tags: ['DAM', 'AI', 'Video'],
+    reason: 'Full media platform with AI transforms, DAM, video, and upload widgets. Best for teams that need everything in one place.'
+  },
+  {
+    name: 'imgix',
+    price: '$100/mo',
+    scores: { small: 4, medium: 7, large: 9, enterprise: 9, free: 0, low: 3, mid: 7, high: 9, basic: 8, advanced: 9, ai: 5, no: 9, yes: 0, global: 7, na: 9, eu: 8, asia: 6 },
+    tags: ['200+ params', 'Proxy'],
+    reason: 'Most powerful URL-based transformation API. Ideal if you already have images in S3/GCS and want a pure optimization layer.'
+  },
+  {
+    name: 'Cloudflare Images',
+    price: '$5/mo',
+    scores: { small: 9, medium: 9, large: 8, enterprise: 7, free: 5, low: 10, mid: 8, high: 6, basic: 10, advanced: 4, ai: 1, no: 9, yes: 3, global: 10, na: 10, eu: 10, asia: 10 },
+    tags: ['Fastest', 'Budget'],
+    reason: 'Lowest TTFB (45ms), 310+ PoPs, $5/mo for 100K images. Unbeatable for cost-conscious teams needing global speed.'
+  },
+  {
+    name: 'Fastly IO',
+    price: '$50/mo+',
+    scores: { small: 3, medium: 6, large: 8, enterprise: 9, free: 0, low: 3, mid: 6, high: 8, basic: 7, advanced: 6, ai: 2, no: 8, yes: 2, global: 8, na: 9, eu: 8, asia: 7 },
+    tags: ['Edge Compute', 'Enterprise'],
+    reason: 'Integrates image optimization into Fastly edge compute. Best for teams already on Fastly who want VCL-level control.'
+  },
+  {
+    name: 'Bunny.net',
+    price: '$9.50/mo',
+    scores: { small: 8, medium: 9, large: 9, enterprise: 7, free: 4, low: 9, mid: 9, high: 7, basic: 9, advanced: 4, ai: 1, no: 9, yes: 6, global: 9, na: 9, eu: 9, asia: 8 },
+    tags: ['Best Value', '120+ PoPs'],
+    reason: 'Best price-to-performance ratio. $0.005/10K transforms with 120+ PoPs and ~65ms TTFB. No frills, just fast and cheap.'
+  },
+  {
+    name: 'ImageKit',
+    price: '$49/mo',
+    scores: { small: 8, medium: 8, large: 7, enterprise: 6, free: 9, low: 7, mid: 8, high: 6, basic: 8, advanced: 8, ai: 8, no: 8, yes: 7, global: 6, na: 7, eu: 7, asia: 7 },
+    tags: ['Free Tier', 'DAM', 'SDK'],
+    reason: 'Cloudinary-like features at half the price. 20GB free tier, DAM, smart crop, face detection, and upload SDK included.'
+  },
+  {
+    name: 'Sirv',
+    price: '$19/mo',
+    scores: { small: 6, medium: 7, large: 6, enterprise: 5, free: 6, low: 7, mid: 7, high: 4, basic: 7, advanced: 7, ai: 3, no: 7, yes: 7, global: 4, na: 6, eu: 7, asia: 4 },
+    tags: ['E-Commerce', '360 Spin'],
+    reason: 'Purpose-built for product imagery with 360-spin views, deep zoom, and dynamic watermarks. E-commerce specialist.'
+  },
+  {
+    name: 'KeyCDN',
+    price: '$0.04/GB',
+    scores: { small: 7, medium: 6, large: 5, enterprise: 4, free: 3, low: 8, mid: 6, high: 4, basic: 8, advanced: 3, ai: 0, no: 8, yes: 0, global: 6, na: 7, eu: 7, asia: 5 },
+    tags: ['Pay-as-you-go', 'No minimum'],
+    reason: 'Pure pay-as-you-go at $0.04/GB with no monthly minimum. Perfect for seasonal traffic or side projects.'
+  }
+];
+
+function runDecisionTool() {
+  const images = document.getElementById('dt-images').value;
+  const budget = document.getElementById('dt-budget').value;
+  const transforms = document.getElementById('dt-transforms').value;
+  const video = document.getElementById('dt-video').value;
+  const geo = document.getElementById('dt-geo').value;
+
+  const scored = CDN_DATA.map(cdn => {
+    const score = (cdn.scores[images] || 0) * 2
+                + (cdn.scores[budget] || 0) * 2.5
+                + (cdn.scores[transforms] || 0) * 2
+                + (cdn.scores[video] || 0) * 1.5
+                + (cdn.scores[geo] || 0) * 2;
+    return { ...cdn, totalScore: Math.round(score) };
+  });
+
+  scored.sort((a, b) => b.totalScore - a.totalScore);
+  const top3 = scored.slice(0, 3);
+  const maxScore = top3[0].totalScore;
+
+  const cardsHTML = top3.map((cdn, i) => {
+    const pct = Math.round((cdn.totalScore / maxScore) * 100);
+    return `
+      <div class="dt-card ${i === 0 ? 'top-pick' : ''}">
+        <div class="dt-rank">#${i + 1}</div>
+        <div class="dt-card-body">
+          <div class="dt-card-name">${cdn.name} ${cdn.tags.map(t => '<span class="dt-tag">' + t + '</span>').join('')}</div>
+          <div class="dt-card-reason">${cdn.reason}</div>
+        </div>
+        <div class="dt-card-price">
+          <div class="dt-card-score">${pct}%</div>
+          <div>${cdn.price}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('dt-cards').innerHTML = cardsHTML;
+  const results = document.getElementById('dt-results');
+  results.classList.add('visible');
+  results.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+</script>
+
+</body>
+</html>
