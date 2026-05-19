@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Core Web Vitals Diagnostic Guide — Interactive CWV Scorer & Optimization Tool | Krzen</title>
+<meta name="description" content="Free Core Web Vitals diagnostic tool. Input your LCP, INP, CLS, and TTFB values, get instant Good/Needs Improvement/Poor scoring, optimization recommendations, priority matrix, and performance budget calculator. Client-side only.">
+<meta name="keywords" content="core web vitals tool, LCP optimizer, INP diagnostic, CLS fix, TTFB analyzer, web vitals score, performance optimization, core web vitals guide 2026">
+<link rel="canonical" href="https://krzen.com/research/core-web-vitals-guide.html">
+<link rel="alternate" hreflang="en" href="https://krzen.com/research/core-web-vitals-guide.html">
+<link rel="alternate" hreflang="x-default" href="https://krzen.com/research/core-web-vitals-guide.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Core Web Vitals Diagnostic Guide — Interactive CWV Scorer & Optimization Tool">
+<meta property="og:description" content="Free Core Web Vitals diagnostic tool. Input LCP, INP, CLS, TTFB values and get instant scoring with optimization recommendations.">
+<meta property="og:url" content="https://krzen.com/research/core-web-vitals-guide.html">
+<meta property="og:site_name" content="Zovo Tools">
+<meta property="og:image" content="https://krzen.com/assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Core Web Vitals Diagnostic Guide — Interactive CWV Scorer & Optimization Tool">
+<meta name="twitter:description" content="Free Core Web Vitals diagnostic tool. Input LCP, INP, CLS, TTFB values and get instant scoring with optimization recommendations.">
+<meta name="twitter:image" content="https://krzen.com/assets/og-image.png">
+<link rel="stylesheet" href="/assets/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Core Web Vitals Diagnostic Guide — Interactive CWV Scorer & Optimization Tool",
+  "url": "https://krzen.com/research/core-web-vitals-guide.html",
+  "description": "Comprehensive Core Web Vitals diagnostic guide with an interactive tool to score LCP, INP, CLS, and TTFB values, generate optimization recommendations, build a priority matrix, and estimate before/after impact.",
+  "author": {"@type": "Person", "name": "Michael Lip", "url": "https://zovo.one"},
+  "publisher": {"@type": "Organization", "name": "Krzen", "url": "https://krzen.com"},
+  "datePublished": "2026-05-25",
+  "dateModified": "2026-05-25",
+  "mainEntityOfPage": {"@type": "WebPage", "@id": "https://krzen.com/research/core-web-vitals-guide.html"},
+  "image": "https://krzen.com/assets/og-image.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What are Core Web Vitals and why do they matter for SEO?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Core Web Vitals are three specific metrics Google uses to measure user experience: Largest Contentful Paint (LCP) measures loading speed, Interaction to Next Paint (INP) measures responsiveness, and Cumulative Layout Shift (CLS) measures visual stability. Google made these a ranking signal in 2021, meaning pages that fail CWV thresholds may rank lower than faster competitors. In 2024, INP replaced First Input Delay (FID) as the responsiveness metric. TTFB (Time to First Byte) is a diagnostic metric that directly affects LCP."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What are good Core Web Vitals scores?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Google defines three tiers for each metric. LCP: Good is under 2.5 seconds, Needs Improvement is 2.5-4.0 seconds, Poor is over 4.0 seconds. INP: Good is under 200ms, Needs Improvement is 200-500ms, Poor is over 500ms. CLS: Good is under 0.1, Needs Improvement is 0.1-0.25, Poor is over 0.25. TTFB: Good is under 800ms, Needs Improvement is 800-1800ms, Poor is over 1800ms. A page passes CWV assessment when the 75th percentile of real users meets the Good threshold for all three core metrics."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I fix a poor LCP score?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The four main causes of poor LCP are slow server response (TTFB over 800ms), render-blocking resources (CSS and synchronous JavaScript in the head), slow resource load time (unoptimized hero images), and client-side rendering delays. Fix TTFB first by using a CDN and enabling caching. Then optimize the LCP element directly: if it is an image, convert to WebP/AVIF, add fetchpriority='high' and preload it. If it is text, inline critical CSS and preload fonts. Remove render-blocking third-party scripts from the head. Typical improvement: 1-3 seconds reduction."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What causes high CLS and how do I fix it?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "CLS is caused by elements that shift position after the page starts rendering. The most common causes are images and iframes without explicit width and height attributes, fonts that load late and change text size (FOIT/FOUT), dynamically injected content (ads, banners, cookie notices), and CSS animations that trigger layout changes. Fix it by always setting width and height on images and iframes, using font-display: swap with size-adjusted fallback fonts, reserving space for dynamic content with min-height, and using CSS transform for animations instead of properties that trigger layout (top, left, margin)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How is INP different from FID and how do I improve it?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "FID only measured the delay before the browser started processing the first user interaction. INP measures the full latency of all interactions throughout the page lifecycle — from input to the next visual update. This means INP catches slow event handlers, long-running JavaScript during interactions, and rendering delays after state changes. To improve INP: break long tasks into smaller chunks using requestIdleCallback or scheduler.yield(), debounce rapid-fire events, use web workers for heavy computation, reduce DOM size (under 1500 nodes ideal), and avoid forced synchronous layouts in event handlers."
+      }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://krzen.com/"},
+    {"@type": "ListItem", "position": 2, "name": "Research", "item": "https://krzen.com/research/"},
+    {"@type": "ListItem", "position": 3, "name": "Core Web Vitals Guide", "item": "https://krzen.com/research/core-web-vitals-guide.html"}
+  ]
+}
+</script>
+<style>
+.tool-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin:20px 0}
+.tool-section h3{font-family:var(--font-display);font-size:0.85rem;text-transform:uppercase;color:var(--accent);margin-bottom:16px;letter-spacing:0.04em}
+.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:20px}
+.metric-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.metric-card h4{font-family:var(--font-display);font-size:0.9rem;margin:0 0 4px;color:var(--text)}
+.metric-card .metric-desc{font-size:0.75rem;color:var(--text-muted);margin-bottom:12px}
+.metric-card label{font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;display:block;margin-bottom:4px}
+.metric-card input{width:100%;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:8px 10px;font-family:'Space Mono',monospace;font-size:0.9rem;box-sizing:border-box}
+.metric-card input:focus{outline:none;border-color:var(--accent)}
+.metric-card .unit{font-size:0.75rem;color:var(--text-muted);margin-top:4px}
+.metric-card .thresholds{font-size:0.72rem;color:var(--text-muted);margin-top:8px;line-height:1.5}
+.metric-card .thresholds span{font-weight:600}
+.score-good{color:#34D399}
+.score-needs{color:#FBBF24}
+.score-poor{color:#F87171}
+.analyze-btn{margin-top:8px}
+#results-area{display:none;margin-top:20px}
+.results-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:20px}
+.result-card{background:var(--bg);border:2px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center;transition:border-color 0.3s}
+.result-card.good{border-color:#34D399}
+.result-card.needs{border-color:#FBBF24}
+.result-card.poor{border-color:#F87171}
+.result-card .r-metric{font-size:0.78rem;text-transform:uppercase;font-weight:600;color:var(--text-muted);margin-bottom:4px}
+.result-card .r-value{font-family:var(--font-display);font-size:1.6rem;font-weight:700;margin-bottom:4px}
+.result-card .r-rating{font-size:0.82rem;font-weight:600;text-transform:uppercase}
+.result-card .r-bar{height:4px;border-radius:2px;margin-top:8px}
+.overall-score{text-align:center;margin:24px 0}
+.overall-score .os-val{font-family:var(--font-display);font-size:3rem;font-weight:700}
+.overall-score .os-label{font-size:0.9rem;color:var(--text-muted)}
+.priority-matrix{margin:20px 0}
+.priority-table{width:100%;border-collapse:collapse;font-size:0.85rem}
+.priority-table th{text-align:left;padding:10px 12px;border-bottom:2px solid var(--border);font-family:var(--font-display);font-size:0.78rem;text-transform:uppercase;color:var(--accent);letter-spacing:0.3px}
+.priority-table td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text-muted)}
+.priority-table td:first-child{color:var(--text);font-weight:600}
+.priority-tag{display:inline-block;padding:2px 8px;border-radius:3px;font-size:0.72rem;font-weight:600;text-transform:uppercase}
+.priority-high{background:rgba(248,113,113,0.15);color:#F87171}
+.priority-med{background:rgba(251,191,36,0.15);color:#FBBF24}
+.priority-low{background:rgba(52,211,153,0.15);color:#34D399}
+.impact-section{margin:20px 0}
+.impact-row{display:flex;gap:16px;margin-bottom:12px;align-items:center}
+.impact-row .impact-metric{font-weight:600;color:var(--text);width:60px;flex-shrink:0;font-size:0.85rem}
+.impact-bar-container{flex:1;display:flex;align-items:center;gap:8px}
+.impact-bar{height:20px;border-radius:3px;display:flex;align-items:center;transition:width 0.5s ease}
+.impact-bar-before{background:rgba(248,113,113,0.6)}
+.impact-bar-after{background:rgba(52,211,153,0.6)}
+.impact-bar span{font-size:0.7rem;font-family:'Space Mono',monospace;padding:0 6px;white-space:nowrap}
+.impact-legend{display:flex;gap:16px;margin-bottom:12px;font-size:0.78rem;color:var(--text-muted)}
+.impact-legend span{display:flex;align-items:center;gap:4px}
+.impact-legend span::before{content:'';width:12px;height:12px;border-radius:2px;display:inline-block}
+.impact-legend .il-before::before{background:rgba(248,113,113,0.6)}
+.impact-legend .il-after::before{background:rgba(52,211,153,0.6)}
+.reco-list{list-style:none;padding:0}
+.reco-list li{padding:10px 14px;border-left:3px solid var(--accent);margin-bottom:8px;background:rgba(251,146,60,0.04);border-radius:0 var(--radius) var(--radius) 0;font-size:0.9rem;color:var(--text-muted)}
+.reco-list li strong{color:var(--text)}
+.reco-list li.reco-critical{border-left-color:#F87171}
+.reco-list li.reco-warn{border-left-color:#FBBF24}
+.reco-list li.reco-ok{border-left-color:#34D399}
+.budget-calc{margin:20px 0}
+.budget-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.budget-item{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center}
+.budget-item .b-label{font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;margin-bottom:4px}
+.budget-item .b-value{font-family:var(--font-display);font-size:1.2rem;font-weight:700;color:var(--text)}
+.budget-item .b-target{font-size:0.72rem;color:var(--text-muted);margin-top:2px}
+.explainer-section{max-width:760px;margin:40px auto 0;padding:0 0 20px}
+.explainer-section h2{font-size:1.3rem;margin:32px 0 12px;color:var(--accent)}
+.explainer-section h3{font-size:1.1rem;margin:24px 0 8px}
+.explainer-section p{color:var(--text-muted);margin-bottom:16px;line-height:1.7}
+.explainer-section ul,.explainer-section ol{color:var(--text-muted);margin:0 0 16px 24px}
+.explainer-section li{margin-bottom:6px}
+.explainer-section code{font-family:var(--font-display);background:var(--bg-card);padding:2px 6px;border-radius:3px;font-size:0.9em}
+.related-tools{margin:40px 0 0}
+.related-tools h3{font-family:var(--font-display);text-align:center;margin-bottom:16px;font-size:1rem}
+.related-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.related-grid a{display:block;padding:14px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);text-decoration:none;font-size:0.9rem;transition:border-color 0.2s}
+.related-grid a:hover{border-color:var(--accent);text-decoration:none}
+.related-grid a small{display:block;color:var(--text-muted);font-size:0.78rem;margin-top:4px}
+.author-bio{margin:32px 0;padding:20px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius)}
+.author-bio p{color:var(--text-muted);font-size:0.9rem;line-height:1.6;margin:0}
+.author-bio p strong{color:var(--text)}
+.last-updated{text-align:center;color:var(--text-muted);font-size:0.8rem;margin:24px 0 0}
+@media(max-width:768px){.metric-grid{grid-template-columns:1fr 1fr}.results-grid{grid-template-columns:1fr 1fr}.budget-grid{grid-template-columns:1fr 1fr}.impact-row{flex-direction:column;align-items:flex-start}.priority-table{font-size:0.78rem}}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <a href="/" class="logo">krzen</a>
+    <nav>
+      <a href="/">Tool</a>
+      <a href="/research/">Research</a>
+      <a href="/guides/">Guides</a>
+      <a href="/tools/">Tools</a>
+      <a href="/blog/">Blog</a>
+      <a href="/about.html">About</a>
+      <div class="nav-right">
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&amp;utm_medium=satellite&amp;utm_campaign=nav-link" class="nav-pro" target="_blank">Go Pro &#10022;</a>
+        <a href="https://zovo.one/tools" class="nav-zovo">Zovo Tools</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <nav class="breadcrumb" aria-label="Breadcrumb" style="font-size:0.82rem;margin:20px 0 0;"><a href="/">Home</a> <span style="color:var(--text-muted);margin:0 4px;">/</span> <a href="/research/">Research</a> <span style="color:var(--text-muted);margin:0 4px;">/</span> <span style="color:var(--text-muted);">Core Web Vitals Guide</span></nav>
+
+  <section class="hero">
+    <h1>Core Web Vitals <span>Diagnostic Guide</span></h1>
+    <p>Input your LCP, INP, CLS, and TTFB values. Get instant scoring, optimization recommendations, a priority matrix, and a performance budget. No data leaves your browser.</p>
+  </section>
+
+  <div class="tool-section">
+    <h3>Enter Your Web Vitals</h3>
+    <div class="metric-grid">
+      <div class="metric-card">
+        <h4>LCP</h4>
+        <div class="metric-desc">Largest Contentful Paint</div>
+        <label>Value (seconds)</label>
+        <input type="number" id="inp-lcp" value="2.8" step="0.1" min="0" max="30">
+        <div class="thresholds"><span class="score-good">Good:</span> &lt;2.5s &nbsp; <span class="score-needs">NI:</span> 2.5–4.0s &nbsp; <span class="score-poor">Poor:</span> &gt;4.0s</div>
+      </div>
+      <div class="metric-card">
+        <h4>INP</h4>
+        <div class="metric-desc">Interaction to Next Paint</div>
+        <label>Value (milliseconds)</label>
+        <input type="number" id="inp-inp" value="250" step="10" min="0" max="5000">
+        <div class="thresholds"><span class="score-good">Good:</span> &lt;200ms &nbsp; <span class="score-needs">NI:</span> 200–500ms &nbsp; <span class="score-poor">Poor:</span> &gt;500ms</div>
+      </div>
+      <div class="metric-card">
+        <h4>CLS</h4>
+        <div class="metric-desc">Cumulative Layout Shift</div>
+        <label>Value (unitless)</label>
+        <input type="number" id="inp-cls" value="0.15" step="0.01" min="0" max="5">
+        <div class="thresholds"><span class="score-good">Good:</span> &lt;0.1 &nbsp; <span class="score-needs">NI:</span> 0.1–0.25 &nbsp; <span class="score-poor">Poor:</span> &gt;0.25</div>
+      </div>
+      <div class="metric-card">
+        <h4>TTFB</h4>
+        <div class="metric-desc">Time to First Byte</div>
+        <label>Value (milliseconds)</label>
+        <input type="number" id="inp-ttfb" value="900" step="50" min="0" max="10000">
+        <div class="thresholds"><span class="score-good">Good:</span> &lt;800ms &nbsp; <span class="score-needs">NI:</span> 800–1800ms &nbsp; <span class="score-poor">Poor:</span> &gt;1800ms</div>
+      </div>
+    </div>
+    <button class="btn analyze-btn" onclick="CWV.analyze()">Diagnose Web Vitals</button>
+  </div>
+
+  <div id="results-area">
+    <div class="tool-section">
+      <h3>Vitals Score Card</h3>
+      <div class="results-grid" id="results-grid"></div>
+      <div class="overall-score">
+        <div class="os-val" id="overall-val">--</div>
+        <div class="os-label" id="overall-label">Overall CWV Assessment</div>
+      </div>
+    </div>
+
+    <div class="tool-section">
+      <h3>Priority Matrix</h3>
+      <table class="priority-table" id="priority-table">
+        <thead><tr><th>Metric</th><th>Current</th><th>Target</th><th>Gap</th><th>Impact</th><th>Priority</th></tr></thead>
+        <tbody id="priority-body"></tbody>
+      </table>
+    </div>
+
+    <div class="tool-section">
+      <h3>Before / After Impact Estimator</h3>
+      <div class="impact-legend">
+        <span class="il-before">Current</span>
+        <span class="il-after">After Optimization</span>
+      </div>
+      <div class="impact-section" id="impact-section"></div>
+    </div>
+
+    <div class="tool-section">
+      <h3>Optimization Recommendations</h3>
+      <ul class="reco-list" id="reco-list"></ul>
+    </div>
+
+    <div class="tool-section">
+      <h3>Performance Budget</h3>
+      <div class="budget-grid" id="budget-grid"></div>
+    </div>
+  </div>
+
+  <section class="explainer-section">
+    <h2>Understanding Core Web Vitals in 2026</h2>
+    <p>Core Web Vitals (CWV) are a set of standardized metrics that quantify the real-world user experience of loading, interactivity, and visual stability on web pages. Google introduced them in May 2020 and incorporated them as a ranking signal in June 2021. Since then, they have become the primary technical SEO benchmark for page experience. The current three Core Web Vitals are Largest Contentful Paint (LCP), Interaction to Next Paint (INP), and Cumulative Layout Shift (CLS). Time to First Byte (TTFB) is an additional diagnostic metric that directly impacts LCP.</p>
+    <p>What makes CWV unique among performance metrics is that they are measured from real users in the field, not just in lab conditions. Google collects CWV data through the Chrome User Experience Report (CrUX), which aggregates anonymized performance data from Chrome users who have opted in. This means your CWV scores reflect actual user experience across different devices, network conditions, and geographies. A page passes the CWV assessment when at least 75% of real user page loads meet the "Good" threshold for all three core metrics simultaneously.</p>
+    <p>The distinction between field data (real users) and lab data (synthetic tests like Lighthouse) is critical. Lighthouse runs tests on a single simulated device and network, producing consistent but narrow results. CrUX field data captures the full distribution of user experiences, including users on slow 3G phones in rural areas and users on fast fiber connections with powerful laptops. A page can score 100 in Lighthouse but still fail CWV in the field if a significant percentage of users have poor connections or old devices.</p>
+
+    <h2>Largest Contentful Paint (LCP): Loading Performance</h2>
+    <p>LCP measures the time from when the user initiates a page load to when the largest visible content element finishes rendering in the viewport. The "largest element" is typically a hero image, a large heading, or a video poster frame. Google's thresholds are: Good under 2.5 seconds, Needs Improvement between 2.5 and 4.0 seconds, and Poor above 4.0 seconds.</p>
+    <p>LCP is decomposed into four sub-parts, each of which can be optimized independently. First, Time to First Byte (TTFB): the time the server takes to respond to the initial HTML request. Optimize with CDN edge caching, server-side caching (Redis, Varnish), and efficient server code. Target under 800ms. Second, resource load delay: the time between TTFB and when the LCP resource starts downloading. Reduce by preloading the LCP image with <code>&lt;link rel="preload"&gt;</code> and removing render-blocking resources from the critical path. Third, resource load time: how long the LCP resource itself takes to download. Minimize by compressing images (WebP/AVIF), using responsive srcset, and serving from a CDN. Fourth, element render delay: the time after the resource loads until it actually paints. Reduce by minimizing DOM size, avoiding layout-triggering JavaScript, and eliminating CSS that blocks rendering.</p>
+    <p>The single highest-impact LCP optimization for most sites is adding <code>fetchpriority="high"</code> to the LCP image element. This tells the browser to prioritize downloading that resource above other images, fonts, and non-critical scripts. Combined with a preload link in the head, this can reduce LCP by 500ms-1.5 seconds on typical pages. If your LCP element is text-based (a heading), inline the critical CSS required to render it and preload the web font.</p>
+
+    <h2>Interaction to Next Paint (INP): Responsiveness</h2>
+    <p>INP replaced First Input Delay (FID) as the official responsiveness metric in March 2024. While FID only measured the delay before processing the very first user interaction, INP measures the full input-to-paint latency of every interaction throughout the page's lifecycle, then reports the worst (or near-worst) interaction. This makes INP a far more comprehensive measure of how responsive a page feels during actual use.</p>
+    <p>An interaction's total latency consists of three phases: input delay (time the browser waits because the main thread is busy), processing time (time spent running the event handler code), and presentation delay (time to commit the visual update to the screen). Google's thresholds are: Good under 200ms, Needs Improvement between 200ms and 500ms, and Poor above 500ms.</p>
+    <p>The most common cause of poor INP is long tasks that block the main thread. A "long task" is any JavaScript execution that runs for more than 50ms without yielding control. If a user clicks a button while a 300ms JavaScript task is running, the browser cannot start processing the click until the task finishes, adding 300ms of input delay. The fix is to break long tasks into smaller chunks. The <code>scheduler.yield()</code> API (available in Chrome and polyfillable) is the modern way to explicitly yield the main thread between task segments. Older approaches include <code>setTimeout(fn, 0)</code> and <code>requestIdleCallback</code>.</p>
+    <p>Reducing DOM size below 1,500 nodes significantly improves presentation delay, because the browser must calculate layout and paint for fewer elements after each state change. Similarly, using CSS <code>content-visibility: auto</code> on off-screen sections lets the browser skip rendering work for elements the user has not scrolled to yet, reducing the paint phase of interactions.</p>
+
+    <h2>Cumulative Layout Shift (CLS): Visual Stability</h2>
+    <p>CLS measures how much the page layout shifts unexpectedly during its entire lifespan. A "layout shift" occurs when a visible element moves from its rendered position without being triggered by user input. CLS is calculated by multiplying the impact fraction (how much of the viewport is affected) by the distance fraction (how far the element moved), summed across all unexpected shifts. Google's thresholds are: Good under 0.1, Needs Improvement between 0.1 and 0.25, and Poor above 0.25.</p>
+    <p>The five most common causes of CLS are well-documented. First, images and iframes without dimensions: when an image loads, the browser reserves space for it only if explicit width and height attributes or CSS aspect-ratio are provided. Without them, the browser allocates zero height initially, then reflows the layout when the image loads. The fix is always including width and height attributes: <code>&lt;img width="800" height="600"&gt;</code>. Second, late-loading web fonts: when a web font downloads and replaces the fallback font, different metrics cause text to reflow. Use <code>font-display: swap</code> combined with <code>size-adjust</code> on the fallback font to match metrics closely.</p>
+    <p>Third, dynamically injected content above existing content: ads, banners, and cookie notices that push content down. Reserve space with CSS <code>min-height</code> before the dynamic content loads. Fourth, animations that trigger layout: properties like <code>top</code>, <code>left</code>, <code>width</code>, and <code>height</code> trigger layout recalculations. Use <code>transform</code> and <code>opacity</code> instead, which run on the compositor thread without affecting layout. Fifth, late-loading CSS that changes previously-rendered elements: inline critical CSS in the HTML head and load non-critical CSS asynchronously.</p>
+
+    <h2>TTFB: The Foundation Metric</h2>
+    <p>Time to First Byte measures how long the browser waits after sending the HTTP request until it receives the first byte of the response. While not a Core Web Vital itself, TTFB is the foundation of LCP: a 2-second TTFB makes it mathematically impossible to achieve a 2.5-second LCP. Google considers TTFB "Good" under 800ms, "Needs Improvement" at 800-1800ms, and "Poor" above 1800ms.</p>
+    <p>TTFB is composed of DNS lookup time, TCP connection time, TLS negotiation time, and server processing time. For most sites, server processing is the dominant factor. The optimization playbook starts with CDN deployment: serving content from edge servers geographically close to users eliminates long-distance round trips and can reduce TTFB from 1-2 seconds to 50-200ms. Next, implement server-side caching for dynamic pages: full-page cache for anonymous users, fragment caching for personalized pages. Finally, optimize database queries and application code to reduce server processing time.</p>
+    <p>A common mistake is assuming TTFB issues are purely server-side. Client-side redirects (HTTP to HTTPS, www to non-www, marketing redirects) each add a full round trip. Three redirect hops can add 300-600ms to TTFB on mobile networks. Minimize redirect chains and use HSTS preloading to eliminate the HTTP-to-HTTPS redirect entirely.</p>
+
+    <h2>Using This Diagnostic Tool</h2>
+    <p>Enter your actual CWV values from Chrome DevTools (Performance panel), PageSpeed Insights, or the CrUX API. Click "Diagnose Web Vitals" to receive an instant assessment. The tool scores each metric as Good, Needs Improvement, or Poor using Google's official thresholds. The priority matrix ranks each metric by the gap between your current value and the Good threshold, combined with its SEO impact weight, producing a clear fix-first order.</p>
+    <p>The before/after impact estimator shows what your metrics would look like after applying the recommended optimizations. These estimates are based on typical improvement ranges observed across thousands of sites: image optimization typically reduces LCP by 30-50%, JavaScript splitting reduces INP by 40-60%, and explicit image dimensions reduce CLS by 60-80%. Your actual results will vary based on your specific codebase, hosting, and traffic patterns.</p>
+    <p>The performance budget section translates your CWV targets into concrete resource budgets: maximum page weight, JavaScript size, image count, and font files. These budgets represent the resource constraints that, when enforced, typically produce CWV scores in the Good range. Integrate these limits into your build pipeline for continuous enforcement.</p>
+    <p>All calculations run entirely in your browser. No metric data, URLs, or any other information is transmitted to any server. The tool uses Google's published threshold values and industry-standard optimization impact estimates to generate its recommendations and projections.</p>
+  </section>
+
+  <section class="faq-section" style="max-width:760px;margin:40px auto 0;">
+    <h2>Frequently Asked Questions</h2>
+    <details>
+      <summary>What are Core Web Vitals and why do they matter for SEO?</summary>
+      <p>Core Web Vitals are three specific metrics Google uses to measure user experience: Largest Contentful Paint (LCP) measures loading speed, Interaction to Next Paint (INP) measures responsiveness, and Cumulative Layout Shift (CLS) measures visual stability. Google made these a ranking signal in 2021, meaning pages that fail CWV thresholds may rank lower than faster competitors. In 2024, INP replaced First Input Delay (FID) as the responsiveness metric. TTFB (Time to First Byte) is a diagnostic metric that directly affects LCP.</p>
+    </details>
+    <details>
+      <summary>What are good Core Web Vitals scores?</summary>
+      <p>Google defines three tiers for each metric. LCP: Good is under 2.5 seconds, Needs Improvement is 2.5-4.0 seconds, Poor is over 4.0 seconds. INP: Good is under 200ms, Needs Improvement is 200-500ms, Poor is over 500ms. CLS: Good is under 0.1, Needs Improvement is 0.1-0.25, Poor is over 0.25. TTFB: Good is under 800ms, Needs Improvement is 800-1800ms, Poor is over 1800ms. A page passes CWV assessment when the 75th percentile meets Good for all three core metrics.</p>
+    </details>
+    <details>
+      <summary>How do I fix a poor LCP score?</summary>
+      <p>The four main causes of poor LCP are slow server response (TTFB over 800ms), render-blocking resources, slow resource load time, and client-side rendering delays. Fix TTFB first by using a CDN and caching. Then optimize the LCP element: convert images to WebP/AVIF, add fetchpriority="high" and preload it. Remove render-blocking scripts from the head. Typical improvement: 1-3 seconds reduction.</p>
+    </details>
+    <details>
+      <summary>What causes high CLS and how do I fix it?</summary>
+      <p>CLS is caused by elements that shift position after rendering starts. Common causes: images without width/height attributes, late-loading fonts, dynamically injected content (ads, banners), and CSS animations triggering layout. Fix by setting dimensions on images, using font-display: swap, reserving space for dynamic content, and using CSS transform instead of layout-triggering properties.</p>
+    </details>
+    <details>
+      <summary>How is INP different from FID and how do I improve it?</summary>
+      <p>FID only measured the delay before processing the first interaction. INP measures the full latency of all interactions throughout the page lifecycle. To improve INP: break long tasks using scheduler.yield(), debounce rapid events, use web workers for heavy computation, reduce DOM size under 1500 nodes, and avoid forced synchronous layouts in event handlers.</p>
+    </details>
+  </section>
+
+  <section class="related-tools" style="max-width:760px;margin:40px auto;">
+    <h3>Related Tools &amp; Guides</h3>
+    <div class="related-grid">
+      <a href="/tools/page-speed-analyzer.html">Page Speed Analyzer<small>Performance budget calculator with waterfall</small></a>
+      <a href="/tools/responsive-breakpoint-tester.html">Responsive Breakpoint Tester<small>Device preview with breakpoint builder</small></a>
+      <a href="/research/image-format-comparison.html">Image Format Comparison<small>WebP vs AVIF vs JPEG performance data</small></a>
+    </div>
+  </section>
+
+  <div class="author-bio" style="max-width:760px;margin:32px auto;">
+    <p><strong>Written by Michael Lip</strong> — solo dev building free developer tools at <a href="https://zovo.one">zovo.one</a>. No tracking, no accounts, no data collection. If you find this tool useful, check out the full <a href="https://zovo.one/tools">Zovo Tools</a> suite.</p>
+  </div>
+
+  <div class="last-updated" style="max-width:760px;margin:16px auto;"><time datetime="2026-05-25">Last updated: May 25, 2026</time></div>
+</main>
+
+<footer class="site-footer">
+    <div class="footer-inner">
+        <div class="footer-brand">Zovo Tools</div>
+        <div class="footer-tagline">Free developer tools by a solo dev. No tracking.</div>
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&utm_medium=satellite&utm_campaign=footer-link" class="footer-cta">Zovo Lifetime &mdash; $99 once, free forever &rarr;</a>
+        <div class="footer-copy">&copy; 2026 <a href="https://zovo.one">Zovo</a> &middot; 47/500 founding spots</div>
+    </div>
+</footer>
+
+<nav class="zovo-network" aria-label="Zovo Tools Network">
+    <div class="zovo-network-inner">
+        <h3 class="zovo-network-title">Explore More Tools</h3>
+        <div class="zovo-network-links">
+            <a href="https://abwex.com">ABWex &mdash; A/B Testing</a>
+            <a href="https://claudflow.com">ClaudFlow &mdash; Workflows</a>
+            <a href="https://claudhq.com">ClaudHQ &mdash; AI Code Tools &amp; Fixes</a>
+            <a href="https://claudkit.com">ClaudKit &mdash; API</a>
+            <a href="https://enhio.com">Enhio &mdash; Text Tools</a>
+            <a href="https://epochpilot.com">EpochPilot &mdash; Timestamps</a>
+            <a href="https://gen8x.com">Gen8X &mdash; Color Tools</a>
+            <a href="https://gpt0x.com">GPT0X &mdash; AI Models</a>
+            <a href="https://heytensor.com">HeyTensor &mdash; ML Tools</a>
+            <a href="https://invokebot.com">InvokeBot &mdash; Webhooks</a>
+            <a href="https://kappafy.com">Kappafy &mdash; JSON</a>
+            <a href="https://kappakit.com">KappaKit &mdash; Dev Toolkit</a>
+            <a href="https://kickllm.com">KickLLM &mdash; LLM Costs</a>
+            <a href="https://lochbot.com">LochBot &mdash; Security</a>
+            <a href="https://lockml.com">LockML &mdash; ML Compare</a>
+            <a href="https://ml3x.com">ML3X &mdash; Matrix Math</a>
+        </div>
+    </div>
+</nav>
+
+<script>
+const CWV={
+  thresholds:{
+    lcp:{good:2.5,ni:4.0,unit:'s',label:'LCP',weight:0.35},
+    inp:{good:200,ni:500,unit:'ms',label:'INP',weight:0.30},
+    cls:{good:0.1,ni:0.25,unit:'',label:'CLS',weight:0.15},
+    ttfb:{good:800,ni:1800,unit:'ms',label:'TTFB',weight:0.20}
+  },
+
+  rate(metric,val){
+    const t=this.thresholds[metric];
+    if(val<=t.good)return'good';
+    if(val<=t.ni)return'needs';
+    return'poor';
+  },
+
+  analyze(){
+    const vals={
+      lcp:parseFloat(document.getElementById('inp-lcp').value)||0,
+      inp:parseFloat(document.getElementById('inp-inp').value)||0,
+      cls:parseFloat(document.getElementById('inp-cls').value)||0,
+      ttfb:parseFloat(document.getElementById('inp-ttfb').value)||0
+    };
+
+    document.getElementById('results-area').style.display='block';
+
+    const grid=document.getElementById('results-grid');
+    grid.innerHTML='';
+    const metrics=['lcp','inp','cls','ttfb'];
+    let passCount=0;
+
+    metrics.forEach(m=>{
+      const t=this.thresholds[m];
+      const rating=this.rate(m,vals[m]);
+      if(rating==='good')passCount++;
+      const displayVal=m==='cls'?vals[m].toFixed(2):(m==='lcp'?vals[m].toFixed(1)+t.unit:Math.round(vals[m])+t.unit);
+      const ratingText=rating==='good'?'Good':rating==='needs'?'Needs Improvement':'Poor';
+      const ratingClass=rating==='good'?'score-good':rating==='needs'?'score-needs':'score-poor';
+      const barPct=m==='cls'?Math.min(100,vals[m]/0.5*100):m==='lcp'?Math.min(100,vals[m]/8*100):Math.min(100,vals[m]/(t.ni*2)*100);
+      const barColor=rating==='good'?'#34D399':rating==='needs'?'#FBBF24':'#F87171';
+      grid.innerHTML+=`<div class="result-card ${rating}">
+        <div class="r-metric">${t.label}</div>
+        <div class="r-value ${ratingClass}">${displayVal}</div>
+        <div class="r-rating ${ratingClass}">${ratingText}</div>
+        <div class="r-bar" style="background:${barColor};width:${barPct}%"></div>
+      </div>`;
+    });
+
+    const corePass=this.rate('lcp',vals.lcp)==='good'&&this.rate('inp',vals.inp)==='good'&&this.rate('cls',vals.cls)==='good';
+    const ov=document.getElementById('overall-val');
+    const ol=document.getElementById('overall-label');
+    if(corePass){
+      ov.textContent='PASS';ov.className='os-val score-good';
+      ol.textContent='All three Core Web Vitals meet the Good threshold';
+    }else{
+      const failCount=3-(['lcp','inp','cls'].filter(m=>this.rate(m,vals[m])==='good').length);
+      ov.textContent='FAIL';ov.className='os-val score-poor';
+      ol.textContent=failCount+' of 3 Core Web Vitals '+( failCount===1?'does':'do')+' not meet the Good threshold';
+    }
+
+    this.buildPriority(vals);
+    this.buildImpact(vals);
+    this.buildRecos(vals);
+    this.buildBudget(vals);
+    document.getElementById('results-area').scrollIntoView({behavior:'smooth',block:'start'});
+  },
+
+  buildPriority(vals){
+    const body=document.getElementById('priority-body');
+    body.innerHTML='';
+    const metrics=['lcp','inp','cls','ttfb'];
+    const rows=[];
+
+    metrics.forEach(m=>{
+      const t=this.thresholds[m];
+      const rating=this.rate(m,vals[m]);
+      const gap=rating==='good'?0:m==='cls'?(vals[m]-t.good).toFixed(2):m==='lcp'?((vals[m]-t.good)*1000).toFixed(0)+'ms':(vals[m]-t.good).toFixed(0)+t.unit;
+      const gapNum=rating==='good'?0:m==='cls'?(vals[m]-t.good)/t.good:m==='lcp'?(vals[m]-t.good)/t.good:(vals[m]-t.good)/t.good;
+      const impact=rating==='poor'?'High':rating==='needs'?'Medium':'Low';
+      const priority=rating==='poor'?'high':rating==='needs'?'med':'low';
+      const targetVal=m==='cls'?t.good.toFixed(2):(m==='lcp'?t.good+'s':t.good+t.unit);
+      const currentVal=m==='cls'?vals[m].toFixed(2):(m==='lcp'?vals[m].toFixed(1)+'s':Math.round(vals[m])+t.unit);
+      const gapDisplay=rating==='good'?'<span class="score-good">On target</span>':gap;
+
+      rows.push({metric:t.label,current:currentVal,target:targetVal,gap:gapDisplay,impact:impact,priority:priority,gapNum:gapNum,weight:t.weight,ratingOrder:rating==='poor'?0:rating==='needs'?1:2});
+    });
+
+    rows.sort((a,b)=>a.ratingOrder-b.ratingOrder||b.gapNum-a.gapNum);
+
+    rows.forEach(r=>{
+      body.innerHTML+=`<tr>
+        <td>${r.metric}</td>
+        <td>${r.current}</td>
+        <td>${r.target}</td>
+        <td>${r.gap}</td>
+        <td>${r.impact}</td>
+        <td><span class="priority-tag priority-${r.priority}">${r.priority==='high'?'P0 — Fix First':r.priority==='med'?'P1 — Improve':'P2 — Monitor'}</span></td>
+      </tr>`;
+    });
+  },
+
+  buildImpact(vals){
+    const section=document.getElementById('impact-section');
+    section.innerHTML='';
+    const metrics=['lcp','inp','cls','ttfb'];
+    const improvements={lcp:0.35,inp:0.45,cls:0.65,ttfb:0.40};
+    const maxVals={lcp:8,inp:1000,cls:0.5,ttfb:3600};
+
+    metrics.forEach(m=>{
+      const t=this.thresholds[m];
+      const current=vals[m];
+      const improved=Math.max(current*(1-improvements[m]),m==='cls'?0.01:m==='lcp'?0.5:50);
+      const maxV=maxVals[m];
+      const beforePct=Math.min(100,(current/maxV)*100);
+      const afterPct=Math.min(100,(improved/maxV)*100);
+      const currentDisplay=m==='cls'?current.toFixed(2):(m==='lcp'?current.toFixed(1)+t.unit:Math.round(current)+t.unit);
+      const afterDisplay=m==='cls'?improved.toFixed(2):(m==='lcp'?improved.toFixed(1)+t.unit:Math.round(improved)+t.unit);
+      const afterRating=this.rate(m,improved);
+      const afterClass=afterRating==='good'?'score-good':afterRating==='needs'?'score-needs':'score-poor';
+
+      section.innerHTML+=`<div class="impact-row">
+        <div class="impact-metric">${t.label}</div>
+        <div class="impact-bar-container">
+          <div class="impact-bar impact-bar-before" style="width:${Math.max(5,beforePct)}%"><span>${currentDisplay}</span></div>
+          <div style="font-size:0.75rem;color:var(--text-muted);">&#8594;</div>
+          <div class="impact-bar impact-bar-after" style="width:${Math.max(5,afterPct)}%"><span class="${afterClass}">${afterDisplay}</span></div>
+        </div>
+      </div>`;
+    });
+  },
+
+  buildRecos(vals){
+    const list=document.getElementById('reco-list');
+    const items=[];
+
+    if(this.rate('lcp',vals.lcp)==='poor'){
+      items.push({c:'reco-critical',t:`<strong>LCP is ${vals.lcp.toFixed(1)}s — critically slow.</strong> Start with TTFB: deploy a CDN, enable full-page caching for anonymous users. Then optimize the LCP element: add <code>fetchpriority="high"</code> to the hero image, preload it with <code>&lt;link rel="preload" as="image"&gt;</code>, convert to WebP/AVIF, and serve responsive sizes via srcset. Remove all render-blocking JavaScript from the &lt;head&gt;. Expected improvement: 1.5-3.0 seconds.`});
+    }else if(this.rate('lcp',vals.lcp)==='needs'){
+      items.push({c:'reco-warn',t:`<strong>LCP is ${vals.lcp.toFixed(1)}s — needs improvement.</strong> Preload the LCP resource with <code>fetchpriority="high"</code>. Inline critical CSS to eliminate render-blocking. Compress hero images to WebP (30-40% smaller than JPEG). Consider implementing a service worker for returning visitors. Expected improvement: 0.5-1.5 seconds.`});
+    }else{
+      items.push({c:'reco-ok',t:`<strong>LCP is ${vals.lcp.toFixed(1)}s — excellent.</strong> Your loading performance is within Google's Good threshold. Monitor for regressions when adding new above-the-fold content.`});
+    }
+
+    if(this.rate('inp',vals.inp)==='poor'){
+      items.push({c:'reco-critical',t:`<strong>INP is ${Math.round(vals.inp)}ms — interactions are very slow.</strong> Profile with Chrome DevTools Performance panel to identify long tasks. Break JavaScript execution into chunks using <code>scheduler.yield()</code> or <code>setTimeout(fn, 0)</code>. Move heavy computation to Web Workers. Reduce DOM size below 1,500 nodes. Debounce scroll/resize handlers. Replace heavy frameworks with lighter alternatives. Expected improvement: 40-60%.`});
+    }else if(this.rate('inp',vals.inp)==='needs'){
+      items.push({c:'reco-warn',t:`<strong>INP is ${Math.round(vals.inp)}ms — responsiveness needs work.</strong> Audit event handlers for forced synchronous layouts (reading offsetHeight after writing styles). Use <code>requestAnimationFrame</code> to batch DOM reads/writes. Lazy-load non-critical JavaScript. Apply <code>content-visibility: auto</code> to off-screen sections. Expected improvement: 30-50%.`});
+    }else{
+      items.push({c:'reco-ok',t:`<strong>INP is ${Math.round(vals.inp)}ms — responsive.</strong> Interactions are snappy. Keep monitoring as new features and event handlers are added.`});
+    }
+
+    if(this.rate('cls',vals.cls)==='poor'){
+      items.push({c:'reco-critical',t:`<strong>CLS is ${vals.cls.toFixed(2)} — severe layout instability.</strong> Add explicit width and height to every <code>&lt;img&gt;</code> and <code>&lt;iframe&gt;</code>. Set <code>font-display: swap</code> with size-adjusted fallback fonts. Reserve space for ads and dynamic content with CSS <code>min-height</code>. Replace layout-triggering animations (top, left, margin) with <code>transform</code>. Use <code>aspect-ratio</code> CSS property for responsive embeds. Expected improvement: 60-80%.`});
+    }else if(this.rate('cls',vals.cls)==='needs'){
+      items.push({c:'reco-warn',t:`<strong>CLS is ${vals.cls.toFixed(2)} — some layout shifts detected.</strong> Check for images without dimensions, late-loading fonts, or dynamically injected content. Use Chrome DevTools > Performance > Experience track to identify which elements are shifting. Apply <code>font-display: optional</code> for non-critical fonts. Expected improvement: 40-60%.`});
+    }else{
+      items.push({c:'reco-ok',t:`<strong>CLS is ${vals.cls.toFixed(2)} — visually stable.</strong> Layout is solid. Watch for regressions when adding new dynamic content, ads, or font changes.`});
+    }
+
+    if(this.rate('ttfb',vals.ttfb)==='poor'){
+      items.push({c:'reco-critical',t:`<strong>TTFB is ${Math.round(vals.ttfb)}ms — server response is a bottleneck.</strong> This directly blocks LCP improvement. Deploy a CDN with edge caching (Cloudflare, Fastly, or CloudFront). Enable server-side caching (full page cache for static content, Redis/Memcached for dynamic). Minimize redirect chains. Upgrade to HTTP/2 or HTTP/3. Optimize database queries. Expected improvement: 40-70%.`});
+    }else if(this.rate('ttfb',vals.ttfb)==='needs'){
+      items.push({c:'reco-warn',t:`<strong>TTFB is ${Math.round(vals.ttfb)}ms — server response could be faster.</strong> Enable Brotli compression on your server/CDN. Implement stale-while-revalidate caching headers. Use DNS prefetching for third-party domains. Consider edge-side rendering (ESR) for dynamic pages. Expected improvement: 20-40%.`});
+    }else{
+      items.push({c:'reco-ok',t:`<strong>TTFB is ${Math.round(vals.ttfb)}ms — fast server response.</strong> Server is performing well. Continue monitoring during traffic spikes.`});
+    }
+
+    const poorCount=Object.keys(vals).filter(m=>this.rate(m,vals[m])==='poor').length;
+    if(poorCount>=3){
+      items.unshift({c:'reco-critical',t:`<strong>Multiple critical failures (${poorCount} metrics in Poor range).</strong> Focus on TTFB first as it cascades into LCP. Then address the largest gap between current and target values. Use the priority matrix above to determine fix order. Consider a performance audit sprint focused exclusively on CWV before adding new features.`});
+    }
+
+    list.innerHTML=items.map(i=>`<li class="${i.c}">${i.t}</li>`).join('');
+  },
+
+  buildBudget(vals){
+    const grid=document.getElementById('budget-grid');
+    const lcpGood=this.rate('lcp',vals.lcp)==='good';
+    const inpGood=this.rate('inp',vals.inp)==='good';
+
+    const budgets=[
+      {label:'Total Page Weight',value:lcpGood?'< 500 KB':'< 300 KB',target:'For LCP < 2.5s on 3G'},
+      {label:'JavaScript',value:inpGood?'< 200 KB':'< 100 KB',target:'Compressed, for INP < 200ms'},
+      {label:'Hero Image',value:lcpGood?'< 150 KB':'< 80 KB',target:'WebP/AVIF, above the fold'},
+      {label:'CSS (Critical)',value:'< 14 KB',target:'Inlined in <head> for first paint'},
+      {label:'Font Files',value:'< 50 KB',target:'Subsetted, 1-2 files max'},
+      {label:'Third-Party JS',value:'< 50 KB',target:'Deferred, non-blocking'},
+      {label:'DOM Nodes',value:'< 1,500',target:'For fast INP presentation delay'},
+      {label:'HTTP Requests',value:lcpGood?'< 40':'< 25',target:'Initial page load'}
+    ];
+
+    grid.innerHTML=budgets.map(b=>`<div class="budget-item">
+      <div class="b-label">${b.label}</div>
+      <div class="b-value">${b.value}</div>
+      <div class="b-target">${b.target}</div>
+    </div>`).join('');
+  }
+};
+
+document.querySelectorAll('.faq-section details summary').forEach(s=>{
+  s.addEventListener('click',function(e){
+    const d=this.parentElement;
+    const open=d.hasAttribute('open');
+    if(!open){/* browser handles it */}
+  });
+});
+</script>
+</body>
+</html>

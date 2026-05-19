@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lazy Loading Images Guide — Implementation, Calculator & Code Generator | Krzen</title>
+<meta name="description" content="Complete lazy loading implementation guide with interactive calculator, code generator for Vanilla JS, React, Vue, and Next.js, and a live Intersection Observer demo. Calculate bandwidth savings and LCP improvement.">
+<meta name="keywords" content="lazy loading images, intersection observer, loading lazy, lazy load guide, image lazy loading, LCP improvement, bandwidth savings calculator, lazy loading react, lazy loading vue, lazy loading nextjs">
+<link rel="canonical" href="https://krzen.com/guides/lazy-loading-images-guide.html">
+<link rel="alternate" hreflang="en" href="https://krzen.com/guides/lazy-loading-images-guide.html">
+<link rel="alternate" hreflang="x-default" href="https://krzen.com/guides/lazy-loading-images-guide.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Lazy Loading Images Guide — Implementation, Calculator & Code Generator">
+<meta property="og:description" content="Complete lazy loading implementation guide with interactive calculator, code generator for 4 frameworks, and live Intersection Observer demo.">
+<meta property="og:url" content="https://krzen.com/guides/lazy-loading-images-guide.html">
+<meta property="og:site_name" content="Zovo Tools">
+<meta property="og:image" content="https://krzen.com/assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Lazy Loading Images Guide — Implementation, Calculator & Code Generator">
+<meta name="twitter:description" content="Complete lazy loading implementation guide with calculator, code generator for 4 frameworks, and live Intersection Observer demo.">
+<meta name="twitter:image" content="https://krzen.com/assets/og-image.png">
+<link rel="stylesheet" href="/assets/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Lazy Loading Images — Calculator & Code Generator",
+  "url": "https://krzen.com/guides/lazy-loading-images-guide.html",
+  "description": "Interactive lazy loading implementation guide with bandwidth savings calculator, framework-specific code generator, and live Intersection Observer demo.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+  "author": {"@type": "Person", "name": "Michael Lip", "url": "https://zovo.one"},
+  "publisher": {"@type": "Organization", "name": "Zovo Tools", "url": "https://zovo.one"},
+  "datePublished": "2026-05-25",
+  "dateModified": "2026-05-25",
+  "featureList": ["Bandwidth savings calculator", "LCP improvement estimator", "Code generator for 4 frameworks", "Live Intersection Observer demo", "Configuration builder", "Client-side processing"],
+  "browserRequirements": "Requires JavaScript"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Does loading='lazy' work in all browsers?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Native lazy loading with the loading='lazy' attribute is supported in Chrome 77+, Firefox 75+, Edge 79+, Safari 15.4+, and Opera 64+. As of 2026, global browser support exceeds 95%. For the remaining browsers, the image loads normally (eager), so there is no broken experience — just no lazy loading benefit. If you need 100% coverage, use the Intersection Observer API as a fallback."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Should I lazy load above-the-fold images?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Never lazy load images that are visible in the initial viewport (above the fold). Lazy loading above-the-fold images delays LCP because the browser waits for JavaScript or the loading='lazy' heuristic before starting the download. Always use loading='eager' (the default) or add fetchpriority='high' for your hero image and LCP element. Only lazy load images below the fold."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How much bandwidth does lazy loading save?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Bandwidth savings depend on the page layout. A typical blog post with 10 images where only 2 are above the fold saves approximately 80% of image bandwidth on initial load. An e-commerce category page with 40 product images showing 8 in the viewport saves roughly 80% as well. The exact savings equal (total images - viewport images) * average image size. Use our calculator above to estimate savings for your specific layout."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is LQIP and blur-up technique?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "LQIP (Low Quality Image Placeholder) is a technique where you show a tiny, heavily compressed version of the image (typically 20-40 bytes as a base64 data URI) while the full image loads. The blur-up variant applies a CSS blur filter to the LQIP, then transitions to the sharp full image when loaded. This eliminates layout shift (CLS) and provides visual feedback during loading. Next.js Image component and Gatsby Image implement this automatically."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What rootMargin should I use for Intersection Observer?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A rootMargin of '200px 0px' (200px vertical, 0px horizontal) is a good default. This starts loading images 200px before they enter the viewport, giving them time to download before the user scrolls to them. For fast-scrolling pages (infinite feeds), increase to '400px 0px'. For bandwidth-constrained scenarios (mobile-first), use '100px 0px'. A threshold of 0 (default) triggers as soon as any pixel enters the margin area."
+      }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://krzen.com/"},
+    {"@type": "ListItem", "position": 2, "name": "Guides", "item": "https://krzen.com/guides/"},
+    {"@type": "ListItem", "position": 3, "name": "Lazy Loading Images Guide", "item": "https://krzen.com/guides/lazy-loading-images-guide.html"}
+  ]
+}
+</script>
+<style>
+.tool-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin:20px 0}
+.tool-section h3{font-family:var(--font-display);font-size:0.85rem;text-transform:uppercase;color:var(--accent);margin-bottom:16px;letter-spacing:0.04em}
+.calc-row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.calc-field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:140px}
+.calc-field label{font-size:0.78rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;letter-spacing:0.3px}
+.calc-field input,.calc-field select{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:8px 12px;font-family:var(--font-body);font-size:0.9rem}
+.calc-field input:focus,.calc-field select:focus{outline:none;border-color:var(--accent)}
+.results-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px;text-align:center;margin:16px 0}
+.results-grid .val{font-family:var(--font-display);font-size:1.4rem;font-weight:700;color:var(--accent)}
+.results-grid .val.green{color:#34D399}
+.results-grid .lbl{font-size:0.78rem;color:var(--text-muted);text-transform:uppercase}
+.code-tabs{display:flex;gap:0;margin-bottom:0;border-bottom:1px solid var(--border)}
+.code-tab{background:transparent;border:none;color:var(--text-muted);padding:8px 16px;font-family:var(--font-body);font-size:0.85rem;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s}
+.code-tab:hover{color:var(--text)}
+.code-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.code-output{background:var(--bg);border:1px solid var(--border);border-radius:0 0 var(--radius) var(--radius);padding:16px;overflow-x:auto;font-family:var(--font-display);font-size:0.82rem;line-height:1.6;color:var(--text-muted);white-space:pre-wrap;max-height:400px;position:relative}
+.copy-btn{position:absolute;top:8px;right:8px;background:var(--accent);color:#000;border:none;border-radius:var(--radius);padding:4px 12px;font-size:0.75rem;font-weight:600;cursor:pointer;font-family:var(--font-body)}
+.copy-btn:hover{opacity:0.85}
+.demo-container{border:1px solid var(--border);border-radius:var(--radius);height:300px;overflow-y:auto;padding:16px;background:var(--bg);position:relative}
+.demo-container::-webkit-scrollbar{width:6px}
+.demo-container::-webkit-scrollbar-track{background:var(--bg)}
+.demo-container::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.demo-img-placeholder{width:100%;height:180px;border-radius:var(--radius);margin-bottom:16px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:0.85rem;transition:all 0.4s ease;position:relative;overflow:hidden}
+.demo-img-placeholder.pending{background:var(--bg-card);border:1px dashed var(--border);color:var(--text-muted)}
+.demo-img-placeholder.loading{background:var(--bg-card);border:1px solid var(--accent);color:var(--accent)}
+.demo-img-placeholder.loaded{border:1px solid #34D399;color:#34D399}
+.demo-img-placeholder.loaded .demo-img-inner{background:linear-gradient(135deg,rgba(52,211,153,0.15),rgba(251,146,60,0.1));width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.demo-status{position:sticky;top:0;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:8px 14px;margin-bottom:12px;font-size:0.8rem;color:var(--text-muted);font-family:var(--font-display);z-index:2;display:flex;justify-content:space-between}
+.demo-status .loaded-count{color:#34D399;font-weight:700}
+.slider-row{display:flex;gap:24px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.slider-group{flex:1;min-width:200px}
+.slider-group label{font-size:0.78rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;display:block;margin-bottom:6px}
+.slider-group input[type="range"]{width:100%;appearance:none;height:6px;background:var(--border);border-radius:3px;outline:none}
+.slider-group input[type="range"]::-webkit-slider-thumb{appearance:none;width:18px;height:18px;background:var(--accent);border-radius:50%;cursor:pointer}
+.slider-val{font-family:var(--font-display);color:var(--accent);font-size:0.9rem}
+.explainer-section{max-width:760px;margin:40px auto 0;padding:0 0 20px}
+.explainer-section h2{font-size:1.3rem;margin:32px 0 12px;color:var(--accent)}
+.explainer-section h3{font-size:1.1rem;margin:24px 0 8px}
+.explainer-section p{color:var(--text-muted);margin-bottom:16px;line-height:1.7}
+.explainer-section ul,.explainer-section ol{color:var(--text-muted);margin:0 0 16px 24px}
+.explainer-section li{margin-bottom:6px}
+.explainer-section code{font-family:var(--font-display);background:var(--bg-card);padding:2px 6px;border-radius:3px;font-size:0.9em}
+.explainer-section pre{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;overflow-x:auto;font-family:var(--font-display);font-size:0.85rem;margin-bottom:16px;color:var(--text-muted)}
+.related-tools{margin:40px 0 0}
+.related-tools h3{font-family:var(--font-display);text-align:center;margin-bottom:16px;font-size:1rem}
+.related-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.related-grid a{display:block;padding:14px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);text-decoration:none;font-size:0.9rem;transition:border-color 0.2s}
+.related-grid a:hover{border-color:var(--accent);text-decoration:none}
+.related-grid a small{display:block;color:var(--text-muted);font-size:0.78rem;margin-top:4px}
+.author-bio{margin:32px 0;padding:20px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius)}
+.author-bio p{color:var(--text-muted);font-size:0.9rem;line-height:1.6;margin:0}
+.author-bio p strong{color:var(--text)}
+.last-updated{text-align:center;color:var(--text-muted);font-size:0.8rem;margin:24px 0 0}
+@media(max-width:768px){.calc-row{flex-direction:column}.results-grid{grid-template-columns:repeat(2,1fr)}.slider-row{flex-direction:column}.code-tabs{overflow-x:auto}}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <a href="/" class="logo">krzen</a>
+    <nav>
+      <a href="/">Tool</a>
+      <a href="/research/">Research</a>
+      <a href="/guides/">Guides</a>
+      <a href="/tools/">Tools</a>
+      <a href="/blog/">Blog</a>
+      <a href="/about.html">About</a>
+      <div class="nav-right">
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&amp;utm_medium=satellite&amp;utm_campaign=nav-link" class="nav-pro" target="_blank">Go Pro &#10022;</a>
+        <a href="https://zovo.one/tools" class="nav-zovo">Zovo Tools</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <nav class="breadcrumb" aria-label="Breadcrumb" style="font-size:0.82rem;margin:20px 0 0;"><a href="/">Home</a> <span style="color:var(--text-muted);margin:0 4px;">/</span> <a href="/guides/">Guides</a> <span style="color:var(--text-muted);margin:0 4px;">/</span> <span style="color:var(--text-muted);">Lazy Loading Images Guide</span></nav>
+
+  <section class="hero">
+    <h1>Lazy Loading <span>Images</span> Guide</h1>
+    <p>Calculate bandwidth savings, generate framework-specific code, and see lazy loading in action. All tools run client-side &mdash; no data leaves your browser.</p>
+  </section>
+
+  <!-- Savings Calculator -->
+  <div class="tool-section">
+    <h3>Bandwidth Savings Calculator</h3>
+    <div class="calc-row">
+      <div class="calc-field">
+        <label>Total Images on Page</label>
+        <input type="number" id="calc-total" value="20" min="1" max="1000">
+      </div>
+      <div class="calc-field">
+        <label>Avg Image Size (KB)</label>
+        <input type="number" id="calc-size" value="80" min="1" max="10000">
+      </div>
+      <div class="calc-field">
+        <label>Images in Viewport</label>
+        <input type="number" id="calc-viewport" value="3" min="0" max="100">
+      </div>
+    </div>
+    <button class="btn" onclick="LLG.calculate()">Calculate Savings</button>
+    <div id="calc-results" style="display:none">
+      <div class="results-grid" style="margin-top:20px">
+        <div><div class="val" id="r-without">--</div><div class="lbl">Without Lazy Load</div></div>
+        <div><div class="val" id="r-with">--</div><div class="lbl">With Lazy Load</div></div>
+        <div><div class="val green" id="r-saved">--</div><div class="lbl">Bandwidth Saved</div></div>
+        <div><div class="val green" id="r-percent">--</div><div class="lbl">Reduction</div></div>
+        <div><div class="val green" id="r-lcp">--</div><div class="lbl">Est. LCP Improvement</div></div>
+        <div><div class="val" id="r-monthly">--</div><div class="lbl">Monthly Savings (100K visits)</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Code Generator -->
+  <div class="tool-section">
+    <h3>Code Snippet Generator</h3>
+    <div class="code-tabs">
+      <button class="code-tab active" onclick="LLG.switchTab('vanilla')">Vanilla JS</button>
+      <button class="code-tab" onclick="LLG.switchTab('react')">React</button>
+      <button class="code-tab" onclick="LLG.switchTab('vue')">Vue 3</button>
+      <button class="code-tab" onclick="LLG.switchTab('nextjs')">Next.js</button>
+    </div>
+    <div style="position:relative">
+      <div class="code-output" id="code-output"></div>
+      <button class="copy-btn" onclick="LLG.copyCode()">Copy</button>
+    </div>
+  </div>
+
+  <!-- Intersection Observer Config -->
+  <div class="tool-section">
+    <h3>Intersection Observer Configuration</h3>
+    <div class="slider-row">
+      <div class="slider-group">
+        <label>rootMargin (px): <span class="slider-val" id="rm-val">200</span></label>
+        <input type="range" id="rm-slider" min="0" max="800" value="200" step="50" oninput="LLG.updateConfig()">
+      </div>
+      <div class="slider-group">
+        <label>threshold: <span class="slider-val" id="th-val">0</span></label>
+        <input type="range" id="th-slider" min="0" max="1" value="0" step="0.1" oninput="LLG.updateConfig()">
+      </div>
+    </div>
+    <div style="position:relative">
+      <div class="code-output" id="observer-output"></div>
+      <button class="copy-btn" onclick="LLG.copyObserver()">Copy</button>
+    </div>
+  </div>
+
+  <!-- Live Demo -->
+  <div class="tool-section">
+    <h3>Live Lazy Loading Demo</h3>
+    <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:12px;">Scroll down inside the container below. Images load as they enter the viewport, just like real lazy loading. The counter tracks loaded vs. total images.</p>
+    <div class="demo-container" id="demo-container">
+      <div class="demo-status" id="demo-status">
+        <span>Scroll to load images</span>
+        <span>Loaded: <span class="loaded-count" id="demo-count">0</span> / <span id="demo-total">12</span></span>
+      </div>
+    </div>
+    <button class="btn btn-secondary" onclick="LLG.resetDemo()" style="margin-top:12px">Reset Demo</button>
+  </div>
+
+  <!-- Explainer Content -->
+  <section class="explainer-section">
+    <h2>What Is Lazy Loading?</h2>
+    <p>Lazy loading is a strategy that defers the loading of non-critical resources until they are actually needed. For images, this means only downloading images that are currently visible in the user's viewport (or about to become visible), rather than downloading every image on the page at once. The technique dramatically reduces initial page weight, speeds up Largest Contentful Paint (LCP), and saves bandwidth for users who never scroll to the bottom of the page.</p>
+    <p>Consider a blog post with 20 images, each averaging 80KB. Without lazy loading, the browser downloads all 20 images (1,600KB) immediately on page load, even though the user can only see 2-3 images in their viewport. With lazy loading, only those 2-3 visible images load initially (160-240KB), and the remaining images load progressively as the user scrolls. The initial page weight drops by 85%, and the page becomes interactive in a fraction of the time.</p>
+    <p>Lazy loading became a first-class browser feature in 2019 when Chrome introduced the <code>loading="lazy"</code> attribute. By 2026, native lazy loading is supported in all major browsers (Chrome, Firefox, Safari, Edge) with over 95% global coverage. This means you can implement lazy loading with a single HTML attribute — no JavaScript required for the basic case.</p>
+
+    <h2>Native Lazy Loading with loading="lazy"</h2>
+    <p>The simplest implementation is the native HTML attribute. Add <code>loading="lazy"</code> to any <code>&lt;img&gt;</code> tag that is below the fold:</p>
+    <pre>&lt;img src="photo.webp" loading="lazy" width="800" height="600" alt="Description"&gt;</pre>
+    <p>The browser handles everything: it detects when the image is approaching the viewport and starts the download. The exact trigger distance varies by browser (Chrome uses a distance threshold that adapts to connection speed), but you don't need to configure anything. Three critical rules when using native lazy loading:</p>
+    <ul>
+      <li><strong>Never lazy load above-the-fold images.</strong> Your hero image and LCP element should use <code>loading="eager"</code> (the default) or <code>fetchpriority="high"</code>. Lazy loading the LCP element is one of the most common performance anti-patterns.</li>
+      <li><strong>Always include width and height attributes.</strong> Without explicit dimensions, the browser cannot reserve space for the image before it loads, causing Cumulative Layout Shift (CLS). The attributes don't need to match the display size — the browser uses them to calculate the aspect ratio.</li>
+      <li><strong>Provide meaningful alt text.</strong> Lazy loading changes when an image loads, not whether it loads. Screen readers and search engines still need descriptive alt text.</li>
+    </ul>
+
+    <h2>Intersection Observer API</h2>
+    <p>For more control over lazy loading behavior, the Intersection Observer API lets you programmatically detect when elements enter or leave the viewport. Unlike scroll event listeners (which fire continuously and can cause jank), Intersection Observer is asynchronous and highly performant — the browser handles the intersection calculation off the main thread.</p>
+    <p>The key configuration options are <code>rootMargin</code> and <code>threshold</code>. The <code>rootMargin</code> extends the detection area beyond the viewport — a value of <code>"200px 0px"</code> starts loading images 200 pixels before they scroll into view, giving them a head start. The <code>threshold</code> determines what fraction of the element must be visible to trigger the callback — <code>0</code> triggers when even a single pixel enters the margin, while <code>1.0</code> requires the entire element to be visible. For lazy loading images, a rootMargin of 200px and threshold of 0 is the recommended starting point.</p>
+    <p>Use the Intersection Observer configuration builder above to experiment with different rootMargin and threshold values. The generated code is copy-paste ready for any project. For most use cases, the native <code>loading="lazy"</code> attribute is sufficient, but Intersection Observer is preferred when you need custom animations, blur-up effects, or precise control over loading behavior.</p>
+
+    <h2>Above-the-Fold Considerations</h2>
+    <p>The most critical decision in lazy loading is determining which images are "above the fold" — visible in the initial viewport without scrolling. These images must load immediately (eagerly) because they directly affect LCP. The problem is that "the fold" varies by device: a desktop at 1440x900 shows different content than a mobile at 375x812.</p>
+    <p>A practical approach: mark the first 1-3 images as eager and everything else as lazy. For product pages, the hero product image is always eager. For blog posts, the featured image is eager. For category grids, the first row of thumbnails (typically 3-4) should be eager. When in doubt, use Chrome DevTools' Performance panel to identify which image is the LCP element, and make sure that specific image loads eagerly with <code>fetchpriority="high"</code>.</p>
+
+    <h2>LQIP and Blur-Up Techniques</h2>
+    <p>Low Quality Image Placeholder (LQIP) provides a smooth visual experience during lazy loading. Instead of showing nothing (or a blank space) while an image loads, you show a tiny, blurred preview that transitions to the full image. The technique works in three steps:</p>
+    <ol>
+      <li>Generate a tiny thumbnail (typically 20x15 pixels, under 1KB as base64) at build time.</li>
+      <li>Inline the thumbnail as a <code>data:</code> URI in the <code>src</code> attribute, with a CSS <code>filter: blur(20px)</code> and <code>transform: scale(1.1)</code> to hide the pixelation.</li>
+      <li>When the full image loads, crossfade from the blurred placeholder to the sharp image using a CSS transition on opacity.</li>
+    </ol>
+    <p>The total overhead per image is approximately 200-500 bytes for the base64 placeholder, which is negligible compared to the full image. The visual result is significantly better than a blank space or a loading spinner. Next.js's <code>&lt;Image&gt;</code> component and Gatsby's <code>gatsby-plugin-image</code> implement LQIP automatically when you use their image optimization pipelines.</p>
+
+    <h2>Fallbacks and Progressive Enhancement</h2>
+    <p>Native <code>loading="lazy"</code> is progressive by nature — browsers that don't support it simply load the image eagerly. No JavaScript polyfill is needed; the experience degrades gracefully to the traditional behavior. For Intersection Observer-based implementations, include a fallback that loads all images immediately if the API is unavailable:</p>
+    <pre>if ('IntersectionObserver' in window) {
+  // Set up lazy loading with observer
+} else {
+  // Load all images immediately
+  document.querySelectorAll('img[data-src]').forEach(img =&gt; {
+    img.src = img.dataset.src;
+  });
+}</pre>
+    <p>In practice, Intersection Observer support in 2026 is nearly universal (97%+), so this fallback rarely executes. But defensive coding ensures no images are permanently invisible on legacy browsers or unusual environments (embedded webviews, older smart TV browsers).</p>
+
+    <h2>Performance Impact in Numbers</h2>
+    <p>The impact of lazy loading depends on how many images are below the fold and how large they are. Based on HTTP Archive data and real-world measurements:</p>
+    <ul>
+      <li><strong>Blog posts:</strong> 70-85% reduction in initial image payload (20 images, 3 above fold).</li>
+      <li><strong>E-commerce category:</strong> 75-90% reduction (40 products, 8 visible).</li>
+      <li><strong>Image galleries:</strong> 90-95% reduction (100+ images, 6-9 visible).</li>
+      <li><strong>LCP improvement:</strong> 0.5-2.0 seconds on 3G when combined with eager loading of the hero image.</li>
+      <li><strong>Bandwidth savings:</strong> For a site with 100,000 monthly pageviews and 1MB of lazy-loadable images per page, the monthly bandwidth savings is approximately 75-85 TB.</li>
+    </ul>
+    <p>The performance benefit compounds with other optimizations. Lazy loading + WebP conversion + responsive srcset can reduce total image transfer by 95% compared to unoptimized eager loading of full-resolution JPEGs. Use the <a href="/">Krzen image compressor</a> to optimize the actual image files, and lazy loading to control when they download.</p>
+  </section>
+
+  <section class="faq-section" style="max-width:760px;margin:40px auto 0;">
+    <h2>Frequently Asked Questions</h2>
+    <details>
+      <summary>Does loading="lazy" work in all browsers?</summary>
+      <p>Native lazy loading with the <code>loading="lazy"</code> attribute is supported in Chrome 77+, Firefox 75+, Edge 79+, Safari 15.4+, and Opera 64+. As of 2026, global browser support exceeds 95%. For browsers that don't support it, images load normally (eagerly), so there is no broken experience.</p>
+    </details>
+    <details>
+      <summary>Should I lazy load above-the-fold images?</summary>
+      <p>No. Never lazy load images that are visible in the initial viewport. Lazy loading above-the-fold images delays LCP because the browser waits before starting the download. Always use <code>loading="eager"</code> (the default) or add <code>fetchpriority="high"</code> for your hero image and LCP element.</p>
+    </details>
+    <details>
+      <summary>How much bandwidth does lazy loading save?</summary>
+      <p>Savings depend on page layout. A typical blog post with 20 images where only 3 are above the fold saves roughly 85% of image bandwidth on initial load. An e-commerce category page with 40 products showing 8 in the viewport saves about 80%. Use the calculator above to estimate savings for your layout.</p>
+    </details>
+    <details>
+      <summary>What is LQIP and blur-up technique?</summary>
+      <p>LQIP (Low Quality Image Placeholder) shows a tiny, blurred preview (under 1KB as base64) while the full image loads. The blur-up variant applies a CSS blur filter, then transitions to the sharp full image when loaded. This eliminates layout shift and provides visual feedback during loading.</p>
+    </details>
+    <details>
+      <summary>What rootMargin should I use for Intersection Observer?</summary>
+      <p>A rootMargin of "200px 0px" is a good default. This starts loading images 200px before they enter the viewport. For fast-scrolling pages (infinite feeds), increase to "400px 0px". For bandwidth-constrained mobile scenarios, use "100px 0px". A threshold of 0 triggers as soon as any pixel enters the margin area.</p>
+    </details>
+  </section>
+
+  <section class="related-tools" style="max-width:760px;margin:40px auto;">
+    <h3>Related Tools &amp; Guides</h3>
+    <div class="related-grid">
+      <a href="/">Image Compressor<small>Compress JPEG, PNG, WebP in your browser</small></a>
+      <a href="/tools/page-speed-analyzer.html">Page Speed Analyzer<small>Performance budget calculator & waterfall</small></a>
+      <a href="/guides/choose-image-cdn-2026.html">Best Image CDN 2026<small>Compare Cloudinary, imgix, Cloudflare</small></a>
+    </div>
+  </section>
+
+  <div class="author-bio" style="max-width:760px;margin:32px auto;">
+    <p><strong>Written by Michael Lip</strong> — solo dev building free developer tools at <a href="https://zovo.one">zovo.one</a>. No tracking, no accounts, no data collection. If you find this guide useful, check out the full <a href="https://zovo.one/tools">Zovo Tools</a> suite.</p>
+  </div>
+
+  <div class="last-updated" style="max-width:760px;margin:16px auto;"><time datetime="2026-05-25">Last updated: May 25, 2026</time></div>
+</main>
+
+<footer class="site-footer">
+    <div class="footer-inner">
+        <div class="footer-brand">Zovo Tools</div>
+        <div class="footer-tagline">Free developer tools by a solo dev. No tracking.</div>
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&utm_medium=satellite&utm_campaign=footer-link" class="footer-cta">Zovo Lifetime &mdash; $99 once, free forever &rarr;</a>
+        <div class="footer-copy">&copy; 2026 <a href="https://zovo.one">Zovo</a> &middot; 47/500 founding spots</div>
+    </div>
+</footer>
+
+<nav class="zovo-network" aria-label="Zovo Tools Network">
+    <div class="zovo-network-inner">
+        <h3 class="zovo-network-title">Explore More Tools</h3>
+        <div class="zovo-network-links">
+            <a href="https://abwex.com">ABWex &mdash; A/B Testing</a>
+            <a href="https://claudflow.com">ClaudFlow &mdash; Workflows</a>
+            <a href="https://claudhq.com">ClaudHQ &mdash; AI Code Tools &amp; Fixes</a>
+            <a href="https://claudkit.com">ClaudKit &mdash; API</a>
+            <a href="https://enhio.com">Enhio &mdash; Text Tools</a>
+            <a href="https://epochpilot.com">EpochPilot &mdash; Timestamps</a>
+            <a href="https://gen8x.com">Gen8X &mdash; Color Tools</a>
+            <a href="https://gpt0x.com">GPT0X &mdash; AI Models</a>
+            <a href="https://heytensor.com">HeyTensor &mdash; ML Tools</a>
+            <a href="https://invokebot.com">InvokeBot &mdash; Webhooks</a>
+            <a href="https://kappafy.com">Kappafy &mdash; JSON</a>
+            <a href="https://kappakit.com">KappaKit &mdash; Dev Toolkit</a>
+            <a href="https://kickllm.com">KickLLM &mdash; LLM Costs</a>
+            <a href="https://lochbot.com">LochBot &mdash; Security</a>
+            <a href="https://lockml.com">LockML &mdash; ML Compare</a>
+            <a href="https://ml3x.com">ML3X &mdash; Matrix Math</a>
+        </div>
+    </div>
+</nav>
+
+<script>
+const LLG={
+  currentTab:'vanilla',
+
+  snippets:{
+    vanilla:`&lt;!-- HTML: Add loading="lazy" to below-fold images --&gt;
+&lt;img src="hero.webp" alt="Hero image"
+     width="1200" height="675"
+     fetchpriority="high"&gt;
+
+&lt;img src="photo-2.webp" alt="Photo 2"
+     loading="lazy" width="800" height="600"&gt;
+
+&lt;img src="photo-3.webp" alt="Photo 3"
+     loading="lazy" width="800" height="600"&gt;
+
+&lt;!-- Advanced: Intersection Observer with blur-up --&gt;
+&lt;script&gt;
+document.addEventListener('DOMContentLoaded', () =&gt; {
+  const images = document.querySelectorAll('img[data-src]');
+
+  const observer = new IntersectionObserver((entries) =&gt; {
+    entries.forEach(entry =&gt; {
+      if (entry.isIntersecting) {
+        const img = entry.target;
+        img.src = img.dataset.src;
+        if (img.dataset.srcset) {
+          img.srcset = img.dataset.srcset;
+        }
+        img.classList.add('loaded');
+        observer.unobserve(img);
+      }
+    });
+  }, {
+    rootMargin: '200px 0px',
+    threshold: 0
+  });
+
+  images.forEach(img =&gt; observer.observe(img));
+});
+&lt;/script&gt;
+
+&lt;style&gt;
+img[data-src] {
+  filter: blur(20px);
+  transition: filter 0.3s ease;
+}
+img[data-src].loaded {
+  filter: blur(0);
+}
+&lt;/style&gt;`,
+
+    react:`import { useState, useRef, useEffect } from 'react';
+
+function LazyImage({ src, alt, width, height, placeholder }) {
+  const [loaded, setLoaded] = useState(false);
+  const [inView, setInView] = useState(false);
+  const imgRef = useRef(null);
+
+  useEffect(() =&gt; {
+    const observer = new IntersectionObserver(
+      ([entry]) =&gt; {
+        if (entry.isIntersecting) {
+          setInView(true);
+          observer.unobserve(entry.target);
+        }
+      },
+      { rootMargin: '200px 0px', threshold: 0 }
+    );
+
+    if (imgRef.current) observer.observe(imgRef.current);
+    return () =&gt; observer.disconnect();
+  }, []);
+
+  return (
+    &lt;div
+      ref={imgRef}
+      style={{
+        width, height,
+        background: placeholder ? \`url(\${placeholder})\` : '#1a1a1a',
+        backgroundSize: 'cover',
+        filter: loaded ? 'none' : 'blur(20px)',
+        transition: 'filter 0.3s ease',
+        overflow: 'hidden',
+      }}
+    &gt;
+      {inView &amp;&amp; (
+        &lt;img
+          src={src}
+          alt={alt}
+          width={width}
+          height={height}
+          onLoad={() =&gt; setLoaded(true)}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            opacity: loaded ? 1 : 0,
+            transition: 'opacity 0.3s ease',
+          }}
+        /&gt;
+      )}
+    &lt;/div&gt;
+  );
+}
+
+// Usage:
+// &lt;LazyImage
+//   src="/photos/landscape.webp"
+//   alt="Mountain landscape"
+//   width={800} height={600}
+//   placeholder="data:image/jpeg;base64,/9j/4AAQ..."
+// /&gt;`,
+
+    vue:`&lt;template&gt;
+  &lt;div
+    ref="container"
+    :style="{
+      width: width + 'px',
+      height: height + 'px',
+      background: placeholder ? \`url(\${placeholder})\` : '#1a1a1a',
+      backgroundSize: 'cover',
+      filter: loaded ? 'none' : 'blur(20px)',
+      transition: 'filter 0.3s ease',
+      overflow: 'hidden',
+    }"
+  &gt;
+    &lt;img
+      v-if="inView"
+      :src="src"
+      :alt="alt"
+      :width="width"
+      :height="height"
+      @load="loaded = true"
+      :style="{
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+        opacity: loaded ? 1 : 0,
+        transition: 'opacity 0.3s ease',
+      }"
+    /&gt;
+  &lt;/div&gt;
+&lt;/template&gt;
+
+&lt;script setup&gt;
+import { ref, onMounted, onUnmounted } from 'vue';
+
+const props = defineProps({
+  src: String,
+  alt: String,
+  width: Number,
+  height: Number,
+  placeholder: String,
+});
+
+const container = ref(null);
+const inView = ref(false);
+const loaded = ref(false);
+let observer = null;
+
+onMounted(() =&gt; {
+  observer = new IntersectionObserver(
+    ([entry]) =&gt; {
+      if (entry.isIntersecting) {
+        inView.value = true;
+        observer.unobserve(entry.target);
+      }
+    },
+    { rootMargin: '200px 0px', threshold: 0 }
+  );
+  if (container.value) observer.observe(container.value);
+});
+
+onUnmounted(() =&gt; observer?.disconnect());
+&lt;/script&gt;`,
+
+    nextjs:`import Image from 'next/image';
+
+// Next.js Image component has lazy loading built in.
+// It's the default behavior — no extra config needed.
+
+// Above the fold (hero image):
+&lt;Image
+  src="/hero.webp"
+  alt="Hero image"
+  width={1200}
+  height={675}
+  priority          // Disables lazy loading, preloads
+  placeholder="blur"
+  blurDataURL="data:image/jpeg;base64,/9j/4AAQ..."
+/&gt;
+
+// Below the fold (lazy loaded by default):
+&lt;Image
+  src="/photo-2.webp"
+  alt="Photo description"
+  width={800}
+  height={600}
+  placeholder="blur"
+  blurDataURL="data:image/jpeg;base64,/9j/4AAQ..."
+/&gt;
+
+// With remote images (next.config.js):
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.example.com',
+      },
+    ],
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [640, 750, 828, 1080, 1200],
+  },
+};
+
+// Dynamic import for heavy image galleries:
+import dynamic from 'next/dynamic';
+const ImageGallery = dynamic(
+  () =&gt; import('../components/ImageGallery'),
+  {
+    loading: () =&gt; &lt;div className="gallery-skeleton" /&gt;,
+    ssr: false,
+  }
+);`
+  },
+
+  calculate(){
+    const total=parseInt(document.getElementById('calc-total').value)||20;
+    const size=parseInt(document.getElementById('calc-size').value)||80;
+    const viewport=Math.min(parseInt(document.getElementById('calc-viewport').value)||3,total);
+    const without=total*size;
+    const withLL=viewport*size;
+    const saved=without-withLL;
+    const pct=Math.round((saved/without)*100);
+    const lcpImprovement=(saved/200)*0.5;
+    const monthly=((saved/1024)*100000/1024).toFixed(1);
+
+    document.getElementById('calc-results').style.display='block';
+    document.getElementById('r-without').textContent=LLG.fmtSize(without);
+    document.getElementById('r-with').textContent=LLG.fmtSize(withLL);
+    document.getElementById('r-saved').textContent=LLG.fmtSize(saved);
+    document.getElementById('r-percent').textContent=pct+'%';
+    document.getElementById('r-lcp').textContent=lcpImprovement>=1?(lcpImprovement.toFixed(1)+'s'):(Math.round(lcpImprovement*1000)+'ms');
+    document.getElementById('r-monthly').textContent=monthly+' GB';
+  },
+
+  fmtSize(kb){
+    if(kb>=1024)return(kb/1024).toFixed(1)+' MB';
+    return kb+' KB';
+  },
+
+  switchTab(tab){
+    this.currentTab=tab;
+    document.querySelectorAll('.code-tab').forEach(t=>t.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('code-output').textContent='';
+    document.getElementById('code-output').innerHTML=this.snippets[tab];
+  },
+
+  copyCode(){
+    const el=document.getElementById('code-output');
+    const text=el.innerText||el.textContent;
+    navigator.clipboard.writeText(text).then(()=>{
+      const btn=document.querySelector('.code-output + .copy-btn');
+      btn.textContent='Copied!';
+      setTimeout(()=>btn.textContent='Copy',1500);
+    });
+  },
+
+  updateConfig(){
+    const rm=document.getElementById('rm-slider').value;
+    const th=parseFloat(document.getElementById('th-slider').value);
+    document.getElementById('rm-val').textContent=rm;
+    document.getElementById('th-val').textContent=th;
+    const code=`const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const img = entry.target;
+      img.src = img.dataset.src;
+      if (img.dataset.srcset) {
+        img.srcset = img.dataset.srcset;
+      }
+      img.classList.add('loaded');
+      observer.unobserve(img);
+    }
+  });
+}, {
+  root: null,           // viewport
+  rootMargin: '${rm}px 0px',  // pre-load ${rm}px before visible
+  threshold: ${th}          // trigger at ${Math.round(th*100)}% visibility
+});
+
+// Observe all lazy images
+document.querySelectorAll('img[data-src]').forEach(img => {
+  observer.observe(img);
+});`;
+    document.getElementById('observer-output').textContent=code;
+  },
+
+  copyObserver(){
+    const text=document.getElementById('observer-output').textContent;
+    navigator.clipboard.writeText(text).then(()=>{
+      const btns=document.querySelectorAll('.copy-btn');
+      btns[btns.length-1].textContent='Copied!';
+      setTimeout(()=>btns[btns.length-1].textContent='Copy',1500);
+    });
+  },
+
+  initDemo(){
+    const container=document.getElementById('demo-container');
+    const status=document.getElementById('demo-status');
+    const count=document.getElementById('demo-count');
+    const totalEl=document.getElementById('demo-total');
+    const numImages=12;
+    totalEl.textContent=numImages;
+    const colors=['#60A5FA','#A78BFA','#FBBF24','#34D399','#F472B6','#FB923C','#6EE7B7','#818CF8','#F97316','#38BDF8','#E879F9','#FCD34D'];
+    const labels=['Landscape','Portrait','Product','Banner','Thumbnail','Gallery','Card','Hero','Feature','Background','Icon Set','Diagram'];
+
+    for(let i=0;i<numImages;i++){
+      const div=document.createElement('div');
+      div.className='demo-img-placeholder pending';
+      div.setAttribute('data-index',i);
+      div.innerHTML=`<span>Image ${i+1}: ${labels[i]} (${60+Math.round(Math.random()*120)} KB) — waiting</span>`;
+      container.appendChild(div);
+    }
+
+    let loadedCount=0;
+    const observer=new IntersectionObserver((entries)=>{
+      entries.forEach(entry=>{
+        if(entry.isIntersecting){
+          const el=entry.target;
+          const idx=parseInt(el.getAttribute('data-index'));
+          el.className='demo-img-placeholder loading';
+          el.innerHTML=`<span>Image ${idx+1}: ${labels[idx]} — loading...</span>`;
+          setTimeout(()=>{
+            el.className='demo-img-placeholder loaded';
+            el.innerHTML=`<div class="demo-img-inner" style="background:linear-gradient(135deg,${colors[idx]}22,${colors[(idx+3)%12]}22)"><span style="color:${colors[idx]}">Image ${idx+1}: ${labels[idx]} — loaded</span></div>`;
+            loadedCount++;
+            count.textContent=loadedCount;
+          },300+Math.random()*400);
+          observer.unobserve(el);
+        }
+      });
+    },{root:container,rootMargin:'50px 0px',threshold:0.1});
+
+    container.querySelectorAll('.demo-img-placeholder').forEach(el=>observer.observe(el));
+    this._demoObserver=observer;
+  },
+
+  resetDemo(){
+    const container=document.getElementById('demo-container');
+    if(this._demoObserver)this._demoObserver.disconnect();
+    const status=container.querySelector('.demo-status');
+    container.innerHTML='';
+    container.appendChild(status);
+    document.getElementById('demo-count').textContent='0';
+    this.initDemo();
+  }
+};
+
+document.addEventListener('DOMContentLoaded',()=>{
+  LLG.switchTab('vanilla');
+  LLG.updateConfig();
+  LLG.initDemo();
+});
+</script>
+</body>
+</html>

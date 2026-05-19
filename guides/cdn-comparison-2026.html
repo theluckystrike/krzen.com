@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CDN Comparison 2026 — Feature &amp; Pricing Matrix with Recommendation Engine | Krzen</title>
+<meta name="description" content="Compare 12 major CDN providers side-by-side: Cloudflare, Fastly, AWS CloudFront, Akamai, Bunny, KeyCDN, and more. Interactive feature matrix, pricing calculator, and recommendation engine.">
+<meta name="keywords" content="CDN comparison 2026, best CDN providers, CDN pricing comparison, cloudflare vs fastly, CDN feature matrix, CDN recommendation, content delivery network comparison, CDN benchmark">
+<link rel="canonical" href="https://krzen.com/guides/cdn-comparison-2026.html">
+<link rel="alternate" hreflang="en" href="https://krzen.com/guides/cdn-comparison-2026.html">
+<link rel="alternate" hreflang="x-default" href="https://krzen.com/guides/cdn-comparison-2026.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="CDN Comparison 2026 — Feature &amp; Pricing Matrix with Recommendation Engine">
+<meta property="og:description" content="Compare 12 major CDN providers side-by-side with interactive feature matrix, pricing calculator, and recommendation engine.">
+<meta property="og:url" content="https://krzen.com/guides/cdn-comparison-2026.html">
+<meta property="og:site_name" content="Zovo Tools">
+<meta property="og:image" content="https://krzen.com/assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CDN Comparison 2026 — Feature &amp; Pricing Matrix with Recommendation Engine">
+<meta name="twitter:description" content="Compare 12 major CDN providers side-by-side with interactive feature matrix, pricing calculator, and recommendation engine.">
+<meta name="twitter:image" content="https://krzen.com/assets/og-image.png">
+<link rel="stylesheet" href="/assets/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "CDN Comparison 2026 — Feature & Pricing Matrix",
+  "url": "https://krzen.com/guides/cdn-comparison-2026.html",
+  "description": "Compare 12 major CDN providers side-by-side: Cloudflare, Fastly, AWS CloudFront, Akamai, Bunny, KeyCDN, and more. Interactive feature matrix, pricing calculator, and recommendation engine.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+  "author": {"@type": "Person", "name": "Michael Lip", "url": "https://zovo.one"},
+  "publisher": {"@type": "Organization", "name": "Krzen", "url": "https://krzen.com"},
+  "datePublished": "2026-05-25",
+  "dateModified": "2026-05-25",
+  "featureList": ["12 CDN providers compared", "Interactive feature matrix", "Pricing calculator", "Recommendation engine", "Performance benchmarks", "Free tier comparison", "Client-side processing"],
+  "browserRequirements": "Requires JavaScript"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Which CDN is best for a small website in 2026?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Cloudflare Free is the best CDN for small websites. It offers unlimited bandwidth, global edge network with 300+ PoPs, free SSL, DDoS protection, and basic WAF — all at zero cost. For sites under 1 million monthly visitors, the free plan covers all essential needs. Bunny.net is the best paid alternative at $0.01/GB with a $1/month minimum, offering superior image optimization and a simpler interface. Both significantly outperform having no CDN at all."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How much does a CDN cost per month?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "CDN costs range from free to thousands per month depending on traffic volume. Cloudflare Free offers unlimited bandwidth at $0/month. Bunny.net starts at $1/month with $0.01/GB pricing. AWS CloudFront costs approximately $85/month for 1TB of transfer. Fastly charges around $0.08/GB for the first 10TB. Akamai is enterprise-priced, typically $500+/month with custom contracts. For most websites serving under 100GB/month, a free or sub-$10/month plan is sufficient."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does a CDN improve SEO?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, a CDN can significantly improve SEO through two mechanisms. First, CDNs reduce page load time by serving content from edge servers closer to users, which directly improves Core Web Vitals (LCP, FID/INP, CLS) — metrics Google uses as ranking signals. Second, CDNs improve server response time (TTFB), another factor in Google's Page Experience signals. Studies show that a 1-second improvement in load time can increase organic traffic by 5-10%. The SEO benefit is most pronounced for sites with global audiences."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the difference between a CDN and web hosting?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Web hosting stores your website's files on a single server (origin) and handles dynamic processing (databases, server-side code). A CDN is a network of edge servers distributed globally that cache and serve copies of your static content (images, CSS, JS, HTML) from locations closer to each user. The CDN sits between users and your origin server. Hosting handles the source of truth; CDN handles fast delivery. Most modern architectures use both: the origin server generates content, and the CDN distributes it worldwide."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Should I use Cloudflare or AWS CloudFront?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Cloudflare is better for most websites due to its generous free tier, simpler setup (DNS-level proxy, no origin changes needed), built-in security (DDoS, WAF, bot management), and zero bandwidth charges. AWS CloudFront is better if you are already in the AWS ecosystem, need tight integration with S3, Lambda@Edge, or other AWS services, or require fine-grained cache control with custom origin request policies. CloudFront charges per GB and per request, making it more expensive for high-traffic sites but more cost-predictable for AWS-native architectures."
+      }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://krzen.com/"},
+    {"@type": "ListItem", "position": 2, "name": "Guides", "item": "https://krzen.com/guides/"},
+    {"@type": "ListItem", "position": 3, "name": "CDN Comparison 2026", "item": "https://krzen.com/guides/cdn-comparison-2026.html"}
+  ]
+}
+</script>
+<style>
+.tool-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin:20px 0}
+.tool-section h3{font-family:var(--font-display);font-size:0.85rem;text-transform:uppercase;color:var(--accent);margin-bottom:16px;letter-spacing:0.04em}
+.input-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.input-field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:200px}
+.input-field label{font-size:0.78rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;letter-spacing:0.3px}
+.input-field input,.input-field select{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:8px 12px;font-family:var(--font-body);font-size:0.9rem}
+.input-field input:focus,.input-field select:focus{outline:none;border-color:var(--accent)}
+.cdn-table-wrap{overflow-x:auto;margin:16px 0}
+.cdn-table{width:100%;border-collapse:collapse;font-size:0.82rem;min-width:800px}
+.cdn-table th{text-align:left;padding:10px 12px;border-bottom:2px solid var(--border);color:var(--accent);font-size:0.75rem;text-transform:uppercase;font-weight:600;position:sticky;top:0;background:var(--bg-card)}
+.cdn-table td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text-muted);vertical-align:top}
+.cdn-table tr:hover td{background:rgba(251,146,60,0.03)}
+.cdn-table .cdn-name{color:var(--text);font-weight:600}
+.feat-yes{color:#34D399}
+.feat-no{color:#F87171}
+.feat-partial{color:#FBBF24}
+.rec-card{padding:20px;background:var(--bg);border:2px solid var(--accent);border-radius:var(--radius);margin:16px 0}
+.rec-card .rec-title{font-family:var(--font-display);font-size:1.1rem;color:var(--accent);margin-bottom:8px}
+.rec-card .rec-reason{color:var(--text-muted);font-size:0.9rem;line-height:1.6}
+.price-result{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin:16px 0}
+.price-card{padding:14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);text-align:center}
+.price-card .p-name{font-weight:600;font-size:0.9rem;margin-bottom:8px}
+.price-card .p-cost{font-family:var(--font-display);font-size:1.4rem;font-weight:700;color:var(--accent)}
+.price-card .p-detail{font-size:0.78rem;color:var(--text-muted);margin-top:4px}
+.filter-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.filter-chip{background:transparent;color:var(--text-muted);border:1px solid var(--border);border-radius:var(--radius);padding:5px 12px;font-size:0.8rem;cursor:pointer;transition:all 0.2s}
+.filter-chip:hover,.filter-chip.active{border-color:var(--accent);color:var(--accent);background:rgba(251,146,60,0.06)}
+.bp-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;text-align:center;margin:16px 0}
+.bp-summary .val{font-family:var(--font-display);font-size:1.4rem;font-weight:700}
+.bp-summary .lbl{font-size:0.78rem;color:var(--text-muted);text-transform:uppercase}
+.explainer-section{max-width:760px;margin:40px auto 0;padding:0 0 20px}
+.explainer-section h2{font-size:1.3rem;margin:32px 0 12px;color:var(--accent)}
+.explainer-section h3{font-size:1.1rem;margin:24px 0 8px}
+.explainer-section p{color:var(--text-muted);margin-bottom:16px;line-height:1.7}
+.explainer-section ul,.explainer-section ol{color:var(--text-muted);margin:0 0 16px 24px}
+.explainer-section li{margin-bottom:6px}
+.explainer-section code{font-family:var(--font-display);background:var(--bg-card);padding:2px 6px;border-radius:3px;font-size:0.9em}
+.related-tools{margin:40px 0 0}
+.related-tools h3{font-family:var(--font-display);text-align:center;margin-bottom:16px;font-size:1rem}
+.related-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.related-grid a{display:block;padding:14px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);text-decoration:none;font-size:0.9rem;transition:border-color 0.2s}
+.related-grid a:hover{border-color:var(--accent);text-decoration:none}
+.related-grid a small{display:block;color:var(--text-muted);font-size:0.78rem;margin-top:4px}
+.author-bio{margin:32px 0;padding:20px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius)}
+.author-bio p{color:var(--text-muted);font-size:0.9rem;line-height:1.6;margin:0}
+.author-bio p strong{color:var(--text)}
+.last-updated{text-align:center;color:var(--text-muted);font-size:0.8rem;margin:24px 0 0}
+@media(max-width:768px){.input-row{flex-direction:column}.bp-summary{grid-template-columns:1fr}.price-result{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <a href="/" class="logo">krzen</a>
+    <nav>
+      <a href="/">Tool</a>
+      <a href="/research/">Research</a>
+      <a href="/guides/">Guides</a>
+      <a href="/tools/">Tools</a>
+      <a href="/blog/">Blog</a>
+      <a href="/about.html">About</a>
+      <div class="nav-right">
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&amp;utm_medium=satellite&amp;utm_campaign=nav-link" class="nav-pro" target="_blank">Go Pro &#10022;</a>
+        <a href="https://zovo.one/tools" class="nav-zovo">Zovo Tools</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <nav class="breadcrumb" aria-label="Breadcrumb" style="font-size:0.82rem;margin:20px 0 0;"><a href="/">Home</a> <span style="color:var(--text-muted);margin:0 4px;">/</span> <a href="/guides/">Guides</a> <span style="color:var(--text-muted);margin:0 4px;">/</span> <span style="color:var(--text-muted);">CDN Comparison 2026</span></nav>
+
+  <section class="hero">
+    <h1>CDN Comparison <span>2026</span></h1>
+    <p>Compare 12 major CDN providers with an interactive feature matrix, pricing calculator, and recommendation engine. Find the best CDN for your traffic volume, budget, and feature requirements.</p>
+  </section>
+
+  <div class="tool-section">
+    <h3>Your Requirements</h3>
+    <div class="input-row">
+      <div class="input-field">
+        <label>Monthly Bandwidth (GB)</label>
+        <input type="number" id="bandwidth" value="100" min="1" max="100000">
+      </div>
+      <div class="input-field">
+        <label>Monthly Requests (millions)</label>
+        <input type="number" id="requests" value="1" min="0.1" max="1000" step="0.1">
+      </div>
+      <div class="input-field">
+        <label>Primary Region</label>
+        <select id="region">
+          <option value="global">Global</option>
+          <option value="na">North America</option>
+          <option value="eu">Europe</option>
+          <option value="asia">Asia Pacific</option>
+        </select>
+      </div>
+    </div>
+    <div class="input-row">
+      <div class="input-field">
+        <label>Budget ($/month)</label>
+        <select id="budget">
+          <option value="0">Free only</option>
+          <option value="20" selected>Under $20</option>
+          <option value="100">Under $100</option>
+          <option value="500">Under $500</option>
+          <option value="99999">Enterprise (any)</option>
+        </select>
+      </div>
+      <div class="input-field">
+        <label>Priority Feature</label>
+        <select id="priority">
+          <option value="price">Lowest Price</option>
+          <option value="perf">Best Performance</option>
+          <option value="security">Security Features</option>
+          <option value="ease">Ease of Setup</option>
+          <option value="edge">Edge Computing</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn" onclick="CDN.recommend()">Get Recommendation</button>
+  </div>
+
+  <div id="rec-section" style="display:none">
+    <div class="tool-section">
+      <h3>Recommendation</h3>
+      <div id="rec-output"></div>
+    </div>
+
+    <div class="tool-section">
+      <h3>Estimated Monthly Cost</h3>
+      <div class="price-result" id="price-result"></div>
+    </div>
+  </div>
+
+  <div class="tool-section">
+    <h3>Feature Matrix</h3>
+    <div class="filter-chips">
+      <button class="filter-chip active" onclick="CDN.filter('all',this)">All</button>
+      <button class="filter-chip" onclick="CDN.filter('free',this)">Free Tier</button>
+      <button class="filter-chip" onclick="CDN.filter('payg',this)">Pay-As-You-Go</button>
+      <button class="filter-chip" onclick="CDN.filter('enterprise',this)">Enterprise</button>
+    </div>
+    <div class="cdn-table-wrap">
+      <table class="cdn-table" id="cdn-table">
+        <thead>
+          <tr><th>Provider</th><th>Free Tier</th><th>Price/GB</th><th>PoPs</th><th>HTTP/3</th><th>Edge Compute</th><th>Image Optim</th><th>WAF</th><th>DDoS</th><th>SSL</th></tr>
+        </thead>
+        <tbody id="cdn-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <section class="explainer-section">
+    <h2>What Is a CDN and Why Do You Need One?</h2>
+    <p>A Content Delivery Network (CDN) is a globally distributed network of servers that cache and serve your website's static assets (images, CSS, JavaScript, HTML) from locations geographically close to your users. Without a CDN, every request travels to your origin server, which might be in a single data center in Virginia. A user in Tokyo experiences 200-300ms of additional latency per request just from the physical distance. With a CDN, that same request is served from a nearby edge server in Tokyo with single-digit millisecond latency.</p>
+    <p>Beyond performance, modern CDNs provide security (DDoS mitigation, Web Application Firewall), reliability (automatic failover, origin shielding), and optimization features (image compression, minification, HTTP/3). For most websites in 2026, a CDN is not optional — it is a fundamental infrastructure component that affects SEO rankings, user experience, and conversion rates. Google's Core Web Vitals metrics, which directly influence search rankings, are dramatically improved by CDN usage, particularly Largest Contentful Paint (LCP) and Time to First Byte (TTFB).</p>
+
+    <h2>CDN Provider Deep Dives</h2>
+    <h3>Cloudflare: The All-in-One Platform</h3>
+    <p>Cloudflare has evolved far beyond a traditional CDN. With 300+ Points of Presence, Workers edge computing platform, R2 object storage, D1 database, and Pages hosting, it is a full application platform. The free tier is unmatched: unlimited bandwidth, free SSL, basic DDoS protection, and 5 page rules. The Pro plan ($20/month) adds advanced WAF rules, image optimization (Polish), and mobile optimization. For most websites, Cloudflare's free tier provides 90% of what paid CDNs offer elsewhere. The main limitation is cache control granularity — Cloudflare's caching behavior can be opaque, and cache purge propagation takes 30-60 seconds.</p>
+
+    <h3>Fastly: The Developer's CDN</h3>
+    <p>Fastly differentiates on real-time purging (150ms global propagation), VCL-based edge logic (the most powerful custom cache control available), and instant configuration changes. Its Compute@Edge platform supports Wasm-based edge computing in Rust, Go, and JavaScript. Fastly is the CDN of choice for high-traffic media sites (New York Times, Reddit, GitHub) that need sub-second cache invalidation. Pricing starts at $0.08/GB for the first 10TB, which is higher than commodity CDNs but includes more sophisticated features. The free tier includes 1,000 requests/day.</p>
+
+    <h3>AWS CloudFront: The AWS Ecosystem Choice</h3>
+    <p>CloudFront integrates seamlessly with S3, Lambda@Edge, API Gateway, and other AWS services. If your infrastructure is on AWS, CloudFront is the natural choice for CDN — S3 to CloudFront traffic is free, Lambda@Edge enables serverless edge processing, and Origin Shield provides an additional caching layer that reduces origin load. Pricing is $0.085/GB for the first 10TB from North America, with a generous 1TB/month free tier for new accounts. The main downside is complexity: CloudFront's configuration has hundreds of options and behaviors that can be overwhelming compared to simpler alternatives.</p>
+
+    <h3>Bunny.net: Best Price-to-Performance</h3>
+    <p>Bunny.net offers arguably the best value in the CDN market. At $0.01/GB (with a $1/month minimum), it provides 100+ PoPs, real-time analytics, built-in image optimization (Bunny Optimizer), and a straightforward dashboard. Performance benchmarks consistently show Bunny.net competing with providers 10x its price. The Bunny DNS service adds GeoDNS for free. For small to medium websites that have outgrown free tiers but do not need enterprise features, Bunny.net is the default recommendation. It lacks edge computing and advanced WAF features, which limits it for complex applications.</p>
+
+    <h2>Choosing the Right CDN</h2>
+    <p>The right CDN depends on three factors: traffic volume, feature requirements, and existing infrastructure. For sites under 100GB/month, Cloudflare Free covers everything you need. For 100GB-1TB/month, Bunny.net offers the best price. For 1TB+/month, negotiate enterprise pricing with Cloudflare, Fastly, or your cloud provider's CDN. If you are on AWS, use CloudFront. If you need real-time purging, use Fastly. If you want zero cost and maximum simplicity, use Cloudflare Free.</p>
+    <p>Avoid over-engineering your CDN choice. For a blog or marketing site, the difference between CDN providers is measured in single-digit milliseconds. The biggest performance gain comes from using any CDN versus no CDN. Start with Cloudflare Free, measure your Core Web Vitals, and only switch if you identify a specific limitation that another provider solves. CDN migration is straightforward — most switches take under an hour.</p>
+
+    <h2>CDN Performance Metrics</h2>
+    <p>When evaluating CDN performance, focus on three metrics: TTFB (Time to First Byte), cache hit ratio, and global latency consistency. TTFB measures how quickly the CDN's edge server responds to a request — top CDNs achieve 10-30ms for cached content. Cache hit ratio measures what percentage of requests are served from cache versus hitting your origin — aim for 90%+ with proper cache headers. Global consistency measures the variance in performance across different regions — a good CDN should have less than 50ms variance between its fastest and slowest PoPs.</p>
+    <p>Real-world performance testing tools include CrUX (Chrome User Experience Report) for field data, Catchpoint and Cedexis for synthetic monitoring, and simple curl timing from multiple geographic locations. Do not rely solely on synthetic benchmarks — test from the regions where your actual users are located. A CDN with fewer PoPs but one near your primary user base may outperform a larger CDN with no nearby presence.</p>
+  </section>
+
+  <section class="faq-section" style="max-width:760px;margin:40px auto 0;">
+    <h2>Frequently Asked Questions</h2>
+    <details><summary>Which CDN is best for a small website in 2026?</summary><p>Cloudflare Free is the best CDN for small websites — unlimited bandwidth, 300+ PoPs, free SSL, DDoS protection, and basic WAF at zero cost. Bunny.net is the best paid alternative at $0.01/GB.</p></details>
+    <details><summary>How much does a CDN cost per month?</summary><p>CDN costs range from free (Cloudflare) to thousands per month. Bunny.net starts at $1/month, CloudFront at ~$85/TB, Fastly at ~$0.08/GB. For most sites under 100GB/month, a free or sub-$10 plan suffices.</p></details>
+    <details><summary>Does a CDN improve SEO?</summary><p>Yes — CDNs reduce page load time and improve Core Web Vitals (LCP, TTFB), which are Google ranking signals. A 1-second improvement in load time can increase organic traffic by 5-10%.</p></details>
+    <details><summary>What is the difference between a CDN and web hosting?</summary><p>Hosting stores your files on a single origin server. A CDN caches copies on edge servers worldwide for faster delivery. Most architectures use both — hosting for the source, CDN for distribution.</p></details>
+    <details><summary>Should I use Cloudflare or AWS CloudFront?</summary><p>Cloudflare for most websites (generous free tier, simpler setup, built-in security). CloudFront if you are already on AWS and need tight S3/Lambda@Edge integration.</p></details>
+  </section>
+
+  <section class="related-tools" style="max-width:760px;margin:40px auto;">
+    <h3>Related Tools &amp; Guides</h3>
+    <div class="related-grid">
+      <a href="/tools/page-speed-analyzer.html">Page Speed Analyzer<small>Performance budget calculator</small></a>
+      <a href="/research/http3-readiness-checker.html">HTTP/3 Readiness Checker<small>Check HTTP/3 compatibility</small></a>
+      <a href="/answers/ssl-certificate-checker.html">SSL Certificate Checker<small>Grade your SSL configuration</small></a>
+    </div>
+  </section>
+
+  <div class="author-bio" style="max-width:760px;margin:32px auto;">
+    <p><strong>Written by Michael Lip</strong> — solo dev building free developer tools at <a href="https://zovo.one">zovo.one</a>. No tracking, no accounts, no data collection. If you find this tool useful, check out the full <a href="https://zovo.one/tools">Zovo Tools</a> suite.</p>
+  </div>
+
+  <div class="last-updated" style="max-width:760px;margin:16px auto;"><time datetime="2026-05-25">Last updated: May 25, 2026</time></div>
+</main>
+
+<footer class="site-footer">
+    <div class="footer-inner">
+        <div class="footer-brand">Zovo Tools</div>
+        <div class="footer-tagline">Free developer tools by a solo dev. No tracking.</div>
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&utm_medium=satellite&utm_campaign=footer-link" class="footer-cta">Zovo Lifetime &mdash; $99 once, free forever &rarr;</a>
+        <div class="footer-copy">&copy; 2026 <a href="https://zovo.one">Zovo</a> &middot; 47/500 founding spots</div>
+    </div>
+</footer>
+
+<nav class="zovo-network" aria-label="Zovo Tools Network">
+    <div class="zovo-network-inner">
+        <h3 class="zovo-network-title">Explore More Tools</h3>
+        <div class="zovo-network-links">
+            <a href="https://abwex.com">ABWex &mdash; A/B Testing</a>
+            <a href="https://claudflow.com">ClaudFlow &mdash; Workflows</a>
+            <a href="https://claudhq.com">ClaudHQ &mdash; AI Code Tools &amp; Fixes</a>
+            <a href="https://claudkit.com">ClaudKit &mdash; API</a>
+            <a href="https://enhio.com">Enhio &mdash; Text Tools</a>
+            <a href="https://epochpilot.com">EpochPilot &mdash; Timestamps</a>
+            <a href="https://gen8x.com">Gen8X &mdash; Color Tools</a>
+            <a href="https://gpt0x.com">GPT0X &mdash; AI Models</a>
+            <a href="https://heytensor.com">HeyTensor &mdash; ML Tools</a>
+            <a href="https://invokebot.com">InvokeBot &mdash; Webhooks</a>
+            <a href="https://kappafy.com">Kappafy &mdash; JSON</a>
+            <a href="https://kappakit.com">KappaKit &mdash; Dev Toolkit</a>
+            <a href="https://kickllm.com">KickLLM &mdash; LLM Costs</a>
+            <a href="https://lochbot.com">LochBot &mdash; Security</a>
+            <a href="https://lockml.com">LockML &mdash; ML Compare</a>
+            <a href="https://ml3x.com">ML3X &mdash; Matrix Math</a>
+        </div>
+    </div>
+</nav>
+
+<script>
+const CDN={
+  providers:[
+    {name:'Cloudflare Free',tier:'free',priceGB:0,base:0,pops:310,http3:true,edge:true,imgOpt:false,waf:true,ddos:true,ssl:true,perf:9,ease:10,security:8},
+    {name:'Cloudflare Pro',tier:'payg',priceGB:0,base:20,pops:310,http3:true,edge:true,imgOpt:true,waf:true,ddos:true,ssl:true,perf:9,ease:10,security:9},
+    {name:'Bunny.net',tier:'payg',priceGB:0.01,base:1,pops:119,http3:true,edge:false,imgOpt:true,waf:false,ddos:true,ssl:true,perf:9,ease:9,security:6},
+    {name:'KeyCDN',tier:'payg',priceGB:0.04,base:4,pops:60,http3:true,edge:false,imgOpt:true,waf:false,ddos:true,ssl:true,perf:7,ease:8,security:5},
+    {name:'Fastly',tier:'payg',priceGB:0.08,base:0,pops:90,http3:true,edge:true,imgOpt:true,waf:true,ddos:true,ssl:true,perf:10,ease:6,security:9},
+    {name:'AWS CloudFront',tier:'payg',priceGB:0.085,base:0,pops:450,http3:true,edge:true,imgOpt:false,waf:true,ddos:true,ssl:true,perf:9,ease:5,security:9},
+    {name:'Google Cloud CDN',tier:'payg',priceGB:0.08,base:0,pops:200,http3:true,edge:true,imgOpt:false,waf:true,ddos:true,ssl:true,perf:8,ease:5,security:8},
+    {name:'Azure CDN',tier:'payg',priceGB:0.081,base:0,pops:190,http3:true,edge:true,imgOpt:false,waf:true,ddos:true,ssl:true,perf:8,ease:5,security:8},
+    {name:'StackPath',tier:'payg',priceGB:0.05,base:10,pops:65,http3:true,edge:true,imgOpt:false,waf:true,ddos:true,ssl:true,perf:7,ease:7,security:7},
+    {name:'Akamai',tier:'enterprise',priceGB:0.15,base:500,pops:4200,http3:true,edge:true,imgOpt:true,waf:true,ddos:true,ssl:true,perf:10,ease:3,security:10},
+    {name:'Imperva (Incapsula)',tier:'enterprise',priceGB:0.12,base:300,pops:80,http3:true,edge:false,imgOpt:true,waf:true,ddos:true,ssl:true,perf:7,ease:5,security:10},
+    {name:'Limelight',tier:'enterprise',priceGB:0.10,base:200,pops:130,http3:true,edge:false,imgOpt:false,waf:false,ddos:true,ssl:true,perf:8,ease:4,security:6}
+  ],
+
+  init(){this.renderTable('all');},
+
+  renderTable(filter){
+    const tbody=document.getElementById('cdn-tbody');
+    tbody.innerHTML='';
+    const list=filter==='all'?this.providers:this.providers.filter(p=>p.tier===filter);
+    list.forEach(p=>{
+      const yn=v=>v?'<span class="feat-yes">&#10003;</span>':'<span class="feat-no">&#10007;</span>';
+      const price=p.priceGB===0?(p.base===0?'Free':'$'+p.base+'/mo'):'$'+p.priceGB+'/GB';
+      tbody.innerHTML+=`<tr><td class="cdn-name">${p.name}</td><td>${p.base===0&&p.priceGB===0?yn(true):yn(false)}</td><td>${price}</td><td>${p.pops}</td><td>${yn(p.http3)}</td><td>${yn(p.edge)}</td><td>${yn(p.imgOpt)}</td><td>${yn(p.waf)}</td><td>${yn(p.ddos)}</td><td>${yn(p.ssl)}</td></tr>`;
+    });
+  },
+
+  filter(type,btn){
+    document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+    btn.classList.add('active');
+    this.renderTable(type);
+  },
+
+  recommend(){
+    const bw=parseFloat(document.getElementById('bandwidth').value)||100;
+    const budget=parseFloat(document.getElementById('budget').value);
+    const priority=document.getElementById('priority').value;
+
+    const scored=this.providers.map(p=>{
+      const cost=p.base+p.priceGB*bw;
+      if(cost>budget&&budget<99999)return null;
+      let score=0;
+      if(priority==='price')score=100-cost;
+      else if(priority==='perf')score=p.perf*10;
+      else if(priority==='security')score=p.security*10;
+      else if(priority==='ease')score=p.ease*10;
+      else if(priority==='edge')score=p.edge?80+p.perf:p.perf;
+      return{...p,cost,score};
+    }).filter(Boolean).sort((a,b)=>b.score-a.score);
+
+    document.getElementById('rec-section').style.display='block';
+
+    if(scored.length===0){
+      document.getElementById('rec-output').innerHTML='<div class="rec-card"><div class="rec-title">No matches</div><div class="rec-reason">No CDN providers match your budget and requirements. Try increasing your budget or reducing bandwidth needs.</div></div>';
+      document.getElementById('price-result').innerHTML='';
+      return;
+    }
+
+    const top=scored[0];
+    const runner=scored[1];
+    let html=`<div class="rec-card"><div class="rec-title">&#9733; ${top.name}</div><div class="rec-reason">Best match for ${bw}GB/month with "${priority}" priority. Estimated cost: <strong>$${top.cost.toFixed(2)}/mo</strong>. ${top.pops} PoPs globally.`;
+    if(runner)html+=` Runner-up: ${runner.name} at $${runner.cost.toFixed(2)}/mo.`;
+    html+=`</div></div>`;
+    document.getElementById('rec-output').innerHTML=html;
+
+    const priceHTML=scored.slice(0,6).map(p=>`<div class="price-card"><div class="p-name">${p.name}</div><div class="p-cost">$${p.cost.toFixed(2)}</div><div class="p-detail">/month for ${bw}GB</div></div>`).join('');
+    document.getElementById('price-result').innerHTML=priceHTML;
+
+    document.getElementById('rec-section').scrollIntoView({behavior:'smooth'});
+  }
+};
+document.addEventListener('DOMContentLoaded',()=>CDN.init());
+</script>
+</body>
+</html>

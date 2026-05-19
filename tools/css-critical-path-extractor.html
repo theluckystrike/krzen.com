@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS Critical Path Extractor — Above-the-Fold CSS Identifier &amp; Inlining Tool | Krzen</title>
+<meta name="description" content="Free CSS critical path extractor that identifies above-the-fold styles, generates inline CSS, and analyzes render-blocking resources. Optimize your page's first paint performance.">
+<meta name="keywords" content="critical CSS extractor, above the fold CSS, inline CSS generator, render blocking CSS, critical path optimizer, first contentful paint, CSS extraction tool, web performance CSS">
+<link rel="canonical" href="https://krzen.com/tools/css-critical-path-extractor.html">
+<link rel="alternate" hreflang="en" href="https://krzen.com/tools/css-critical-path-extractor.html">
+<link rel="alternate" hreflang="x-default" href="https://krzen.com/tools/css-critical-path-extractor.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="CSS Critical Path Extractor — Above-the-Fold CSS Identifier &amp; Inlining Tool">
+<meta property="og:description" content="Free CSS critical path extractor that identifies above-the-fold styles, generates inline CSS, and analyzes render-blocking resources.">
+<meta property="og:url" content="https://krzen.com/tools/css-critical-path-extractor.html">
+<meta property="og:site_name" content="Zovo Tools">
+<meta property="og:image" content="https://krzen.com/assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CSS Critical Path Extractor — Above-the-Fold CSS Identifier &amp; Inlining Tool">
+<meta name="twitter:description" content="Free CSS critical path extractor that identifies above-the-fold styles, generates inline CSS, and analyzes render-blocking resources.">
+<meta name="twitter:image" content="https://krzen.com/assets/og-image.png">
+<link rel="stylesheet" href="/assets/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "CSS Critical Path Extractor — Above-the-Fold CSS Identifier",
+  "url": "https://krzen.com/tools/css-critical-path-extractor.html",
+  "description": "Free CSS critical path extractor that identifies above-the-fold styles, generates inline CSS, and analyzes render-blocking resources. Optimize your page's first paint performance.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+  "author": {"@type": "Person", "name": "Michael Lip", "url": "https://zovo.one"},
+  "publisher": {"@type": "Organization", "name": "Krzen", "url": "https://krzen.com"},
+  "datePublished": "2026-05-25",
+  "dateModified": "2026-05-25",
+  "featureList": ["Paste CSS and HTML for critical path analysis", "Above-the-fold CSS extraction", "Unused CSS detection", "Inline CSS code generation", "Render-blocking resource analysis", "CSS size comparison", "Client-side processing"],
+  "browserRequirements": "Requires JavaScript"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is critical CSS and why does it matter?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Critical CSS is the minimum set of CSS rules needed to render the above-the-fold content of a web page. By inlining this CSS directly in the HTML head and deferring the rest, you eliminate render-blocking stylesheets from the critical rendering path. This can reduce First Contentful Paint (FCP) by 500ms-2s because the browser no longer has to wait for external CSS files to download before painting the page. Google explicitly recommends this technique in its PageSpeed Insights and Lighthouse audits."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I identify which CSS is above the fold?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Above-the-fold CSS includes any styles applied to elements visible in the initial viewport before scrolling. This typically covers: the body and html base styles, header and navigation styles, hero section or first content block styles, typography for visible text, layout properties (grid, flexbox) for the top section, and any background colors or images visible on first load. The simplest method is to load your page, identify visible elements using DevTools, and extract only the CSS rules that affect those elements."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How large should inline critical CSS be?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Inline critical CSS should be under 14KB (compressed), which fits within the first TCP round-trip. This is based on TCP's initial congestion window of approximately 14KB. If your critical CSS exceeds this, the browser needs additional round-trips to receive the full HTML document, reducing the benefit of inlining. Most well-optimized pages achieve critical CSS sizes between 5-12KB. If yours is larger, look for opportunities to simplify above-the-fold styles or reduce specificity."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I defer non-critical CSS loading?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The recommended pattern is: inline critical CSS in a style tag in the head, then load the full stylesheet with media='print' and an onload handler that switches it to media='all'. The code is: <link rel='stylesheet' href='style.css' media='print' onload=\"this.media='all'\">. Add a noscript fallback: <noscript><link rel='stylesheet' href='style.css'></noscript>. This allows the full CSS to load asynchronously without blocking rendering, while the inline critical CSS ensures the page looks correct during loading."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Should I automate critical CSS extraction in my build pipeline?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Manual critical CSS extraction is error-prone and becomes outdated whenever you change your page layout. Tools like Critters (by Google), Critical (by Addy Osmani), and PurgeCSS integrate into build pipelines (webpack, Vite, Next.js) to automatically extract and inline critical CSS during each build. Critters is particularly effective because it works at build time without a headless browser. For dynamic pages, consider using a service worker to cache the full CSS after first load."
+      }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://krzen.com/"},
+    {"@type": "ListItem", "position": 2, "name": "Tools", "item": "https://krzen.com/tools/"},
+    {"@type": "ListItem", "position": 3, "name": "CSS Critical Path Extractor", "item": "https://krzen.com/tools/css-critical-path-extractor.html"}
+  ]
+}
+</script>
+<style>
+.tool-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin:20px 0}
+.tool-section h3{font-family:var(--font-display);font-size:0.85rem;text-transform:uppercase;color:var(--accent);margin-bottom:16px;letter-spacing:0.04em}
+.input-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.input-field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:200px}
+.input-field label{font-size:0.78rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;letter-spacing:0.3px}
+.input-field input,.input-field textarea,.input-field select{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:8px 12px;font-family:var(--font-body);font-size:0.9rem}
+.input-field input:focus,.input-field textarea:focus,.input-field select:focus{outline:none;border-color:var(--accent)}
+.input-field textarea{min-height:140px;resize:vertical;font-family:'Space Mono',monospace;font-size:0.82rem}
+.mode-tabs{display:flex;gap:0;margin-bottom:16px}
+.mode-tab{background:transparent;color:var(--text-muted);border:1px solid var(--border);padding:8px 20px;font-size:0.82rem;font-family:var(--font-body);cursor:pointer;transition:all 0.2s}
+.mode-tab:first-child{border-radius:var(--radius) 0 0 var(--radius)}
+.mode-tab:last-child{border-radius:0 var(--radius) var(--radius) 0}
+.mode-tab.active{border-color:var(--accent);color:var(--accent);background:rgba(251,146,60,0.06)}
+.bp-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;text-align:center;margin:16px 0}
+.bp-summary .val{font-family:var(--font-display);font-size:1.4rem;font-weight:700}
+.bp-summary .lbl{font-size:0.78rem;color:var(--text-muted);text-transform:uppercase}
+.css-output{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:16px;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--text-muted);overflow-x:auto;max-height:400px;white-space:pre;line-height:1.6;overflow-y:auto}
+.rule-list{max-height:300px;overflow-y:auto}
+.rule-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--border);font-size:0.82rem;font-family:'Space Mono',monospace}
+.rule-item:last-child{border-bottom:none}
+.rule-item .selector{flex:1;color:var(--text)}
+.rule-item .status-tag{padding:2px 8px;border-radius:3px;font-size:0.72rem;font-weight:600;text-transform:uppercase}
+.rule-item .status-tag.critical{background:rgba(52,211,153,0.1);color:#34D399}
+.rule-item .status-tag.deferred{background:rgba(251,191,36,0.1);color:#FBBF24}
+.rule-item .status-tag.unused{background:rgba(248,113,113,0.1);color:#F87171}
+.size-compare{display:flex;gap:20px;align-items:center;justify-content:center;margin:16px 0;flex-wrap:wrap}
+.size-box{text-align:center;padding:16px 24px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);min-width:140px}
+.size-box .size-val{font-family:var(--font-display);font-size:1.6rem;font-weight:700}
+.size-box .size-lbl{font-size:0.78rem;color:var(--text-muted);text-transform:uppercase;margin-top:4px}
+.size-arrow{font-size:1.5rem;color:var(--accent)}
+.status-ok{color:#34D399}
+.status-warn{color:#FBBF24}
+.status-bad{color:#F87171}
+.viewport-selector{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.vp-btn{background:transparent;color:var(--text-muted);border:1px solid var(--border);border-radius:var(--radius);padding:6px 14px;font-size:0.82rem;font-family:var(--font-body);cursor:pointer;transition:all 0.2s}
+.vp-btn:hover,.vp-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(251,146,60,0.06)}
+.explainer-section{max-width:760px;margin:40px auto 0;padding:0 0 20px}
+.explainer-section h2{font-size:1.3rem;margin:32px 0 12px;color:var(--accent)}
+.explainer-section h3{font-size:1.1rem;margin:24px 0 8px}
+.explainer-section p{color:var(--text-muted);margin-bottom:16px;line-height:1.7}
+.explainer-section ul,.explainer-section ol{color:var(--text-muted);margin:0 0 16px 24px}
+.explainer-section li{margin-bottom:6px}
+.explainer-section code{font-family:var(--font-display);background:var(--bg-card);padding:2px 6px;border-radius:3px;font-size:0.9em}
+.related-tools{margin:40px 0 0}
+.related-tools h3{font-family:var(--font-display);text-align:center;margin-bottom:16px;font-size:1rem}
+.related-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.related-grid a{display:block;padding:14px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);text-decoration:none;font-size:0.9rem;transition:border-color 0.2s}
+.related-grid a:hover{border-color:var(--accent);text-decoration:none}
+.related-grid a small{display:block;color:var(--text-muted);font-size:0.78rem;margin-top:4px}
+.author-bio{margin:32px 0;padding:20px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius)}
+.author-bio p{color:var(--text-muted);font-size:0.9rem;line-height:1.6;margin:0}
+.author-bio p strong{color:var(--text)}
+.last-updated{text-align:center;color:var(--text-muted);font-size:0.8rem;margin:24px 0 0}
+@media(max-width:768px){.input-row{flex-direction:column}.bp-summary{grid-template-columns:repeat(2,1fr)}.size-compare{flex-direction:column}}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <a href="/" class="logo">krzen</a>
+    <nav>
+      <a href="/">Tool</a>
+      <a href="/research/">Research</a>
+      <a href="/guides/">Guides</a>
+      <a href="/tools/">Tools</a>
+      <a href="/blog/">Blog</a>
+      <a href="/about.html">About</a>
+      <div class="nav-right">
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&amp;utm_medium=satellite&amp;utm_campaign=nav-link" class="nav-pro" target="_blank">Go Pro &#10022;</a>
+        <a href="https://zovo.one/tools" class="nav-zovo">Zovo Tools</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <nav class="breadcrumb" aria-label="Breadcrumb" style="font-size:0.82rem;margin:20px 0 0;"><a href="/">Home</a> <span style="color:var(--text-muted);margin:0 4px;">/</span> <a href="/tools/">Tools</a> <span style="color:var(--text-muted);margin:0 4px;">/</span> <span style="color:var(--text-muted);">CSS Critical Path Extractor</span></nav>
+
+  <section class="hero">
+    <h1>CSS Critical Path <span>Extractor</span></h1>
+    <p>Identify above-the-fold CSS, extract critical styles for inlining, and detect unused rules. Optimize your page's render-blocking resources for faster First Contentful Paint. Client-side only.</p>
+  </section>
+
+  <div class="tool-section">
+    <h3>HTML Source</h3>
+    <div class="input-field">
+      <label>Paste your HTML (above-the-fold portion)</label>
+      <textarea id="html-input" placeholder="<header>&#10;  <nav class='main-nav'>&#10;    <a href='/' class='logo'>Site</a>&#10;  </nav>&#10;</header>&#10;<section class='hero'>&#10;  <h1>Welcome</h1>&#10;  <p>Hero description text</p>&#10;</section>"></textarea>
+    </div>
+  </div>
+
+  <div class="tool-section">
+    <h3>CSS Source</h3>
+    <div class="input-field">
+      <label>Paste your full CSS stylesheet</label>
+      <textarea id="css-input" placeholder="body { margin: 0; font-family: sans-serif; }&#10;.main-nav { display: flex; padding: 16px; }&#10;.logo { font-weight: bold; color: #333; }&#10;.hero { padding: 60px 20px; text-align: center; }&#10;.hero h1 { font-size: 2.5rem; }&#10;.footer { padding: 40px; background: #111; }&#10;.sidebar { width: 300px; float: right; }"></textarea>
+    </div>
+  </div>
+
+  <div class="tool-section">
+    <h3>Viewport Size</h3>
+    <div class="viewport-selector">
+      <button class="vp-btn" onclick="CPE.setViewport(320,this)">Mobile 320</button>
+      <button class="vp-btn" onclick="CPE.setViewport(375,this)">Mobile 375</button>
+      <button class="vp-btn active" onclick="CPE.setViewport(768,this)">Tablet 768</button>
+      <button class="vp-btn" onclick="CPE.setViewport(1024,this)">Laptop 1024</button>
+      <button class="vp-btn" onclick="CPE.setViewport(1280,this)">Desktop 1280</button>
+      <button class="vp-btn" onclick="CPE.setViewport(1920,this)">FHD 1920</button>
+    </div>
+    <button class="btn" onclick="CPE.extract()">Extract Critical CSS</button>
+  </div>
+
+  <div id="results" style="display:none">
+    <div class="tool-section">
+      <h3>Analysis Summary</h3>
+      <div class="bp-summary">
+        <div><div class="val" id="total-rules">--</div><div class="lbl">Total Rules</div></div>
+        <div><div class="val status-ok" id="critical-rules">--</div><div class="lbl">Critical</div></div>
+        <div><div class="val status-warn" id="deferred-rules">--</div><div class="lbl">Deferred</div></div>
+        <div><div class="val status-bad" id="unused-rules">--</div><div class="lbl">Unused</div></div>
+      </div>
+    </div>
+
+    <div class="tool-section">
+      <h3>Size Comparison</h3>
+      <div class="size-compare">
+        <div class="size-box"><div class="size-val status-bad" id="original-size">--</div><div class="size-lbl">Original CSS</div></div>
+        <div class="size-arrow">&#10142;</div>
+        <div class="size-box"><div class="size-val status-ok" id="critical-size">--</div><div class="size-lbl">Critical CSS</div></div>
+        <div class="size-box"><div class="size-val" id="savings-pct">--</div><div class="size-lbl">Reduction</div></div>
+      </div>
+    </div>
+
+    <div class="tool-section">
+      <h3>Rule Classification</h3>
+      <div class="rule-list" id="rule-list"></div>
+    </div>
+
+    <div class="tool-section">
+      <h3>Critical CSS Output (Inline This)</h3>
+      <pre class="css-output" id="critical-output"></pre>
+      <button class="btn" style="margin-top:12px" onclick="CPE.copy('critical-output')">Copy Critical CSS</button>
+    </div>
+
+    <div class="tool-section">
+      <h3>Deferred CSS (Load Async)</h3>
+      <pre class="css-output" id="deferred-output"></pre>
+      <button class="btn" style="margin-top:12px" onclick="CPE.copy('deferred-output')">Copy Deferred CSS</button>
+    </div>
+
+    <div class="tool-section">
+      <h3>Implementation Code</h3>
+      <pre class="css-output" id="implementation-output"></pre>
+      <button class="btn" style="margin-top:12px" onclick="CPE.copy('implementation-output')">Copy Implementation</button>
+    </div>
+  </div>
+
+  <section class="explainer-section">
+    <h2>Understanding the Critical Rendering Path</h2>
+    <p>The critical rendering path is the sequence of steps the browser takes to convert HTML, CSS, and JavaScript into pixels on screen. CSS is render-blocking by default: the browser will not paint any content until it has downloaded, parsed, and constructed the CSSOM (CSS Object Model) from all linked stylesheets. For a page with a 150KB external stylesheet on a 3G connection, this means the user sees a blank white screen for 2-4 seconds while the CSS downloads, even if the HTML arrived instantly.</p>
+    <p>Critical CSS optimization breaks this bottleneck by splitting your styles into two categories. First, the critical CSS: the minimal set of rules needed to render what the user sees first (above the fold). This CSS is inlined directly in the HTML document's head tag, eliminating the need for an additional network request. Second, the deferred CSS: everything else, loaded asynchronously after the initial paint. The result is a dramatically faster First Contentful Paint (FCP), often improving by 1-3 seconds on slower connections.</p>
+
+    <h2>How This Tool Works</h2>
+    <p>This extractor analyzes your HTML and CSS to classify every CSS rule into one of three categories. <strong>Critical rules</strong> match elements present in your above-the-fold HTML and are essential for the initial render. <strong>Deferred rules</strong> are valid CSS that targets elements not present in the provided HTML — these are styles for below-the-fold content, modals, dropdowns, and other interactive states. <strong>Unused rules</strong> do not match any element in your full page and may be dead CSS that can be removed entirely.</p>
+    <p>The tool parses your CSS into individual rules, extracts the selectors, and tests each selector against your HTML DOM. For media queries, it checks whether the query matches the selected viewport width. Rules inside matching media queries are classified by their selector; rules inside non-matching media queries are automatically classified as deferred. Pseudo-elements and pseudo-classes are handled by testing the base selector (e.g., <code>.btn:hover</code> checks if <code>.btn</code> exists in the HTML).</p>
+
+    <h2>The 14KB Rule</h2>
+    <p>TCP connections use a mechanism called slow start, where the initial congestion window (initcwnd) is typically 10 TCP segments, or approximately 14KB after compression. This means the first 14KB of data arrives in a single network round-trip. Any data beyond 14KB requires additional round-trips, each adding one RTT (Round-Trip Time) of latency. On a typical 4G connection with 50ms RTT, exceeding 14KB adds 50ms per additional round-trip.</p>
+    <p>This makes 14KB the golden budget for your combined HTML plus inline critical CSS. If your HTML document with inlined critical CSS fits within 14KB (gzipped), the browser receives everything it needs to paint the above-the-fold content in a single round-trip. This is the theoretical minimum time to first paint. Achieving this requires aggressive critical CSS minimization: remove whitespace, combine shorthand properties, eliminate redundant selectors, and question whether every above-the-fold style is truly necessary.</p>
+
+    <h2>Implementing Critical CSS</h2>
+    <h3>The Inline + Async Pattern</h3>
+    <p>The standard implementation pattern has three parts. First, inline your critical CSS in a <code>&lt;style&gt;</code> tag in the document head. Second, load your full stylesheet asynchronously using the media-swap technique: <code>&lt;link rel="stylesheet" href="style.css" media="print" onload="this.media='all'"&gt;</code>. Third, add a <code>&lt;noscript&gt;</code> fallback for users without JavaScript: <code>&lt;noscript&gt;&lt;link rel="stylesheet" href="style.css"&gt;&lt;/noscript&gt;</code>.</p>
+    <p>This pattern works because <code>media="print"</code> tells the browser the stylesheet is only needed for printing, so it downloads it at low priority without blocking rendering. When the file finishes loading, the <code>onload</code> handler changes the media to <code>"all"</code>, instantly applying the full styles. Users see the correctly-styled above-the-fold content immediately, and the remaining styles apply as soon as they arrive. The transition is seamless because the critical CSS already covers everything visible.</p>
+
+    <h3>Build Pipeline Integration</h3>
+    <p>For production sites, critical CSS extraction should be automated. <strong>Critters</strong> (Google's tool, integrated into Angular CLI and available as a webpack/Vite plugin) analyzes your built HTML and inlines critical CSS at build time without a headless browser. <strong>Critical</strong> by Addy Osmani uses Puppeteer to render the page and extract the exact styles used above the fold. Both tools work with static and server-rendered pages. For Next.js applications, the framework handles critical CSS extraction automatically when using CSS Modules or styled-jsx.</p>
+
+    <h2>Common Pitfalls</h2>
+    <p><strong>Font declarations in critical CSS:</strong> If your above-the-fold content uses custom fonts, the @font-face rules must be in the critical CSS. However, this adds significant size. Consider using <code>font-display: swap</code> and preloading the font file with <code>&lt;link rel="preload" as="font"&gt;</code> instead of inlining the entire font-face declaration.</p>
+    <p><strong>CSS custom properties (variables):</strong> If your critical styles use CSS variables defined in :root, the variable declarations must also be included in the critical CSS. Missing variable definitions cause styles to fall back to initial values, creating a flash of incorrectly-styled content (FOISC).</p>
+    <p><strong>Over-inlining:</strong> Including too much CSS as critical defeats the purpose. If your critical CSS exceeds 14KB, you are likely including styles for elements that are not truly above the fold. Audit each rule and ask: is this element visible without any scrolling on the target viewport? If not, it belongs in the deferred CSS.</p>
+    <p><strong>Cache invalidation:</strong> Inline CSS cannot be cached independently by the browser. On repeat visits, the user re-downloads the critical CSS with every HTML request. This is why you should keep it minimal and still load the full external stylesheet (which is cached) for subsequent page views. The external stylesheet provides the cached version of all styles including the critical ones.</p>
+  </section>
+
+  <section class="faq-section" style="max-width:760px;margin:40px auto 0;">
+    <h2>Frequently Asked Questions</h2>
+    <details>
+      <summary>What is critical CSS and why does it matter?</summary>
+      <p>Critical CSS is the minimum set of CSS rules needed to render the above-the-fold content. By inlining it in the HTML head and deferring the rest, you eliminate render-blocking stylesheets. This can reduce First Contentful Paint by 500ms-2s.</p>
+    </details>
+    <details>
+      <summary>How do I identify which CSS is above the fold?</summary>
+      <p>Above-the-fold CSS includes styles for elements visible in the initial viewport before scrolling: body base styles, header, navigation, hero section, visible typography, and layout properties for the top section.</p>
+    </details>
+    <details>
+      <summary>How large should inline critical CSS be?</summary>
+      <p>Under 14KB compressed, which fits within the first TCP round-trip. Most well-optimized pages achieve 5-12KB of critical CSS. Larger sizes require additional round-trips, reducing the inlining benefit.</p>
+    </details>
+    <details>
+      <summary>How do I defer non-critical CSS loading?</summary>
+      <p>Use the media-swap pattern: load with media='print' and an onload handler that switches to media='all'. Add a noscript fallback for users without JavaScript.</p>
+    </details>
+    <details>
+      <summary>Should I automate critical CSS extraction in my build pipeline?</summary>
+      <p>Yes. Use tools like Critters (Google), Critical (Addy Osmani), or PurgeCSS in your build pipeline to automatically extract and inline critical CSS during each build.</p>
+    </details>
+  </section>
+
+  <section class="related-tools" style="max-width:760px;margin:40px auto;">
+    <h3>Related Tools &amp; Guides</h3>
+    <div class="related-grid">
+      <a href="/tools/page-speed-analyzer.html">Page Speed Analyzer<small>Performance budget calculator with waterfall</small></a>
+      <a href="/tools/responsive-breakpoint-tester.html">Responsive Breakpoint Tester<small>Preview any URL at every screen width</small></a>
+      <a href="/answers/image-optimization-checklist.html">Image Optimization Checklist<small>Audit images for web performance</small></a>
+    </div>
+  </section>
+
+  <div class="author-bio" style="max-width:760px;margin:32px auto;">
+    <p><strong>Written by Michael Lip</strong> — solo dev building free developer tools at <a href="https://zovo.one">zovo.one</a>. No tracking, no accounts, no data collection. If you find this tool useful, check out the full <a href="https://zovo.one/tools">Zovo Tools</a> suite.</p>
+  </div>
+
+  <div class="last-updated" style="max-width:760px;margin:16px auto;"><time datetime="2026-05-25">Last updated: May 25, 2026</time></div>
+</main>
+
+<footer class="site-footer">
+    <div class="footer-inner">
+        <div class="footer-brand">Zovo Tools</div>
+        <div class="footer-tagline">Free developer tools by a solo dev. No tracking.</div>
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&utm_medium=satellite&utm_campaign=footer-link" class="footer-cta">Zovo Lifetime &mdash; $99 once, free forever &rarr;</a>
+        <div class="footer-copy">&copy; 2026 <a href="https://zovo.one">Zovo</a> &middot; 47/500 founding spots</div>
+    </div>
+</footer>
+
+<nav class="zovo-network" aria-label="Zovo Tools Network">
+    <div class="zovo-network-inner">
+        <h3 class="zovo-network-title">Explore More Tools</h3>
+        <div class="zovo-network-links">
+            <a href="https://abwex.com">ABWex &mdash; A/B Testing</a>
+            <a href="https://claudflow.com">ClaudFlow &mdash; Workflows</a>
+            <a href="https://claudhq.com">ClaudHQ &mdash; AI Code Tools &amp; Fixes</a>
+            <a href="https://claudkit.com">ClaudKit &mdash; API</a>
+            <a href="https://enhio.com">Enhio &mdash; Text Tools</a>
+            <a href="https://epochpilot.com">EpochPilot &mdash; Timestamps</a>
+            <a href="https://gen8x.com">Gen8X &mdash; Color Tools</a>
+            <a href="https://gpt0x.com">GPT0X &mdash; AI Models</a>
+            <a href="https://heytensor.com">HeyTensor &mdash; ML Tools</a>
+            <a href="https://invokebot.com">InvokeBot &mdash; Webhooks</a>
+            <a href="https://kappafy.com">Kappafy &mdash; JSON</a>
+            <a href="https://kappakit.com">KappaKit &mdash; Dev Toolkit</a>
+            <a href="https://kickllm.com">KickLLM &mdash; LLM Costs</a>
+            <a href="https://lochbot.com">LochBot &mdash; Security</a>
+            <a href="https://lockml.com">LockML &mdash; ML Compare</a>
+            <a href="https://ml3x.com">ML3X &mdash; Matrix Math</a>
+        </div>
+    </div>
+</nav>
+
+<script>
+const CPE={
+  viewport:768,
+
+  setViewport(w,btn){
+    this.viewport=w;
+    document.querySelectorAll('.vp-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+  },
+
+  parseCSS(css){
+    const rules=[];
+    let cleaned=css.replace(/\/\*[\s\S]*?\*\//g,'');
+    const mediaRegex=/@media\s*([^{]+)\{([\s\S]*?)\}\s*\}/g;
+    let mediaMatch;
+    const mediaRanges=[];
+    while((mediaMatch=mediaRegex.exec(cleaned))!==null){
+      const condition=mediaMatch[1].trim();
+      const inner=mediaMatch[2];
+      const innerRules=this.parseRuleBlock(inner);
+      innerRules.forEach(r=>{r.media=condition;rules.push(r);});
+      mediaRanges.push({start:mediaMatch.index,end:mediaMatch.index+mediaMatch[0].length});
+    }
+    let plainCSS=cleaned;
+    for(let i=mediaRanges.length-1;i>=0;i--){
+      plainCSS=plainCSS.substring(0,mediaRanges[i].start)+plainCSS.substring(mediaRanges[i].end);
+    }
+    const plainRules=this.parseRuleBlock(plainCSS);
+    plainRules.forEach(r=>{r.media=null;rules.push(r);});
+    return rules;
+  },
+
+  parseRuleBlock(block){
+    const rules=[];
+    const ruleRegex=/([^{}]+)\{([^{}]*)\}/g;
+    let m;
+    while((m=ruleRegex.exec(block))!==null){
+      const selector=m[1].trim();
+      const body=m[2].trim();
+      if(selector&&body&&!selector.startsWith('@')){
+        rules.push({selector,body,media:null});
+      }
+    }
+    return rules;
+  },
+
+  mediaMatches(condition){
+    const minW=condition.match(/min-width\s*:\s*(\d+)px/);
+    const maxW=condition.match(/max-width\s*:\s*(\d+)px/);
+    let matches=true;
+    if(minW&&parseInt(minW[1])>this.viewport)matches=false;
+    if(maxW&&parseInt(maxW[1])<this.viewport)matches=false;
+    return matches;
+  },
+
+  selectorMatchesHTML(selector,doc){
+    try{
+      const base=selector.replace(/::?[\w-]+(\([^)]*\))?/g,'').replace(/\s*>\s*/g,' > ').trim();
+      if(!base)return false;
+      return doc.querySelector(base)!==null;
+    }catch(e){return false;}
+  },
+
+  extract(){
+    const htmlSrc=document.getElementById('html-input').value.trim();
+    const cssSrc=document.getElementById('css-input').value.trim();
+    if(!htmlSrc||!cssSrc){alert('Please paste both HTML and CSS source.');return;}
+
+    const parser=new DOMParser();
+    const doc=parser.parseFromString('<body>'+htmlSrc+'</body>','text/html');
+    const rules=this.parseCSS(cssSrc);
+    const critical=[];
+    const deferred=[];
+    const unused=[];
+
+    rules.forEach(rule=>{
+      if(rule.media&&!this.mediaMatches(rule.media)){
+        deferred.push(rule);return;
+      }
+      if(this.selectorMatchesHTML(rule.selector,doc)){
+        critical.push(rule);
+      }else{
+        const selParts=rule.selector.split(',').map(s=>s.trim());
+        let anyMatch=false;
+        for(const s of selParts){
+          if(this.selectorMatchesHTML(s,doc)){anyMatch=true;break;}
+        }
+        if(anyMatch)critical.push(rule);
+        else deferred.push(rule);
+      }
+    });
+
+    document.getElementById('results').style.display='block';
+    document.getElementById('total-rules').textContent=rules.length;
+    document.getElementById('critical-rules').textContent=critical.length;
+    document.getElementById('deferred-rules').textContent=deferred.length;
+    document.getElementById('unused-rules').textContent=unused.length;
+
+    const origSize=new Blob([cssSrc]).size;
+    const critCSS=this.buildCSS(critical);
+    const defCSS=this.buildCSS(deferred);
+    const critSize=new Blob([critCSS]).size;
+
+    document.getElementById('original-size').textContent=this.formatBytes(origSize);
+    document.getElementById('critical-size').textContent=this.formatBytes(critSize);
+    const pct=Math.round((1-critSize/origSize)*100);
+    document.getElementById('savings-pct').textContent=pct+'%';
+    document.getElementById('savings-pct').className='size-val '+(pct>50?'status-ok':pct>20?'status-warn':'status-bad');
+
+    const ruleList=document.getElementById('rule-list');
+    ruleList.innerHTML='';
+    critical.forEach(r=>{
+      ruleList.innerHTML+=`<div class="rule-item"><span class="selector">${this.esc(r.selector)}</span><span class="status-tag critical">Critical</span></div>`;
+    });
+    deferred.forEach(r=>{
+      ruleList.innerHTML+=`<div class="rule-item"><span class="selector">${this.esc(r.selector)}</span><span class="status-tag deferred">Deferred</span></div>`;
+    });
+
+    document.getElementById('critical-output').textContent=critCSS;
+    document.getElementById('deferred-output').textContent=defCSS;
+
+    const impl=`<!-- Critical CSS: Inline in <head> -->\n<style>\n${critCSS}\n</style>\n\n<!-- Full stylesheet: Load async -->\n<link rel="stylesheet" href="/style.css" media="print" onload="this.media='all'">\n<noscript><link rel="stylesheet" href="/style.css"></noscript>`;
+    document.getElementById('implementation-output').textContent=impl;
+
+    document.getElementById('results').scrollIntoView({behavior:'smooth'});
+  },
+
+  buildCSS(rules){
+    const mediaGroups={};
+    const plain=[];
+    rules.forEach(r=>{
+      if(r.media){
+        if(!mediaGroups[r.media])mediaGroups[r.media]=[];
+        mediaGroups[r.media].push(r);
+      }else{
+        plain.push(r);
+      }
+    });
+    let css='';
+    plain.forEach(r=>{css+=`${r.selector}{${r.body}}\n`;});
+    Object.keys(mediaGroups).forEach(mq=>{
+      css+=`@media ${mq}{\n`;
+      mediaGroups[mq].forEach(r=>{css+=`  ${r.selector}{${r.body}}\n`;});
+      css+='}\n';
+    });
+    return css;
+  },
+
+  formatBytes(b){
+    if(b<1024)return b+'B';
+    return (b/1024).toFixed(1)+'KB';
+  },
+
+  esc(s){return s.replace(/</g,'&lt;').replace(/>/g,'&gt;');},
+
+  copy(id){
+    const text=document.getElementById(id).textContent;
+    navigator.clipboard.writeText(text).then(()=>{
+      const btn=event.target;
+      const orig=btn.textContent;
+      btn.textContent='Copied!';
+      btn.style.borderColor='#34D399';
+      btn.style.color='#34D399';
+      setTimeout(()=>{btn.textContent=orig;btn.style.borderColor='';btn.style.color='';},2000);
+    });
+  }
+};
+</script>
+</body>
+</html>

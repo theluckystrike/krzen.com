@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Image Optimization Checklist — Interactive Audit Tool with Before/After Comparison | Krzen</title>
+<meta name="description" content="Free interactive image optimization checklist with before/after size comparison, format recommendations, compression analysis, and performance scoring. Audit your images for web performance.">
+<meta name="keywords" content="image optimization checklist, image compression tool, webp converter, avif optimization, image audit tool, web performance images, before after image size, image format comparison">
+<link rel="canonical" href="https://krzen.com/answers/image-optimization-checklist.html">
+<link rel="alternate" hreflang="en" href="https://krzen.com/answers/image-optimization-checklist.html">
+<link rel="alternate" hreflang="x-default" href="https://krzen.com/answers/image-optimization-checklist.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Image Optimization Checklist — Interactive Audit Tool with Before/After Comparison">
+<meta property="og:description" content="Free interactive image optimization checklist with before/after size comparison, format recommendations, and performance scoring.">
+<meta property="og:url" content="https://krzen.com/answers/image-optimization-checklist.html">
+<meta property="og:site_name" content="Zovo Tools">
+<meta property="og:image" content="https://krzen.com/assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Image Optimization Checklist — Interactive Audit Tool with Before/After Comparison">
+<meta name="twitter:description" content="Free interactive image optimization checklist with before/after size comparison, format recommendations, and performance scoring.">
+<meta name="twitter:image" content="https://krzen.com/assets/og-image.png">
+<link rel="stylesheet" href="/assets/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Image Optimization Checklist — Interactive Audit Tool",
+  "url": "https://krzen.com/answers/image-optimization-checklist.html",
+  "description": "Free interactive image optimization checklist with before/after size comparison, format recommendations, compression analysis, and performance scoring. Audit your images for web performance.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+  "author": {"@type": "Person", "name": "Michael Lip", "url": "https://zovo.one"},
+  "publisher": {"@type": "Organization", "name": "Krzen", "url": "https://krzen.com"},
+  "datePublished": "2026-05-25",
+  "dateModified": "2026-05-25",
+  "featureList": ["Drag-and-drop image analysis", "Before/after size comparison", "Format conversion recommendations", "Compression quality estimator", "Lazy loading checker", "Responsive image audit", "Client-side processing"],
+  "browserRequirements": "Requires JavaScript"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the best image format for the web in 2026?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "AVIF is the best image format for the web in 2026, offering 50% smaller file sizes than JPEG at equivalent quality. It supports transparency, HDR, and wide color gamut. WebP remains an excellent fallback with 25-35% savings over JPEG and near-universal browser support (97%+). Use AVIF as primary with WebP fallback via the HTML picture element. For simple graphics and icons, SVG remains ideal. PNG should only be used when lossless quality with transparency is absolutely required."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How much should I compress images for web performance?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Target 80-85% quality for JPEG, 75-80% for WebP, and 65-75% for AVIF. These ranges provide the best balance between visual quality and file size. Most users cannot perceive quality differences above these thresholds on typical displays. Hero images may warrant slightly higher quality (85-90% JPEG), while thumbnails can go lower (70-75% JPEG). Always compare visually — the optimal setting depends on image content. Photos with gradients need higher quality than sharp-edged graphics."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the ideal image file size for web pages?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Hero images should be under 200KB, content images under 100KB, and thumbnails under 30KB. The total image weight per page should ideally stay under 1MB for good Core Web Vitals scores. Google recommends keeping Largest Contentful Paint (LCP) under 2.5 seconds, and oversized images are the number one cause of slow LCP. Use responsive images with srcset to serve appropriately sized images for each viewport width."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Should I use lazy loading for all images?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Never lazy-load images that are visible in the initial viewport (above the fold), especially your LCP image. Lazy loading above-the-fold images delays their rendering and hurts your LCP score. Use loading='lazy' only for images below the fold. For your LCP image, use loading='eager' (or omit the attribute) and add fetchpriority='high' to tell the browser to download it immediately. The browser's native lazy loading (loading='lazy') is preferred over JavaScript-based solutions."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do responsive images with srcset work?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The srcset attribute provides the browser with multiple image sources at different widths, letting it choose the best one for the current viewport and device pixel ratio. The syntax is: <img srcset='image-400.webp 400w, image-800.webp 800w, image-1200.webp 1200w' sizes='(max-width: 600px) 100vw, (max-width: 1200px) 50vw, 33vw' src='image-800.webp' alt='description'>. The sizes attribute tells the browser how wide the image will be displayed. Without sizes, the browser assumes the image is 100vw wide and may download an unnecessarily large file."
+      }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://krzen.com/"},
+    {"@type": "ListItem", "position": 2, "name": "Answers", "item": "https://krzen.com/answers/"},
+    {"@type": "ListItem", "position": 3, "name": "Image Optimization Checklist", "item": "https://krzen.com/answers/image-optimization-checklist.html"}
+  ]
+}
+</script>
+<style>
+.tool-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin:20px 0}
+.tool-section h3{font-family:var(--font-display);font-size:0.85rem;text-transform:uppercase;color:var(--accent);margin-bottom:16px;letter-spacing:0.04em}
+.input-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.input-field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:200px}
+.input-field label{font-size:0.78rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;letter-spacing:0.3px}
+.input-field input,.input-field textarea,.input-field select{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:8px 12px;font-family:var(--font-body);font-size:0.9rem}
+.input-field input:focus,.input-field textarea:focus,.input-field select:focus{outline:none;border-color:var(--accent)}
+.drop-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:40px 20px;text-align:center;cursor:pointer;transition:all 0.3s;color:var(--text-muted)}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--accent);background:rgba(251,146,60,0.04)}
+.drop-zone p{margin:8px 0;font-size:0.9rem}
+.drop-zone .drop-icon{font-size:2rem;margin-bottom:8px}
+.checklist-grid{display:grid;gap:12px;margin:16px 0}
+.check-item{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all 0.2s}
+.check-item:hover{border-color:var(--accent)}
+.check-item.passed{border-color:#34D399;background:rgba(52,211,153,0.04)}
+.check-item.failed{border-color:#F87171;background:rgba(248,113,113,0.04)}
+.check-item.warning{border-color:#FBBF24;background:rgba(251,191,36,0.04)}
+.check-icon{width:24px;height:24px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:0.75rem;font-weight:700}
+.check-item.passed .check-icon{border-color:#34D399;color:#34D399}
+.check-item.failed .check-icon{border-color:#F87171;color:#F87171}
+.check-item.warning .check-icon{border-color:#FBBF24;color:#FBBF24}
+.check-details{flex:1}
+.check-details .check-title{font-weight:600;font-size:0.9rem;margin-bottom:4px}
+.check-details .check-desc{font-size:0.8rem;color:var(--text-muted);line-height:1.5}
+.score-display{text-align:center;padding:24px;margin:16px 0}
+.score-ring{width:120px;height:120px;margin:0 auto 16px}
+.score-ring svg{transform:rotate(-90deg)}
+.score-ring circle{fill:none;stroke-width:8}
+.score-ring .bg{stroke:var(--border)}
+.score-ring .fg{stroke:var(--accent);stroke-linecap:round;transition:stroke-dashoffset 1s ease}
+.score-val{font-family:var(--font-display);font-size:2rem;font-weight:700}
+.score-label{font-size:0.8rem;color:var(--text-muted);text-transform:uppercase}
+.comparison-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:0.85rem}
+.comparison-table th{text-align:left;padding:10px 12px;border-bottom:2px solid var(--border);color:var(--accent);font-size:0.78rem;text-transform:uppercase;font-weight:600}
+.comparison-table td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text-muted)}
+.comparison-table .savings{color:#34D399;font-weight:600}
+.comparison-table .current{color:#F87171}
+.size-bar{height:8px;border-radius:4px;background:var(--border);position:relative;overflow:hidden}
+.size-bar .fill{height:100%;border-radius:4px;transition:width 0.5s ease}
+.size-bar .fill.good{background:#34D399}
+.size-bar .fill.ok{background:#FBBF24}
+.size-bar .fill.bad{background:#F87171}
+.bp-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;text-align:center;margin:16px 0}
+.bp-summary .val{font-family:var(--font-display);font-size:1.4rem;font-weight:700}
+.bp-summary .lbl{font-size:0.78rem;color:var(--text-muted);text-transform:uppercase}
+.status-ok{color:#34D399}
+.status-warn{color:#FBBF24}
+.status-bad{color:#F87171}
+.explainer-section{max-width:760px;margin:40px auto 0;padding:0 0 20px}
+.explainer-section h2{font-size:1.3rem;margin:32px 0 12px;color:var(--accent)}
+.explainer-section h3{font-size:1.1rem;margin:24px 0 8px}
+.explainer-section p{color:var(--text-muted);margin-bottom:16px;line-height:1.7}
+.explainer-section ul,.explainer-section ol{color:var(--text-muted);margin:0 0 16px 24px}
+.explainer-section li{margin-bottom:6px}
+.explainer-section code{font-family:var(--font-display);background:var(--bg-card);padding:2px 6px;border-radius:3px;font-size:0.9em}
+.related-tools{margin:40px 0 0}
+.related-tools h3{font-family:var(--font-display);text-align:center;margin-bottom:16px;font-size:1rem}
+.related-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.related-grid a{display:block;padding:14px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);text-decoration:none;font-size:0.9rem;transition:border-color 0.2s}
+.related-grid a:hover{border-color:var(--accent);text-decoration:none}
+.related-grid a small{display:block;color:var(--text-muted);font-size:0.78rem;margin-top:4px}
+.author-bio{margin:32px 0;padding:20px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius)}
+.author-bio p{color:var(--text-muted);font-size:0.9rem;line-height:1.6;margin:0}
+.author-bio p strong{color:var(--text)}
+.last-updated{text-align:center;color:var(--text-muted);font-size:0.8rem;margin:24px 0 0}
+@media(max-width:768px){.input-row{flex-direction:column}.bp-summary{grid-template-columns:repeat(2,1fr)}.comparison-table{font-size:0.78rem}}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <a href="/" class="logo">krzen</a>
+    <nav>
+      <a href="/">Tool</a>
+      <a href="/research/">Research</a>
+      <a href="/guides/">Guides</a>
+      <a href="/tools/">Tools</a>
+      <a href="/blog/">Blog</a>
+      <a href="/about.html">About</a>
+      <div class="nav-right">
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&amp;utm_medium=satellite&amp;utm_campaign=nav-link" class="nav-pro" target="_blank">Go Pro &#10022;</a>
+        <a href="https://zovo.one/tools" class="nav-zovo">Zovo Tools</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <nav class="breadcrumb" aria-label="Breadcrumb" style="font-size:0.82rem;margin:20px 0 0;"><a href="/">Home</a> <span style="color:var(--text-muted);margin:0 4px;">/</span> <a href="/answers/">Answers</a> <span style="color:var(--text-muted);margin:0 4px;">/</span> <span style="color:var(--text-muted);">Image Optimization Checklist</span></nav>
+
+  <section class="hero">
+    <h1>Image Optimization <span>Checklist</span></h1>
+    <p>Interactive image audit tool with before/after size comparison, format recommendations, and compression scoring. Drop an image to get a full optimization report. Everything runs in your browser.</p>
+  </section>
+
+  <div class="tool-section">
+    <h3>Upload Image</h3>
+    <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+      <div class="drop-icon">&#128444;</div>
+      <p><strong>Drop an image here</strong> or click to browse</p>
+      <p style="font-size:0.78rem;">Supports JPEG, PNG, WebP, GIF, SVG, AVIF — Max 20MB</p>
+    </div>
+    <input type="file" id="file-input" accept="image/*" style="display:none">
+  </div>
+
+  <div id="results-section" style="display:none">
+    <div class="tool-section">
+      <h3>Image Summary</h3>
+      <div class="bp-summary">
+        <div><div class="val" id="img-format">--</div><div class="lbl">Format</div></div>
+        <div><div class="val" id="img-size">--</div><div class="lbl">File Size</div></div>
+        <div><div class="val" id="img-dims">--</div><div class="lbl">Dimensions</div></div>
+        <div><div class="val" id="img-score">--</div><div class="lbl">Score</div></div>
+      </div>
+    </div>
+
+    <div class="tool-section">
+      <h3>Optimization Score</h3>
+      <div class="score-display">
+        <div class="score-ring">
+          <svg viewBox="0 0 120 120" width="120" height="120">
+            <circle class="bg" cx="60" cy="60" r="52"></circle>
+            <circle class="fg" id="score-circle" cx="60" cy="60" r="52" stroke-dasharray="326.73" stroke-dashoffset="326.73"></circle>
+          </svg>
+        </div>
+        <div class="score-val" id="score-val">0</div>
+        <div class="score-label" id="score-text">Analyzing...</div>
+      </div>
+    </div>
+
+    <div class="tool-section">
+      <h3>Format Comparison (Estimated)</h3>
+      <table class="comparison-table">
+        <thead><tr><th>Format</th><th>Est. Size</th><th>Savings</th><th>Browser Support</th></tr></thead>
+        <tbody id="format-table"></tbody>
+      </table>
+    </div>
+
+    <div class="tool-section">
+      <h3>Optimization Checklist</h3>
+      <div class="checklist-grid" id="checklist-grid"></div>
+    </div>
+
+    <div class="tool-section">
+      <h3>Recommendations</h3>
+      <div id="recommendations" style="color:var(--text-muted);line-height:1.7;font-size:0.9rem"></div>
+    </div>
+  </div>
+
+  <section class="explainer-section">
+    <h2>Why Image Optimization Matters</h2>
+    <p>Images account for an average of 42% of a web page's total weight in 2026. Unoptimized images are the single largest contributor to slow page loads, poor Core Web Vitals scores, and degraded user experience. Google's Largest Contentful Paint (LCP) metric, which directly affects search rankings, is most frequently bottlenecked by oversized hero images. A 500KB JPEG that could be a 120KB WebP adds nearly 400KB of unnecessary transfer, costing mobile users 1-2 additional seconds of load time on 4G connections.</p>
+    <p>The performance impact compounds across pages. An e-commerce site with 50 product images per category page can easily accumulate 10MB+ of image weight without optimization. This not only slows initial page load but also increases bandwidth costs, drains mobile device batteries faster, and penalizes users on metered data plans. Modern image formats like AVIF and WebP, combined with responsive image delivery via srcset, can reduce total image weight by 60-80% without any perceptible quality loss.</p>
+
+    <h2>Understanding Image Formats</h2>
+    <h3>JPEG: The Legacy Standard</h3>
+    <p>JPEG remains the most widely used image format on the web, but it is increasingly outperformed by modern alternatives. JPEG uses lossy DCT-based compression optimized for photographs. Quality settings between 80-85% offer the best balance — below 75%, compression artifacts become visible in gradients and fine details. JPEG does not support transparency or animation. Its primary advantage is universal compatibility: every browser, device, and application can display JPEG files without any issues.</p>
+
+    <h3>WebP: The Modern Default</h3>
+    <p>WebP, developed by Google, provides 25-35% smaller file sizes than JPEG at equivalent visual quality. It supports both lossy and lossless compression, transparency (alpha channel), and animation. Browser support has reached 97%+ globally, making WebP a safe default for most applications. WebP lossy compression at quality 75-80% produces files roughly equivalent to JPEG at quality 85%, saving significant bandwidth. The format's only limitation is that some older image editing tools do not support it natively.</p>
+
+    <h3>AVIF: The Next Generation</h3>
+    <p>AVIF (AV1 Image Format) delivers 50% smaller files than JPEG and 20% smaller than WebP at the same visual quality. It is based on the AV1 video codec and supports HDR, wide color gamut, transparency, and animation. Browser support reached 92% globally by early 2026. AVIF encoding is significantly slower than WebP or JPEG, making it less suitable for real-time conversion but ideal for static assets that can be pre-processed during build time. Use AVIF as the primary source in a picture element with WebP and JPEG fallbacks.</p>
+
+    <h2>The Optimization Checklist Explained</h2>
+    <p>This tool evaluates your images against ten key optimization criteria. Each check contributes to the overall optimization score. Here is what each check evaluates and why it matters.</p>
+    <p><strong>File Size Check:</strong> Compares your image's file size against recommended budgets based on its likely use case. Hero images should be under 200KB, content images under 100KB, and thumbnails under 30KB. Files exceeding these thresholds are flagged for compression or format conversion.</p>
+    <p><strong>Format Check:</strong> Evaluates whether you are using the most efficient format. A PNG photograph is flagged because WebP or AVIF would be dramatically smaller. An SVG raster-traced from a photo is flagged because it produces unnecessarily large files. The ideal format depends on the image content: SVG for icons and illustrations, AVIF/WebP for photographs, PNG only for lossless requirements with transparency.</p>
+    <p><strong>Dimension Check:</strong> Verifies that the image's pixel dimensions are appropriate for web use. An image wider than 2000px is rarely needed on the web — even on 4K displays, most content areas are 800-1200 CSS pixels wide, requiring at most 2400 physical pixels at 2x DPR. Oversized dimensions waste both bandwidth and device memory, as the browser must decode and store the full-resolution image.</p>
+    <p><strong>Compression Quality:</strong> Estimates the compression level and flags images that appear to be saved at unnecessarily high quality. A JPEG saved at quality 100 is often 3-4x larger than quality 85 with no visible difference on screen. This check identifies opportunities for meaningful size reduction through re-compression alone.</p>
+
+    <h2>Responsive Image Best Practices</h2>
+    <p>Serving a single image to all devices wastes bandwidth on mobile and may appear blurry on high-DPR screens. The HTML <code>&lt;picture&gt;</code> element and <code>srcset</code> attribute solve this by letting the browser select the most appropriate image source based on viewport width and device pixel ratio.</p>
+    <p>A complete responsive image setup looks like this: define multiple sizes of each image (e.g., 400w, 800w, 1200w, 1600w), provide them in multiple formats (AVIF, WebP, JPEG), and use the <code>sizes</code> attribute to tell the browser the image's display width at each breakpoint. The browser then selects the optimal combination of format and resolution, downloading only one file. This approach can reduce image payload by 50-70% compared to serving a single large image to all devices.</p>
+    <p>For the Largest Contentful Paint image, always add <code>fetchpriority="high"</code> and avoid lazy loading. For all images below the fold, use native lazy loading with <code>loading="lazy"</code>. Always include explicit <code>width</code> and <code>height</code> attributes to prevent Cumulative Layout Shift (CLS). These three attributes — fetchpriority, loading, and dimensions — are the most impactful single-line changes you can make for image performance.</p>
+
+    <h2>Build-Time vs Runtime Optimization</h2>
+    <p>There are two approaches to image optimization: build-time processing and runtime (CDN-based) transformation. Build-time optimization uses tools like Sharp, squoosh, or imagemin during your build pipeline to pre-generate optimized images in multiple formats and sizes. This approach produces the smallest possible files because you can spend more time on compression and manually verify quality. The downside is that adding new images requires a rebuild.</p>
+    <p>Runtime optimization uses an image CDN (Cloudflare Images, Imgix, Cloudinary, Vercel Image Optimization) to transform images on-the-fly based on request parameters. You upload a single high-resolution source, and the CDN generates the appropriate format, size, and quality for each request. This approach is more flexible and requires no build changes, but adds a per-request processing cost and may produce slightly larger files than carefully tuned build-time optimization. For most teams, a hybrid approach works best: optimize critical above-the-fold images at build time and use a CDN for the rest.</p>
+  </section>
+
+  <section class="faq-section" style="max-width:760px;margin:40px auto 0;">
+    <h2>Frequently Asked Questions</h2>
+    <details>
+      <summary>What is the best image format for the web in 2026?</summary>
+      <p>AVIF is the best image format for the web in 2026, offering 50% smaller file sizes than JPEG at equivalent quality. WebP remains an excellent fallback with 25-35% savings over JPEG and near-universal browser support (97%+). Use AVIF as primary with WebP fallback via the HTML picture element.</p>
+    </details>
+    <details>
+      <summary>How much should I compress images for web performance?</summary>
+      <p>Target 80-85% quality for JPEG, 75-80% for WebP, and 65-75% for AVIF. These ranges provide the best balance between visual quality and file size. Most users cannot perceive quality differences above these thresholds on typical displays.</p>
+    </details>
+    <details>
+      <summary>What is the ideal image file size for web pages?</summary>
+      <p>Hero images should be under 200KB, content images under 100KB, and thumbnails under 30KB. The total image weight per page should ideally stay under 1MB for good Core Web Vitals scores.</p>
+    </details>
+    <details>
+      <summary>Should I use lazy loading for all images?</summary>
+      <p>No. Never lazy-load images visible in the initial viewport, especially your LCP image. Use loading='lazy' only for images below the fold. For your LCP image, add fetchpriority='high' and use loading='eager'.</p>
+    </details>
+    <details>
+      <summary>How do responsive images with srcset work?</summary>
+      <p>The srcset attribute provides the browser with multiple image sources at different widths, letting it choose the best one for the current viewport and device pixel ratio. Combine it with the sizes attribute to indicate how wide the image will be displayed at each breakpoint.</p>
+    </details>
+  </section>
+
+  <section class="related-tools" style="max-width:760px;margin:40px auto;">
+    <h3>Related Tools &amp; Guides</h3>
+    <div class="related-grid">
+      <a href="/tools/page-speed-analyzer.html">Page Speed Analyzer<small>Performance budget calculator with waterfall</small></a>
+      <a href="/tools/responsive-breakpoint-tester.html">Responsive Breakpoint Tester<small>Preview any URL at every screen width</small></a>
+      <a href="/guides/lazy-loading-images-guide.html">Lazy Loading Guide<small>Implement lazy loading for images</small></a>
+    </div>
+  </section>
+
+  <div class="author-bio" style="max-width:760px;margin:32px auto;">
+    <p><strong>Written by Michael Lip</strong> — solo dev building free developer tools at <a href="https://zovo.one">zovo.one</a>. No tracking, no accounts, no data collection. If you find this tool useful, check out the full <a href="https://zovo.one/tools">Zovo Tools</a> suite.</p>
+  </div>
+
+  <div class="last-updated" style="max-width:760px;margin:16px auto;"><time datetime="2026-05-25">Last updated: May 25, 2026</time></div>
+</main>
+
+<footer class="site-footer">
+    <div class="footer-inner">
+        <div class="footer-brand">Zovo Tools</div>
+        <div class="footer-tagline">Free developer tools by a solo dev. No tracking.</div>
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&utm_medium=satellite&utm_campaign=footer-link" class="footer-cta">Zovo Lifetime &mdash; $99 once, free forever &rarr;</a>
+        <div class="footer-copy">&copy; 2026 <a href="https://zovo.one">Zovo</a> &middot; 47/500 founding spots</div>
+    </div>
+</footer>
+
+<nav class="zovo-network" aria-label="Zovo Tools Network">
+    <div class="zovo-network-inner">
+        <h3 class="zovo-network-title">Explore More Tools</h3>
+        <div class="zovo-network-links">
+            <a href="https://abwex.com">ABWex &mdash; A/B Testing</a>
+            <a href="https://claudflow.com">ClaudFlow &mdash; Workflows</a>
+            <a href="https://claudhq.com">ClaudHQ &mdash; AI Code Tools &amp; Fixes</a>
+            <a href="https://claudkit.com">ClaudKit &mdash; API</a>
+            <a href="https://enhio.com">Enhio &mdash; Text Tools</a>
+            <a href="https://epochpilot.com">EpochPilot &mdash; Timestamps</a>
+            <a href="https://gen8x.com">Gen8X &mdash; Color Tools</a>
+            <a href="https://gpt0x.com">GPT0X &mdash; AI Models</a>
+            <a href="https://heytensor.com">HeyTensor &mdash; ML Tools</a>
+            <a href="https://invokebot.com">InvokeBot &mdash; Webhooks</a>
+            <a href="https://kappafy.com">Kappafy &mdash; JSON</a>
+            <a href="https://kappakit.com">KappaKit &mdash; Dev Toolkit</a>
+            <a href="https://kickllm.com">KickLLM &mdash; LLM Costs</a>
+            <a href="https://lochbot.com">LochBot &mdash; Security</a>
+            <a href="https://lockml.com">LockML &mdash; ML Compare</a>
+            <a href="https://ml3x.com">ML3X &mdash; Matrix Math</a>
+        </div>
+    </div>
+</nav>
+
+<script>
+const IOC={
+  file:null,
+  checks:[
+    {id:'format',title:'Optimal Format',desc:'Using the most efficient format for this image type'},
+    {id:'filesize',title:'File Size Budget',desc:'Within recommended size limits for web delivery'},
+    {id:'dimensions',title:'Appropriate Dimensions',desc:'Pixel dimensions suitable for web display'},
+    {id:'compression',title:'Compression Level',desc:'Compressed to appropriate quality level'},
+    {id:'aspect',title:'Standard Aspect Ratio',desc:'Uses a common aspect ratio for consistent layouts'},
+    {id:'transparency',title:'Transparency Usage',desc:'Alpha channel present only when needed'},
+    {id:'metadata',title:'Metadata Stripped',desc:'EXIF and other metadata removed to save bytes'},
+    {id:'progressive',title:'Progressive Loading',desc:'JPEG uses progressive scan for better perceived load'},
+    {id:'color',title:'Color Space',desc:'Using sRGB color space for web compatibility'},
+    {id:'retina',title:'Retina Ready',desc:'Dimensions suitable for 2x display rendering'}
+  ],
+
+  init(){
+    const dz=document.getElementById('drop-zone');
+    const fi=document.getElementById('file-input');
+    dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('dragover');});
+    dz.addEventListener('dragleave',()=>dz.classList.remove('dragover'));
+    dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('dragover');if(e.dataTransfer.files.length)this.analyze(e.dataTransfer.files[0]);});
+    fi.addEventListener('change',e=>{if(e.target.files.length)this.analyze(e.target.files[0]);});
+  },
+
+  analyze(file){
+    this.file=file;
+    const ext=file.name.split('.').pop().toLowerCase();
+    const sizeMB=file.size/(1024*1024);
+    const sizeKB=file.size/1024;
+    const format=this.detectFormat(ext,file.type);
+    const img=new Image();
+    const url=URL.createObjectURL(file);
+    img.onload=()=>{
+      const w=img.naturalWidth,h=img.naturalHeight;
+      URL.revokeObjectURL(url);
+      document.getElementById('results-section').style.display='block';
+      document.getElementById('img-format').textContent=format.toUpperCase();
+      document.getElementById('img-size').textContent=sizeKB<1024?Math.round(sizeKB)+'KB':(sizeMB).toFixed(1)+'MB';
+      document.getElementById('img-dims').textContent=w+'x'+h;
+      this.runChecks(file,format,sizeKB,w,h);
+      this.buildFormatTable(format,sizeKB);
+      document.getElementById('results-section').scrollIntoView({behavior:'smooth'});
+    };
+    img.onerror=()=>{
+      URL.revokeObjectURL(url);
+      document.getElementById('results-section').style.display='block';
+      document.getElementById('img-format').textContent=format.toUpperCase();
+      document.getElementById('img-size').textContent=sizeKB<1024?Math.round(sizeKB)+'KB':(sizeMB).toFixed(1)+'MB';
+      document.getElementById('img-dims').textContent='N/A';
+      this.runChecks(file,format,sizeKB,0,0);
+      this.buildFormatTable(format,sizeKB);
+    };
+    img.src=url;
+  },
+
+  detectFormat(ext,mime){
+    const map={jpg:'jpeg',jpeg:'jpeg',png:'png',webp:'webp',gif:'gif',svg:'svg',avif:'avif',bmp:'bmp',ico:'ico',tiff:'tiff',tif:'tiff'};
+    return map[ext]||ext;
+  },
+
+  runChecks(file,format,sizeKB,w,h){
+    const results=[];
+    let score=0;
+    const isPhoto=(['jpeg','webp','avif'].includes(format));
+    const isVector=(format==='svg');
+
+    // 1. Format check
+    if(format==='avif'){results.push({id:'format',status:'passed',note:'AVIF — best compression available'});score+=10;}
+    else if(format==='webp'){results.push({id:'format',status:'passed',note:'WebP — good modern format'});score+=8;}
+    else if(format==='svg'){results.push({id:'format',status:'passed',note:'SVG — ideal for vector graphics'});score+=10;}
+    else if(format==='jpeg'){results.push({id:'format',status:'warning',note:'JPEG — consider converting to WebP/AVIF for 25-50% savings'});score+=5;}
+    else if(format==='png'){results.push({id:'format',status:sizeKB>100?'failed':'warning',note:'PNG — convert to WebP/AVIF unless lossless transparency is required'});score+=3;}
+    else if(format==='gif'){results.push({id:'format',status:'failed',note:'GIF — use WebP/AVIF for animated, SVG/PNG for static'});score+=1;}
+    else{results.push({id:'format',status:'warning',note:format.toUpperCase()+' — uncommon web format'});score+=2;}
+
+    // 2. File size check
+    if(sizeKB<=50){results.push({id:'filesize',status:'passed',note:Math.round(sizeKB)+'KB — excellent, well under budget'});score+=10;}
+    else if(sizeKB<=100){results.push({id:'filesize',status:'passed',note:Math.round(sizeKB)+'KB — within content image budget'});score+=8;}
+    else if(sizeKB<=200){results.push({id:'filesize',status:'warning',note:Math.round(sizeKB)+'KB — acceptable for hero, large for content images'});score+=5;}
+    else if(sizeKB<=500){results.push({id:'filesize',status:'warning',note:Math.round(sizeKB)+'KB — over budget, compress or resize'});score+=3;}
+    else{results.push({id:'filesize',status:'failed',note:Math.round(sizeKB)+'KB — significantly oversized for web use'});score+=0;}
+
+    // 3. Dimensions check
+    if(isVector){results.push({id:'dimensions',status:'passed',note:'SVG scales to any size'});score+=10;}
+    else if(w<=1920&&h<=1920){results.push({id:'dimensions',status:'passed',note:w+'x'+h+' — appropriate for web'});score+=10;}
+    else if(w<=2560&&h<=2560){results.push({id:'dimensions',status:'warning',note:w+'x'+h+' — consider resizing to max 1920px for web'});score+=6;}
+    else{results.push({id:'dimensions',status:'failed',note:w+'x'+h+' — too large, resize to 1920px max width'});score+=2;}
+
+    // 4. Compression estimate
+    if(isVector){results.push({id:'compression',status:'passed',note:'Vector format — no lossy compression needed'});score+=10;}
+    else{
+      const bytesPerPixel=file.size/(w*h||1);
+      if(bytesPerPixel<0.5){results.push({id:'compression',status:'passed',note:'Well compressed ('+(bytesPerPixel).toFixed(2)+' bytes/pixel)'});score+=10;}
+      else if(bytesPerPixel<1.0){results.push({id:'compression',status:'warning',note:'Moderate compression ('+(bytesPerPixel).toFixed(2)+' bytes/pixel) — can be tighter'});score+=6;}
+      else if(bytesPerPixel<2.0){results.push({id:'compression',status:'warning',note:'Light compression ('+(bytesPerPixel).toFixed(2)+' bytes/pixel) — re-save at 80-85% quality'});score+=3;}
+      else{results.push({id:'compression',status:'failed',note:'Minimal compression ('+(bytesPerPixel).toFixed(2)+' bytes/pixel) — re-save at 80% quality'});score+=0;}
+    }
+
+    // 5. Aspect ratio
+    if(w===0||h===0){results.push({id:'aspect',status:'warning',note:'Cannot determine aspect ratio'});score+=5;}
+    else{
+      const r=w/h;
+      const common=[[16,9],[4,3],[3,2],[1,1],[21,9],[2,1]];
+      let match=false;
+      for(const[a,b]of common){if(Math.abs(r-a/b)<0.05){match=true;break;}}
+      if(match){results.push({id:'aspect',status:'passed',note:'Standard aspect ratio detected'});score+=10;}
+      else{results.push({id:'aspect',status:'warning',note:'Non-standard aspect ratio ('+r.toFixed(2)+':1)'});score+=7;}
+    }
+
+    // 6. Transparency
+    if(['png','webp','avif','gif'].includes(format)){
+      if(format==='png'&&sizeKB>200){results.push({id:'transparency',status:'warning',note:'Large PNG — if no transparency needed, convert to JPEG/WebP'});score+=4;}
+      else{results.push({id:'transparency',status:'passed',note:'Format supports transparency if needed'});score+=10;}
+    }else if(format==='jpeg'){results.push({id:'transparency',status:'passed',note:'No transparency — JPEG is appropriate'});score+=10;}
+    else{results.push({id:'transparency',status:'passed',note:'Format appropriate for content type'});score+=8;}
+
+    // 7. Metadata estimate
+    if(format==='jpeg'&&sizeKB>100){
+      const overhead=Math.max(0,sizeKB-w*h*0.3/1024);
+      if(overhead>50){results.push({id:'metadata',status:'warning',note:'May contain EXIF metadata — strip to save ~20-100KB'});score+=5;}
+      else{results.push({id:'metadata',status:'passed',note:'Metadata appears minimal'});score+=9;}
+    }else{results.push({id:'metadata',status:'passed',note:'Metadata check passed'});score+=10;}
+
+    // 8. Progressive
+    if(format==='jpeg'&&sizeKB>10){results.push({id:'progressive',status:'warning',note:'Ensure JPEG uses progressive scan for better perceived loading'});score+=6;}
+    else{results.push({id:'progressive',status:'passed',note:'Progressive loading check passed'});score+=10;}
+
+    // 9. Color space
+    results.push({id:'color',status:'passed',note:'sRGB assumed for web delivery'});score+=9;
+
+    // 10. Retina
+    if(isVector){results.push({id:'retina',status:'passed',note:'SVG renders crisply at any DPR'});score+=10;}
+    else if(w>=800){results.push({id:'retina',status:'passed',note:'Sufficient resolution for 2x rendering at '+(Math.round(w/2))+'px display width'});score+=10;}
+    else if(w>=400){results.push({id:'retina',status:'warning',note:'May appear blurry on retina at display widths above '+Math.round(w/2)+'px'});score+=6;}
+    else{results.push({id:'retina',status:'failed',note:'Too small for retina — will appear blurry above '+Math.round(w/2)+'px display width'});score+=2;}
+
+    this.renderChecklist(results);
+    this.renderScore(score);
+    this.renderRecommendations(results,format,sizeKB,w,h);
+  },
+
+  renderChecklist(results){
+    const grid=document.getElementById('checklist-grid');
+    grid.innerHTML='';
+    results.forEach(r=>{
+      const check=this.checks.find(c=>c.id===r.id);
+      const icon=r.status==='passed'?'&#10003;':r.status==='failed'?'&#10007;':'!';
+      grid.innerHTML+=`<div class="check-item ${r.status}"><div class="check-icon">${icon}</div><div class="check-details"><div class="check-title">${check.title}</div><div class="check-desc">${r.note}</div></div></div>`;
+    });
+  },
+
+  renderScore(score){
+    const pct=Math.round(score);
+    const circle=document.getElementById('score-circle');
+    const circumference=2*Math.PI*52;
+    const offset=circumference-(pct/100)*circumference;
+    circle.style.strokeDashoffset=offset;
+    document.getElementById('score-val').textContent=pct;
+    document.getElementById('img-score').textContent=pct+'/100';
+    document.getElementById('img-score').className='val '+(pct>=80?'status-ok':pct>=50?'status-warn':'status-bad');
+    const label=pct>=90?'Excellent':pct>=75?'Good':pct>=50?'Needs Work':'Poor';
+    document.getElementById('score-text').textContent=label;
+  },
+
+  buildFormatTable(currentFormat,currentKB){
+    const ratios={jpeg:1.0,png:1.3,webp:0.72,avif:0.52,gif:1.1};
+    const support={jpeg:'100%',png:'100%',webp:'97%',avif:'92%',gif:'100%'};
+    const baseKB=(currentFormat==='jpeg')?currentKB:currentKB/(ratios[currentFormat]||1);
+    const formats=['jpeg','webp','avif','png'];
+    const tbody=document.getElementById('format-table');
+    tbody.innerHTML='';
+    formats.forEach(f=>{
+      const estKB=Math.round(baseKB*(ratios[f]||1));
+      const savings=Math.round((1-estKB/currentKB)*100);
+      const isCurrent=f===currentFormat;
+      tbody.innerHTML+=`<tr><td>${f.toUpperCase()}${isCurrent?' (current)':''}</td><td>${estKB}KB</td><td class="${savings>0?'savings':savings<0?'current':''}">${savings>0?'-'+savings+'%':savings===0?'—':'+'+Math.abs(savings)+'%'}</td><td>${support[f]||'—'}</td></tr>`;
+    });
+  },
+
+  renderRecommendations(results,format,sizeKB,w,h){
+    const recs=[];
+    const failed=results.filter(r=>r.status==='failed');
+    const warnings=results.filter(r=>r.status==='warning');
+
+    if(format==='jpeg'||format==='png'||format==='gif'){
+      recs.push('<strong>Convert to WebP/AVIF:</strong> Save 25-50% file size by converting to a modern format. Use the &lt;picture&gt; element for browser fallback.');
+    }
+    if(sizeKB>200){
+      recs.push('<strong>Reduce file size:</strong> This image is '+Math.round(sizeKB)+'KB. Target under 200KB for hero images and under 100KB for content images. Re-compress at quality 80-85%.');
+    }
+    if(w>1920){
+      recs.push('<strong>Resize dimensions:</strong> At '+w+'px wide, this image is larger than most displays need. Resize to 1920px max width and use srcset for responsive delivery.');
+    }
+    if(recs.length===0){
+      recs.push('<strong>Well optimized!</strong> This image passes all major checks. Consider adding it to a responsive srcset for even better performance across devices.');
+    }
+    recs.push('<strong>Always test visually:</strong> After any optimization, compare the before and after images side-by-side to ensure acceptable quality for your use case.');
+    document.getElementById('recommendations').innerHTML='<ul>'+recs.map(r=>'<li>'+r+'</li>').join('')+'</ul>';
+  }
+};
+document.addEventListener('DOMContentLoaded',()=>IOC.init());
+</script>
+</body>
+</html>

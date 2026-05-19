@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page Speed Analyzer — Performance Budget Calculator & Waterfall Visualizer | Krzen</title>
+<meta name="description" content="Free performance budget calculator with waterfall visualization. Set page weight targets, analyze resource breakdown by type, get a performance score and optimization recommendations. Client-side only.">
+<meta name="keywords" content="performance budget calculator, page speed analyzer, waterfall visualizer, web performance tool, core web vitals, resource breakdown, page weight budget, load time calculator">
+<link rel="canonical" href="https://krzen.com/tools/page-speed-analyzer.html">
+<link rel="alternate" hreflang="en" href="https://krzen.com/tools/page-speed-analyzer.html">
+<link rel="alternate" hreflang="x-default" href="https://krzen.com/tools/page-speed-analyzer.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Page Speed Analyzer — Performance Budget Calculator & Waterfall Visualizer">
+<meta property="og:description" content="Free performance budget calculator with waterfall visualization. Set page weight targets, analyze resource breakdown, and get optimization recommendations.">
+<meta property="og:url" content="https://krzen.com/tools/page-speed-analyzer.html">
+<meta property="og:site_name" content="Zovo Tools">
+<meta property="og:image" content="https://krzen.com/assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Page Speed Analyzer — Performance Budget Calculator & Waterfall Visualizer">
+<meta name="twitter:description" content="Free performance budget calculator with waterfall visualization. Set page weight targets, analyze resource breakdown, and get optimization recommendations.">
+<meta name="twitter:image" content="https://krzen.com/assets/og-image.png">
+<link rel="stylesheet" href="/assets/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Page Speed Analyzer — Performance Budget Calculator",
+  "url": "https://krzen.com/tools/page-speed-analyzer.html",
+  "description": "Free performance budget calculator with waterfall visualization. Set page weight targets, analyze resource breakdown by type, and get optimization recommendations.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+  "author": {"@type": "Person", "name": "Michael Lip", "url": "https://zovo.one"},
+  "publisher": {"@type": "Organization", "name": "Zovo Tools", "url": "https://zovo.one"},
+  "datePublished": "2026-05-25",
+  "dateModified": "2026-05-25",
+  "featureList": ["Performance budget calculator", "Resource breakdown chart", "Waterfall timeline", "Performance score 0-100", "Preset budgets", "Optimization recommendations", "Client-side processing"],
+  "browserRequirements": "Requires JavaScript"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is a performance budget?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A performance budget is a set of limits on metrics that affect site performance, such as total page weight, number of HTTP requests, and load time targets. It acts as a guardrail during development, ensuring new features or content don't degrade user experience. Common budgets include a 200KB total page weight for blogs, 500KB for e-commerce, and sub-3-second load times on 3G connections."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I calculate the right page weight budget?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Start with your target load time and your users' connection speed. On a 1.6 Mbps 3G connection, a 200KB page loads in about 1 second. For 4G at 10 Mbps, you can afford up to 1.25MB for a 1-second load. Analyze your competitors' page weights using Chrome DevTools, then set your budget 20% lower. The median web page in 2026 is 2.3MB — aim for under 500KB for a meaningful speed advantage."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Which resource types consume the most page weight?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Images account for roughly 50% of total page weight on the median web page, followed by JavaScript at 22%, CSS at 6%, fonts at 5%, and HTML at 2%. Video (when present) dominates everything. Focusing optimization on images (WebP/AVIF conversion, lazy loading, responsive srcset) and JavaScript (code splitting, tree shaking, deferred loading) delivers the highest impact."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is a good performance score?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A score of 90-100 is excellent and indicates a fast, well-optimized page. Scores of 50-89 need improvement — there are opportunities to reduce weight or request count. Below 50 indicates serious performance problems. Google Lighthouse uses a similar 0-100 scale. Our tool calculates the score based on your page weight relative to budget, request count, and estimated load time."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How many HTTP requests should a page make?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "For optimal performance, aim for under 30 requests on initial page load. Fast blogs typically make 10-15 requests. E-commerce product pages average 40-80 requests but should target under 50. Each HTTP request adds overhead — DNS lookup, TCP connection, TLS handshake, and server response time. HTTP/2 multiplexing reduces the per-request cost but doesn't eliminate it. Bundle CSS and JS, use sprites or SVG for icons, and lazy load below-the-fold images."
+      }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://krzen.com/"},
+    {"@type": "ListItem", "position": 2, "name": "Tools", "item": "https://krzen.com/tools/"},
+    {"@type": "ListItem", "position": 3, "name": "Page Speed Analyzer", "item": "https://krzen.com/tools/page-speed-analyzer.html"}
+  ]
+}
+</script>
+<style>
+.tool-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin:20px 0}
+.tool-section h3{font-family:var(--font-display);font-size:0.85rem;text-transform:uppercase;color:var(--accent);margin-bottom:16px;letter-spacing:0.04em}
+.budget-row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.budget-field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:140px}
+.budget-field label{font-size:0.78rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;letter-spacing:0.3px}
+.budget-field input{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:8px 12px;font-family:var(--font-body);font-size:0.9rem}
+.budget-field input:focus{outline:none;border-color:var(--accent)}
+.presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.preset-btn{background:transparent;color:var(--text-muted);border:1px solid var(--border);border-radius:var(--radius);padding:6px 14px;font-size:0.82rem;font-family:var(--font-body);cursor:pointer;transition:all 0.2s}
+.preset-btn:hover,.preset-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(251,146,60,0.06)}
+.resource-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px}
+.resource-item{display:flex;flex-direction:column;gap:4px}
+.resource-item label{font-size:0.75rem;color:var(--text-muted);font-weight:600;text-transform:uppercase}
+.resource-item input{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:6px 10px;font-family:var(--font-body);font-size:0.85rem;width:100%}
+.resource-item input:focus{outline:none;border-color:var(--accent)}
+.analyze-btn{margin-top:8px}
+#score-display{display:none;margin-top:20px}
+.score-ring{width:120px;height:120px;margin:0 auto 16px}
+.score-ring svg{width:100%;height:100%}
+.score-number{font-family:var(--font-display);font-size:2rem;font-weight:700;text-align:center}
+.score-label{text-align:center;font-size:0.85rem;color:var(--text-muted);margin-bottom:20px}
+#chart-area{margin:20px 0}
+#chart-area svg{width:100%;max-height:260px}
+#waterfall-area{margin:20px 0;overflow-x:auto}
+#waterfall-area svg{width:100%;min-height:200px}
+.bar-label{font-size:0.72rem;fill:var(--text-muted)}
+.bar-value{font-size:0.7rem;fill:var(--text);font-family:'Space Mono',monospace}
+.reco-list{list-style:none;padding:0}
+.reco-list li{padding:10px 14px;border-left:3px solid var(--accent);margin-bottom:8px;background:rgba(251,146,60,0.04);border-radius:0 var(--radius) var(--radius) 0;font-size:0.9rem;color:var(--text-muted)}
+.reco-list li strong{color:var(--text)}
+.status-ok{color:#34D399}
+.status-warn{color:#FBBF24}
+.status-over{color:#F87171}
+.budget-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;text-align:center;margin:16px 0}
+.budget-summary .val{font-family:var(--font-display);font-size:1.4rem;font-weight:700}
+.budget-summary .lbl{font-size:0.78rem;color:var(--text-muted);text-transform:uppercase}
+.waterfall-legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:8px}
+.waterfall-legend span{font-size:0.75rem;color:var(--text-muted);display:flex;align-items:center;gap:4px}
+.waterfall-legend span::before{content:'';display:inline-block;width:12px;height:12px;border-radius:2px}
+.wl-html::before{background:#60A5FA}.wl-css::before{background:#A78BFA}.wl-js::before{background:#FBBF24}.wl-img::before{background:#34D399}.wl-font::before{background:#F472B6}.wl-other::before{background:#6B7280}
+.explainer-section{max-width:760px;margin:40px auto 0;padding:0 0 20px}
+.explainer-section h2{font-size:1.3rem;margin:32px 0 12px;color:var(--accent)}
+.explainer-section h3{font-size:1.1rem;margin:24px 0 8px}
+.explainer-section p{color:var(--text-muted);margin-bottom:16px;line-height:1.7}
+.explainer-section ul,.explainer-section ol{color:var(--text-muted);margin:0 0 16px 24px}
+.explainer-section li{margin-bottom:6px}
+.explainer-section code{font-family:var(--font-display);background:var(--bg-card);padding:2px 6px;border-radius:3px;font-size:0.9em}
+.related-tools{margin:40px 0 0}
+.related-tools h3{font-family:var(--font-display);text-align:center;margin-bottom:16px;font-size:1rem}
+.related-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.related-grid a{display:block;padding:14px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);text-decoration:none;font-size:0.9rem;transition:border-color 0.2s}
+.related-grid a:hover{border-color:var(--accent);text-decoration:none}
+.related-grid a small{display:block;color:var(--text-muted);font-size:0.78rem;margin-top:4px}
+.author-bio{margin:32px 0;padding:20px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius)}
+.author-bio p{color:var(--text-muted);font-size:0.9rem;line-height:1.6;margin:0}
+.author-bio p strong{color:var(--text)}
+.last-updated{text-align:center;color:var(--text-muted);font-size:0.8rem;margin:24px 0 0}
+@media(max-width:768px){.budget-row{flex-direction:column}.budget-summary{grid-template-columns:1fr}.resource-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <a href="/" class="logo">krzen</a>
+    <nav>
+      <a href="/">Tool</a>
+      <a href="/research/">Research</a>
+      <a href="/guides/">Guides</a>
+      <a href="/tools/">Tools</a>
+      <a href="/blog/">Blog</a>
+      <a href="/about.html">About</a>
+      <div class="nav-right">
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&amp;utm_medium=satellite&amp;utm_campaign=nav-link" class="nav-pro" target="_blank">Go Pro &#10022;</a>
+        <a href="https://zovo.one/tools" class="nav-zovo">Zovo Tools</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <nav class="breadcrumb" aria-label="Breadcrumb" style="font-size:0.82rem;margin:20px 0 0;"><a href="/">Home</a> <span style="color:var(--text-muted);margin:0 4px;">/</span> <a href="/tools/">Tools</a> <span style="color:var(--text-muted);margin:0 4px;">/</span> <span style="color:var(--text-muted);">Page Speed Analyzer</span></nav>
+
+  <section class="hero">
+    <h1>Page Speed <span>Analyzer</span></h1>
+    <p>Performance budget calculator with waterfall visualization. Set weight targets, analyze resource breakdown, and get a performance score. No data leaves your browser.</p>
+  </section>
+
+  <div class="tool-section">
+    <h3>Performance Budget</h3>
+    <div class="presets">
+      <button class="preset-btn" onclick="PSA.preset('blog')">Fast Blog</button>
+      <button class="preset-btn" onclick="PSA.preset('ecom')">E-commerce</button>
+      <button class="preset-btn" onclick="PSA.preset('spa')">SPA</button>
+    </div>
+    <div class="budget-row">
+      <div class="budget-field">
+        <label>Target Load Time (s)</label>
+        <input type="number" id="budget-time" value="2.0" step="0.1" min="0.1" max="30">
+      </div>
+      <div class="budget-field">
+        <label>Page Weight Budget (KB)</label>
+        <input type="number" id="budget-weight" value="400" step="10" min="10" max="50000">
+      </div>
+      <div class="budget-field">
+        <label>Request Budget</label>
+        <input type="number" id="budget-requests" value="30" step="1" min="1" max="500">
+      </div>
+    </div>
+
+    <h3>Resource Breakdown (KB per type)</h3>
+    <div class="resource-grid">
+      <div class="resource-item"><label>HTML</label><input type="number" id="res-html" value="15" min="0" step="1"></div>
+      <div class="resource-item"><label>CSS</label><input type="number" id="res-css" value="30" min="0" step="1"></div>
+      <div class="resource-item"><label>JavaScript</label><input type="number" id="res-js" value="120" min="0" step="1"></div>
+      <div class="resource-item"><label>Images</label><input type="number" id="res-images" value="150" min="0" step="1"></div>
+      <div class="resource-item"><label>Fonts</label><input type="number" id="res-fonts" value="40" min="0" step="1"></div>
+      <div class="resource-item"><label>Other</label><input type="number" id="res-other" value="10" min="0" step="1"></div>
+    </div>
+    <button class="btn analyze-btn" onclick="PSA.analyze()">Analyze Performance</button>
+  </div>
+
+  <div id="score-display">
+    <div class="tool-section">
+      <h3>Performance Score</h3>
+      <div class="score-ring"><svg viewBox="0 0 120 120" id="score-svg"></svg></div>
+      <div class="score-number" id="score-num">--</div>
+      <div class="score-label" id="score-text">Enter your budget to calculate</div>
+      <div class="budget-summary">
+        <div><div class="val" id="sum-weight">--</div><div class="lbl">Total Weight</div></div>
+        <div><div class="val" id="sum-status">--</div><div class="lbl">Budget Status</div></div>
+        <div><div class="val" id="sum-time">--</div><div class="lbl">Est. Load (3G)</div></div>
+      </div>
+    </div>
+
+    <div class="tool-section">
+      <h3>Resource Breakdown</h3>
+      <div id="chart-area"></div>
+    </div>
+
+    <div class="tool-section">
+      <h3>Waterfall Timeline (Estimated)</h3>
+      <div class="waterfall-legend">
+        <span class="wl-html">HTML</span>
+        <span class="wl-css">CSS</span>
+        <span class="wl-js">JavaScript</span>
+        <span class="wl-img">Images</span>
+        <span class="wl-font">Fonts</span>
+        <span class="wl-other">Other</span>
+      </div>
+      <div id="waterfall-area"></div>
+    </div>
+
+    <div class="tool-section">
+      <h3>Recommendations</h3>
+      <ul class="reco-list" id="reco-list"></ul>
+    </div>
+  </div>
+
+  <section class="explainer-section">
+    <h2>What Is a Performance Budget?</h2>
+    <p>A performance budget is a quantified limit on metrics that directly affect how fast your website loads. It typically includes constraints on total page weight (measured in kilobytes), the number of HTTP requests, and the target time-to-interactive. Think of it as an engineering specification for speed: just as a structural engineer sets load-bearing limits for a building, web developers set performance budgets to prevent pages from becoming bloated and slow over time.</p>
+    <p>Without a performance budget, page weight tends to grow silently. A developer adds an analytics script (40KB). Marketing drops in a chat widget (200KB). A new hero image lands at full resolution (800KB). Individually, each addition seems harmless. Cumulatively, the page balloons from 300KB to 1.5MB, load time doubles, and Core Web Vitals scores crater. Performance budgets make this creep visible and preventable by establishing hard limits <em>before</em> new features ship.</p>
+    <p>The concept was popularized by Tim Kadlec and Tammy Everts around 2013, but it has become far more critical since Google made Core Web Vitals a ranking signal in 2021. Today, a performance budget is not just a speed optimization — it is an SEO requirement. Pages that exceed reasonable weight limits consistently score poorly on Largest Contentful Paint (LCP), First Input Delay (FID), and Cumulative Layout Shift (CLS), all of which affect search rankings.</p>
+
+    <h2>Core Web Vitals and Performance Budgets</h2>
+    <p>Core Web Vitals are three specific metrics that Google uses to evaluate user experience: LCP measures how quickly the largest visible element (usually a hero image or heading) renders; FID measures how quickly the page responds to the first user interaction; CLS measures how much the layout shifts during loading. All three are directly affected by page weight and resource composition.</p>
+    <p>LCP is most sensitive to image weight and server response time. A 500KB hero image on a 3G connection takes approximately 2.5 seconds to download alone, pushing LCP well beyond the 2.5-second "good" threshold. Converting that image to WebP at 80% quality might reduce it to 150KB, bringing download time under 1 second and LCP into the green zone. This is why image optimization is almost always the highest-impact performance budget item.</p>
+    <p>FID (replaced by Interaction to Next Paint, INP, in 2024) is most sensitive to JavaScript weight. Heavy JS bundles block the main thread during parsing and execution. A 400KB JavaScript bundle takes approximately 2 seconds to parse on a mid-range mobile device. If a user taps a button during that time, the response is delayed. Keeping JavaScript under 150KB (compressed) is the single most effective way to improve FID/INP.</p>
+    <p>CLS is affected by fonts, images without dimensions, and dynamically injected content. Font files that load late cause a flash of unstyled text (FOUT) followed by a layout reflow. Images without explicit width and height attributes cause the layout to jump when they load. Both are preventable with proper resource budgeting and loading strategies.</p>
+
+    <h2>Setting the Right Budget by Site Type</h2>
+    <p>The appropriate performance budget varies dramatically by site type. A personal blog or documentation site should target under 200KB total weight, 10-15 requests, and a 1.5-second load time on 3G. This is achievable with static HTML, minimal CSS, system fonts, and optimized images. Many of the fastest sites on the web (Dan Abramov's blog, Hacker News, craigslist) weigh under 100KB.</p>
+    <p>An e-commerce product page faces heavier demands: product images, reviews, price comparison widgets, and tracking scripts. A realistic budget is 500KB total, 30-40 requests, and a 2.5-second load time. The key is aggressive image optimization (responsive srcset, lazy loading below the fold, WebP/AVIF), deferred JavaScript, and critical CSS inlining.</p>
+    <p>Single-page applications (SPAs) built with React, Vue, or Angular start with a heavier baseline because the framework itself weighs 30-100KB compressed. A realistic SPA budget is 800KB total on initial load, but this should include code splitting so that only the current route's code loads initially. Subsequent navigations should transfer under 50KB of incremental data.</p>
+
+    <h2>Resource Optimization Strategies</h2>
+    <h3>Images: The Biggest Win</h3>
+    <p>Images are the largest contributor to page weight on most websites, accounting for roughly 50% of total bytes. The optimization playbook is well-established: serve images in next-gen formats (WebP saves 25-35% over JPEG; AVIF saves 50%), use responsive <code>srcset</code> attributes to serve appropriately sized images for each viewport, lazy load images below the fold using <code>loading="lazy"</code>, and set explicit width and height attributes to prevent CLS. A site that implements all four strategies typically reduces image payload by 60-80%.</p>
+
+    <h3>JavaScript: The Performance Killer</h3>
+    <p>JavaScript is uniquely expensive because it must be downloaded, parsed, compiled, and executed — unlike images which only need downloading and decoding. A 200KB JavaScript bundle costs approximately 3-4x more in total processing time than a 200KB image. Key strategies include code splitting by route, tree shaking unused exports, deferring non-critical scripts with <code>async</code> or <code>defer</code> attributes, and replacing heavy libraries with lighter alternatives (Preact instead of React, date-fns instead of Moment.js).</p>
+
+    <h3>CSS and Fonts</h3>
+    <p>CSS is render-blocking by default, meaning the browser cannot paint anything until all CSS is downloaded and parsed. Inline critical CSS (the styles needed for above-the-fold content) directly in the HTML <code>&lt;head&gt;</code>, then load the remaining stylesheet asynchronously. For fonts, use <code>font-display: swap</code> to show text immediately with a fallback font, preload the most critical font file with <code>&lt;link rel="preload"&gt;</code>, and subset fonts to include only the characters your site actually uses. A full Google Fonts family can be 200KB+; subsetting reduces it to 15-30KB.</p>
+
+    <h3>Compression and CDNs</h3>
+    <p>Enable Brotli compression on your server (or CDN) for all text-based assets. Brotli achieves 15-25% better compression than gzip for HTML, CSS, and JavaScript. A 100KB uncompressed JavaScript file compresses to approximately 25KB with Brotli. Serve assets through a CDN to minimize latency — the physical distance between server and user directly affects Time to First Byte (TTFB). A CDN with edge locations in your users' regions can reduce TTFB from 500ms to under 50ms.</p>
+
+    <h2>Using This Performance Budget Tool</h2>
+    <p>Start by selecting a preset that matches your site type (blog, e-commerce, or SPA), or enter custom budget values. Then input the actual or estimated size of each resource type on your page. Click "Analyze Performance" to see your score, resource breakdown chart, estimated waterfall timeline, and specific recommendations for any over-budget areas. The waterfall visualization shows the estimated load order on a 3G connection, giving you an intuitive sense of which resources are the bottleneck.</p>
+    <p>The performance score (0-100) is calculated based on three factors: how your total page weight compares to your budget, whether your request count is within target, and your estimated load time versus your target. Each factor is weighted equally. A score of 90+ indicates a well-optimized page. Scores below 50 indicate significant room for improvement.</p>
+    <p>All calculations run entirely in your browser. No data is sent to any server. The tool uses standard network throughput estimates: 1.6 Mbps for 3G, 10 Mbps for 4G, and 50 Mbps for broadband. Real-world performance will vary based on server response time, connection quality, caching, and device processing power, but these estimates provide a useful baseline for budget planning.</p>
+
+    <h2>Beyond Budgets: Monitoring and Enforcement</h2>
+    <p>Setting a budget is only useful if you enforce it. Integrate performance budgets into your CI/CD pipeline using tools like Lighthouse CI, bundlesize, or Webpack's performance hints. These tools fail the build if a bundle exceeds its size limit, preventing bloated code from reaching production. For ongoing monitoring, real user monitoring (RUM) tools like web-vitals.js track actual field performance from your users' devices, alerting you to regressions before they affect search rankings.</p>
+    <p>Review budgets quarterly. As browser capabilities improve and network speeds increase, absolute budget numbers can shift. But the principle remains constant: every byte you ship is a byte your user must download, parse, and render. Fewer bytes means faster pages, better user experience, higher conversion rates, and better search rankings. The performance budget is the foundation of that discipline.</p>
+  </section>
+
+  <section class="faq-section" style="max-width:760px;margin:40px auto 0;">
+    <h2>Frequently Asked Questions</h2>
+    <details>
+      <summary>What is a performance budget?</summary>
+      <p>A performance budget is a set of limits on metrics that affect site performance, such as total page weight, number of HTTP requests, and load time targets. It acts as a guardrail during development, ensuring new features or content don't degrade user experience. Common budgets include a 200KB total page weight for blogs, 500KB for e-commerce, and sub-3-second load times on 3G connections.</p>
+    </details>
+    <details>
+      <summary>How do I calculate the right page weight budget?</summary>
+      <p>Start with your target load time and your users' connection speed. On a 1.6 Mbps 3G connection, a 200KB page loads in about 1 second. For 4G at 10 Mbps, you can afford up to 1.25MB for a 1-second load. Analyze your competitors' page weights using Chrome DevTools, then set your budget 20% lower. The median web page in 2026 is 2.3MB — aim for under 500KB for a meaningful speed advantage.</p>
+    </details>
+    <details>
+      <summary>Which resource types consume the most page weight?</summary>
+      <p>Images account for roughly 50% of total page weight on the median web page, followed by JavaScript at 22%, CSS at 6%, fonts at 5%, and HTML at 2%. Video (when present) dominates everything. Focusing optimization on images (WebP/AVIF conversion, lazy loading, responsive srcset) and JavaScript (code splitting, tree shaking, deferred loading) delivers the highest impact.</p>
+    </details>
+    <details>
+      <summary>What is a good performance score?</summary>
+      <p>A score of 90-100 is excellent and indicates a fast, well-optimized page. Scores of 50-89 need improvement — there are opportunities to reduce weight or request count. Below 50 indicates serious performance problems. Google Lighthouse uses a similar 0-100 scale. Our tool calculates the score based on your page weight relative to budget, request count, and estimated load time.</p>
+    </details>
+    <details>
+      <summary>How many HTTP requests should a page make?</summary>
+      <p>For optimal performance, aim for under 30 requests on initial page load. Fast blogs typically make 10-15 requests. E-commerce product pages average 40-80 requests but should target under 50. Each HTTP request adds overhead. HTTP/2 multiplexing reduces the per-request cost but doesn't eliminate it. Bundle CSS and JS, use sprites or SVG for icons, and lazy load below-the-fold images.</p>
+    </details>
+  </section>
+
+  <section class="related-tools" style="max-width:760px;margin:40px auto;">
+    <h3>Related Tools &amp; Guides</h3>
+    <div class="related-grid">
+      <a href="/">Image Compressor<small>Compress JPEG, PNG, WebP in your browser</small></a>
+      <a href="/guides/lazy-loading-images-guide.html">Lazy Loading Guide<small>Implement lazy loading for images</small></a>
+      <a href="/guides/choose-image-cdn-2026.html">Best Image CDN 2026<small>Compare Cloudinary, imgix, Cloudflare</small></a>
+    </div>
+  </section>
+
+  <div class="author-bio" style="max-width:760px;margin:32px auto;">
+    <p><strong>Written by Michael Lip</strong> — solo dev building free developer tools at <a href="https://zovo.one">zovo.one</a>. No tracking, no accounts, no data collection. If you find this tool useful, check out the full <a href="https://zovo.one/tools">Zovo Tools</a> suite.</p>
+  </div>
+
+  <div class="last-updated" style="max-width:760px;margin:16px auto;"><time datetime="2026-05-25">Last updated: May 25, 2026</time></div>
+</main>
+
+<footer class="site-footer">
+    <div class="footer-inner">
+        <div class="footer-brand">Zovo Tools</div>
+        <div class="footer-tagline">Free developer tools by a solo dev. No tracking.</div>
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&utm_medium=satellite&utm_campaign=footer-link" class="footer-cta">Zovo Lifetime &mdash; $99 once, free forever &rarr;</a>
+        <div class="footer-copy">&copy; 2026 <a href="https://zovo.one">Zovo</a> &middot; 47/500 founding spots</div>
+    </div>
+</footer>
+
+<nav class="zovo-network" aria-label="Zovo Tools Network">
+    <div class="zovo-network-inner">
+        <h3 class="zovo-network-title">Explore More Tools</h3>
+        <div class="zovo-network-links">
+            <a href="https://abwex.com">ABWex &mdash; A/B Testing</a>
+            <a href="https://claudflow.com">ClaudFlow &mdash; Workflows</a>
+            <a href="https://claudhq.com">ClaudHQ &mdash; AI Code Tools &amp; Fixes</a>
+            <a href="https://claudkit.com">ClaudKit &mdash; API</a>
+            <a href="https://enhio.com">Enhio &mdash; Text Tools</a>
+            <a href="https://epochpilot.com">EpochPilot &mdash; Timestamps</a>
+            <a href="https://gen8x.com">Gen8X &mdash; Color Tools</a>
+            <a href="https://gpt0x.com">GPT0X &mdash; AI Models</a>
+            <a href="https://heytensor.com">HeyTensor &mdash; ML Tools</a>
+            <a href="https://invokebot.com">InvokeBot &mdash; Webhooks</a>
+            <a href="https://kappafy.com">Kappafy &mdash; JSON</a>
+            <a href="https://kappakit.com">KappaKit &mdash; Dev Toolkit</a>
+            <a href="https://kickllm.com">KickLLM &mdash; LLM Costs</a>
+            <a href="https://lochbot.com">LochBot &mdash; Security</a>
+            <a href="https://lockml.com">LockML &mdash; ML Compare</a>
+            <a href="https://ml3x.com">ML3X &mdash; Matrix Math</a>
+        </div>
+    </div>
+</nav>
+
+<script>
+const PSA={
+  colors:{html:'#60A5FA',css:'#A78BFA',js:'#FBBF24',images:'#34D399',fonts:'#F472B6',other:'#6B7280'},
+  types:['html','css','js','images','fonts','other'],
+  labels:['HTML','CSS','JavaScript','Images','Fonts','Other'],
+
+  preset(type){
+    document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
+    event.target.classList.add('active');
+    const presets={
+      blog:{time:1.5,weight:200,requests:15,html:10,css:15,js:40,images:100,fonts:25,other:5},
+      ecom:{time:2.5,weight:500,requests:40,html:20,css:40,js:150,images:220,fonts:50,other:15},
+      spa:{time:3.0,weight:800,requests:35,html:15,css:50,js:350,images:250,fonts:80,other:20}
+    };
+    const p=presets[type];
+    document.getElementById('budget-time').value=p.time;
+    document.getElementById('budget-weight').value=p.weight;
+    document.getElementById('budget-requests').value=p.requests;
+    this.types.forEach(t=>document.getElementById('res-'+t).value=p[t]);
+  },
+
+  analyze(){
+    const budgetTime=parseFloat(document.getElementById('budget-time').value)||2;
+    const budgetWeight=parseInt(document.getElementById('budget-weight').value)||400;
+    const budgetReqs=parseInt(document.getElementById('budget-requests').value)||30;
+    const sizes={};
+    let total=0;
+    this.types.forEach(t=>{sizes[t]=parseInt(document.getElementById('res-'+t).value)||0;total+=sizes[t];});
+    const reqEstimate=Math.round(sizes.html>0?1:0)+Math.round(sizes.css/15)||0+Math.round(sizes.js/30)||0+Math.round(sizes.images/50)||0+Math.round(sizes.fonts>0?Math.ceil(sizes.fonts/25):0)+Math.round(sizes.other/20)||0;
+    const totalReqs=Math.max(reqEstimate,1);
+    const loadTime3G=total/(1600/8)/1000*1000;
+    const loadTimeSec=(total*8)/(1600)+0.3;
+
+    const weightScore=Math.max(0,100-Math.max(0,(total-budgetWeight)/budgetWeight*100));
+    const timeScore=Math.max(0,100-Math.max(0,(loadTimeSec-budgetTime)/budgetTime*100));
+    const reqScore=Math.max(0,100-Math.max(0,(totalReqs-budgetReqs)/budgetReqs*80));
+    const score=Math.round((weightScore*0.4+timeScore*0.35+reqScore*0.25));
+
+    document.getElementById('score-display').style.display='block';
+    this.drawScore(score);
+    document.getElementById('score-num').textContent=score;
+    document.getElementById('score-num').className='score-number '+(score>=90?'status-ok':score>=50?'status-warn':'status-over');
+    document.getElementById('score-text').textContent=score>=90?'Excellent — well within budget':score>=70?'Good — minor optimizations possible':score>=50?'Needs work — several areas over budget':'Poor — significant optimization required';
+
+    const statusClass=total<=budgetWeight?'status-ok':total<=budgetWeight*1.2?'status-warn':'status-over';
+    document.getElementById('sum-weight').innerHTML='<span class="'+(total<=budgetWeight?'status-ok':'status-over')+'">'+total+' KB</span>';
+    document.getElementById('sum-status').innerHTML='<span class="'+(total<=budgetWeight?'status-ok':'status-over')+'">'+(total<=budgetWeight?'Under Budget':'Over by '+(total-budgetWeight)+' KB')+'</span>';
+    document.getElementById('sum-time').innerHTML='<span class="'+(loadTimeSec<=budgetTime?'status-ok':'status-over')+'">'+loadTimeSec.toFixed(1)+'s</span>';
+
+    this.drawChart(sizes,total,budgetWeight);
+    this.drawWaterfall(sizes);
+    this.generateRecos(sizes,total,budgetWeight,totalReqs,budgetReqs,loadTimeSec,budgetTime);
+    document.getElementById('score-display').scrollIntoView({behavior:'smooth',block:'start'});
+  },
+
+  drawScore(score){
+    const svg=document.getElementById('score-svg');
+    const r=50,cx=60,cy=60,c=2*Math.PI*r;
+    const color=score>=90?'#34D399':score>=50?'#FBBF24':'#F87171';
+    const offset=c-(score/100)*c;
+    svg.innerHTML=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#222" stroke-width="8"/>
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="8" stroke-dasharray="${c}" stroke-dashoffset="${offset}" stroke-linecap="round" transform="rotate(-90 ${cx} ${cy})" style="transition:stroke-dashoffset 0.6s ease"/>`;
+  },
+
+  drawChart(sizes,total,budget){
+    const area=document.getElementById('chart-area');
+    const w=area.clientWidth||600,h=240,pad=60,barH=28,gap=8;
+    const maxVal=Math.max(total,budget,...Object.values(sizes));
+    const scale=(w-pad-120)/maxVal;
+    let svg=`<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">`;
+    this.types.forEach((t,i)=>{
+      const y=20+i*(barH+gap);
+      const bw=Math.max(2,sizes[t]*scale);
+      svg+=`<text x="${pad-8}" y="${y+barH/2+4}" text-anchor="end" class="bar-label">${this.labels[i]}</text>`;
+      svg+=`<rect x="${pad}" y="${y}" width="${bw}" height="${barH}" rx="3" fill="${this.colors[t]}" opacity="0.85"/>`;
+      svg+=`<text x="${pad+bw+8}" y="${y+barH/2+4}" class="bar-value">${sizes[t]} KB</text>`;
+    });
+    const budgetX=pad+budget*scale;
+    svg+=`<line x1="${budgetX}" y1="10" x2="${budgetX}" y2="${h-10}" stroke="#F87171" stroke-width="2" stroke-dasharray="6,4"/>`;
+    svg+=`<text x="${budgetX}" y="${h-2}" text-anchor="middle" fill="#F87171" style="font-size:0.7rem;font-family:'Space Mono',monospace">Budget: ${budget}KB</text>`;
+    svg+=`</svg>`;
+    area.innerHTML=svg;
+  },
+
+  drawWaterfall(sizes){
+    const area=document.getElementById('waterfall-area');
+    const w=area.clientWidth||600,h=220,pad=70;
+    const throughput=1600/8;
+    const order=['html','css','fonts','js','images','other'];
+    const labels=['HTML','CSS','Fonts','JS','Images','Other'];
+    let cumTime=0.3;
+    const entries=[];
+    order.forEach((t,i)=>{
+      if(sizes[t]>0){
+        const dl=sizes[t]/throughput;
+        entries.push({type:t,label:labels[i],start:cumTime,duration:dl,size:sizes[t]});
+        if(t==='html')cumTime+=dl;
+        else if(t==='css'||t==='fonts')cumTime+=dl*0.3;
+      }
+    });
+    const maxTime=Math.max(...entries.map(e=>e.start+e.duration),1);
+    const scale=(w-pad-40)/maxTime;
+    const barH=24,gap=6;
+    let svg=`<svg viewBox="0 0 ${w} ${Math.max(h,entries.length*(barH+gap)+40)}" xmlns="http://www.w3.org/2000/svg">`;
+    for(let t=0;t<=maxTime;t+=0.5){
+      const x=pad+t*scale;
+      svg+=`<line x1="${x}" y1="0" x2="${x}" y2="${entries.length*(barH+gap)+10}" stroke="#222" stroke-width="1"/>`;
+      svg+=`<text x="${x}" y="${entries.length*(barH+gap)+26}" text-anchor="middle" fill="#666" style="font-size:0.65rem;font-family:'Space Mono',monospace">${t.toFixed(1)}s</text>`;
+    }
+    entries.forEach((e,i)=>{
+      const y=6+i*(barH+gap);
+      const x=pad+e.start*scale;
+      const bw=Math.max(4,e.duration*scale);
+      svg+=`<text x="${pad-6}" y="${y+barH/2+4}" text-anchor="end" class="bar-label">${e.label}</text>`;
+      svg+=`<rect x="${x}" y="${y}" width="${bw}" height="${barH}" rx="3" fill="${this.colors[e.type]}" opacity="0.8"/>`;
+      svg+=`<text x="${x+bw+6}" y="${y+barH/2+4}" class="bar-value">${e.size}KB (${e.duration.toFixed(2)}s)</text>`;
+    });
+    svg+=`</svg>`;
+    area.innerHTML=svg;
+  },
+
+  generateRecos(sizes,total,budgetWeight,reqs,budgetReqs,loadTime,budgetTime){
+    const list=document.getElementById('reco-list');
+    const items=[];
+    if(total>budgetWeight)items.push(`<strong>Over budget by ${total-budgetWeight} KB.</strong> Your page weighs ${total} KB against a ${budgetWeight} KB budget. Focus on the largest resource types first.`);
+    if(sizes.images>budgetWeight*0.4)items.push(`<strong>Images are ${Math.round(sizes.images/total*100)}% of total weight.</strong> Convert to WebP/AVIF (saves 30-50%), add lazy loading for below-fold images, and use responsive srcset to serve the right size per viewport.`);
+    if(sizes.js>200)items.push(`<strong>JavaScript at ${sizes.js} KB is heavy.</strong> Consider code splitting by route, tree shaking unused exports, and deferring non-critical scripts. Replace heavy libraries with lighter alternatives (Preact for React, date-fns for Moment.js).`);
+    if(sizes.js>100&&sizes.js<=200)items.push(`<strong>JavaScript (${sizes.js} KB) can be optimized.</strong> Audit your bundle with webpack-bundle-analyzer. Defer third-party scripts. Use dynamic imports for features not needed on initial load.`);
+    if(sizes.css>50)items.push(`<strong>CSS at ${sizes.css} KB.</strong> Inline critical CSS in the HTML head, load the rest asynchronously. Remove unused styles with PurgeCSS. Consider Tailwind's JIT mode for minimal output.`);
+    if(sizes.fonts>60)items.push(`<strong>Fonts at ${sizes.fonts} KB.</strong> Subset fonts to include only needed characters. Use font-display: swap. Preload the primary font file. Consider variable fonts to replace multiple weight files.`);
+    if(sizes.fonts>0&&sizes.fonts<=60)items.push(`<strong>Fonts (${sizes.fonts} KB):</strong> Use font-display: swap and preload your primary font to minimize layout shift.`);
+    if(loadTime>budgetTime)items.push(`<strong>Estimated 3G load time (${loadTime.toFixed(1)}s) exceeds your ${budgetTime}s target.</strong> Enable Brotli compression (saves 15-25% over gzip), use a CDN for edge caching, and implement resource hints (preconnect, preload).`);
+    if(total<=budgetWeight&&loadTime<=budgetTime)items.push(`<strong>Great job!</strong> Your page is within budget on both weight and load time. Continue monitoring as new features are added.`);
+    if(sizes.html>30)items.push(`<strong>HTML at ${sizes.html} KB is large.</strong> Minify HTML, remove unnecessary comments and whitespace, and consider server-side rendering with streaming for faster TTFB.`);
+    if(items.length===0)items.push('<strong>All metrics look good.</strong> Your page is well-optimized. Set up automated budget checks in your CI/CD pipeline to maintain this over time.');
+    list.innerHTML=items.map(i=>'<li>'+i+'</li>').join('');
+  }
+};
+
+document.querySelectorAll('.faq-section details summary').forEach(s=>{
+  s.addEventListener('click',function(e){
+    const d=this.parentElement;
+    const open=d.hasAttribute('open');
+    if(!open){/* browser handles it */}
+  });
+});
+</script>
+</body>
+</html>

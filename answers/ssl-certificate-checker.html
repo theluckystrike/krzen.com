@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSL Certificate Checker — Configuration Grader &amp; Security Audit | Krzen</title>
+<meta name="description" content="Free SSL certificate checker that grades your HTTPS configuration. Check TLS version, cipher suites, certificate chain, HSTS, and security headers. Get actionable recommendations for A+ rating.">
+<meta name="keywords" content="SSL certificate checker, TLS configuration grader, HTTPS security audit, SSL test tool, certificate chain validator, HSTS checker, security headers test, SSL rating tool">
+<link rel="canonical" href="https://krzen.com/answers/ssl-certificate-checker.html">
+<link rel="alternate" hreflang="en" href="https://krzen.com/answers/ssl-certificate-checker.html">
+<link rel="alternate" hreflang="x-default" href="https://krzen.com/answers/ssl-certificate-checker.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="SSL Certificate Checker — Configuration Grader &amp; Security Audit">
+<meta property="og:description" content="Free SSL certificate checker that grades your HTTPS configuration. Check TLS version, cipher suites, HSTS, and security headers.">
+<meta property="og:url" content="https://krzen.com/answers/ssl-certificate-checker.html">
+<meta property="og:site_name" content="Zovo Tools">
+<meta property="og:image" content="https://krzen.com/assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="SSL Certificate Checker — Configuration Grader &amp; Security Audit">
+<meta name="twitter:description" content="Free SSL certificate checker that grades your HTTPS configuration.">
+<meta name="twitter:image" content="https://krzen.com/assets/og-image.png">
+<link rel="stylesheet" href="/assets/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "SSL Certificate Checker — Configuration Grader",
+  "url": "https://krzen.com/answers/ssl-certificate-checker.html",
+  "description": "Free SSL certificate checker that grades your HTTPS configuration. Check TLS version, cipher suites, certificate chain, HSTS, and security headers.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+  "author": {"@type": "Person", "name": "Michael Lip", "url": "https://zovo.one"},
+  "publisher": {"@type": "Organization", "name": "Krzen", "url": "https://krzen.com"},
+  "datePublished": "2026-05-25",
+  "dateModified": "2026-05-25",
+  "featureList": ["SSL/TLS configuration grading", "Security header analysis", "Certificate chain validation", "HSTS configuration check", "Cipher suite evaluation", "Actionable recommendations", "Client-side processing"],
+  "browserRequirements": "Requires JavaScript"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What TLS version should I use in 2026?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Use TLS 1.3 exclusively if possible, or TLS 1.2 as a minimum. TLS 1.3 is faster (1-RTT handshake vs 2-RTT for TLS 1.2), more secure (removed vulnerable cipher suites), and supported by 97%+ of browsers. TLS 1.0 and 1.1 are deprecated and should be disabled — they have known vulnerabilities and are rejected by all major browsers since 2020. TLS 1.2 remains acceptable as a fallback for older clients, but configure it with only modern cipher suites. PCI DSS compliance requires TLS 1.2 minimum."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is an SSL certificate necessary for SEO?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. HTTPS has been a Google ranking signal since 2014, and Chrome marks HTTP sites as 'Not Secure' in the address bar since 2018. While HTTPS alone provides a minor ranking boost, the absence of HTTPS is a significant negative signal that can reduce click-through rates by 20-30% due to security warnings. All modern websites should use HTTPS. Free certificates from Let's Encrypt eliminate any cost barrier. Beyond SEO, HTTPS is required for HTTP/2, service workers, geolocation API, and many other modern web features."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is HSTS and should I enable it?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "HSTS (HTTP Strict Transport Security) is a response header that tells browsers to only connect via HTTPS for a specified period. Once set, the browser automatically upgrades any HTTP request to HTTPS, even if the user types http://. This prevents SSL stripping attacks and eliminates HTTP-to-HTTPS redirect latency on subsequent visits. You should enable HSTS on all HTTPS sites with: Strict-Transport-Security: max-age=31536000; includeSubDomains. Start with a short max-age (300 seconds) for testing, then increase to 1 year (31536000). HSTS preloading submits your domain to browsers' built-in HSTS list for maximum protection."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What security headers should every website have?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Essential security headers: Strict-Transport-Security (HSTS, prevents downgrade attacks), Content-Security-Policy (CSP, prevents XSS), X-Content-Type-Options: nosniff (prevents MIME sniffing), X-Frame-Options: DENY (prevents clickjacking), Referrer-Policy: strict-origin-when-cross-origin (controls referrer information), and Permissions-Policy (restricts browser features). Content-Security-Policy is the most impactful but also the most complex to configure correctly. Start with report-only mode to identify violations before enforcing. X-Content-Type-Options and X-Frame-Options are single-line additions with no configuration complexity."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I get a free SSL certificate?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Let's Encrypt provides free, automated SSL certificates trusted by all browsers. Use Certbot (the official Let's Encrypt client) to obtain and auto-renew certificates: 'sudo certbot --nginx' for Nginx or 'sudo certbot --apache' for Apache. Certificates are valid for 90 days and Certbot handles automatic renewal. Cloudflare provides free SSL through its proxy (no certificate installation needed). AWS Certificate Manager provides free certificates for use with CloudFront and ALB. Most modern hosting platforms (Vercel, Netlify, GitHub Pages) include free SSL automatically."
+      }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://krzen.com/"},
+    {"@type": "ListItem", "position": 2, "name": "Answers", "item": "https://krzen.com/answers/"},
+    {"@type": "ListItem", "position": 3, "name": "SSL Certificate Checker", "item": "https://krzen.com/answers/ssl-certificate-checker.html"}
+  ]
+}
+</script>
+<style>
+.tool-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin:20px 0}
+.tool-section h3{font-family:var(--font-display);font-size:0.85rem;text-transform:uppercase;color:var(--accent);margin-bottom:16px;letter-spacing:0.04em}
+.input-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.input-field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:200px}
+.input-field label{font-size:0.78rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;letter-spacing:0.3px}
+.input-field input,.input-field select{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:8px 12px;font-family:var(--font-body);font-size:0.9rem}
+.input-field input:focus,.input-field select:focus{outline:none;border-color:var(--accent)}
+.grade-display{text-align:center;padding:24px;margin:16px 0}
+.grade-letter{font-family:var(--font-display);font-size:4rem;font-weight:700;line-height:1}
+.grade-a{color:#34D399}.grade-b{color:#FBBF24}.grade-c{color:#FB923C}.grade-f{color:#F87171}
+.grade-label{font-size:0.9rem;color:var(--text-muted);margin-top:8px}
+.check-grid{display:grid;gap:10px;margin:16px 0}
+.ck-row{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius)}
+.ck-row.pass{border-color:#34D399}.ck-row.fail{border-color:#F87171}.ck-row.warn{border-color:#FBBF24}
+.ck-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.ck-row.pass .ck-dot{background:#34D399}.ck-row.fail .ck-dot{background:#F87171}.ck-row.warn .ck-dot{background:#FBBF24}
+.ck-row .ck-title{font-weight:600;font-size:0.88rem;flex:1}
+.ck-row .ck-detail{font-size:0.78rem;color:var(--text-muted);flex:2}
+.header-grid{display:grid;gap:10px;margin:16px 0}
+.hdr-row{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);font-size:0.85rem}
+.hdr-row .hdr-name{font-weight:600;min-width:200px;font-family:'Space Mono',monospace;font-size:0.8rem}
+.hdr-row .hdr-val{flex:1;color:var(--text-muted);font-size:0.8rem}
+.hdr-row.present{border-color:#34D399}.hdr-row.missing{border-color:#F87171}
+.bp-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;text-align:center;margin:16px 0}
+.bp-summary .val{font-family:var(--font-display);font-size:1.4rem;font-weight:700}
+.bp-summary .lbl{font-size:0.78rem;color:var(--text-muted);text-transform:uppercase}
+.status-ok{color:#34D399}.status-warn{color:#FBBF24}.status-bad{color:#F87171}
+.rec-list{margin:16px 0}
+.rec-item{padding:12px 16px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;font-size:0.88rem;line-height:1.5;color:var(--text-muted)}
+.rec-item strong{color:var(--text)}
+.explainer-section{max-width:760px;margin:40px auto 0;padding:0 0 20px}
+.explainer-section h2{font-size:1.3rem;margin:32px 0 12px;color:var(--accent)}
+.explainer-section h3{font-size:1.1rem;margin:24px 0 8px}
+.explainer-section p{color:var(--text-muted);margin-bottom:16px;line-height:1.7}
+.explainer-section ul,.explainer-section ol{color:var(--text-muted);margin:0 0 16px 24px}
+.explainer-section li{margin-bottom:6px}
+.explainer-section code{font-family:var(--font-display);background:var(--bg-card);padding:2px 6px;border-radius:3px;font-size:0.9em}
+.related-tools{margin:40px 0 0}
+.related-tools h3{font-family:var(--font-display);text-align:center;margin-bottom:16px;font-size:1rem}
+.related-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.related-grid a{display:block;padding:14px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);text-decoration:none;font-size:0.9rem;transition:border-color 0.2s}
+.related-grid a:hover{border-color:var(--accent);text-decoration:none}
+.related-grid a small{display:block;color:var(--text-muted);font-size:0.78rem;margin-top:4px}
+.author-bio{margin:32px 0;padding:20px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius)}
+.author-bio p{color:var(--text-muted);font-size:0.9rem;line-height:1.6;margin:0}
+.author-bio p strong{color:var(--text)}
+.last-updated{text-align:center;color:var(--text-muted);font-size:0.8rem;margin:24px 0 0}
+@media(max-width:768px){.input-row{flex-direction:column}.bp-summary{grid-template-columns:repeat(2,1fr)}.hdr-row{flex-direction:column;align-items:flex-start}.hdr-row .hdr-name{min-width:auto}}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <a href="/" class="logo">krzen</a>
+    <nav>
+      <a href="/">Tool</a>
+      <a href="/research/">Research</a>
+      <a href="/guides/">Guides</a>
+      <a href="/tools/">Tools</a>
+      <a href="/blog/">Blog</a>
+      <a href="/about.html">About</a>
+      <div class="nav-right">
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&amp;utm_medium=satellite&amp;utm_campaign=nav-link" class="nav-pro" target="_blank">Go Pro &#10022;</a>
+        <a href="https://zovo.one/tools" class="nav-zovo">Zovo Tools</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <nav class="breadcrumb" aria-label="Breadcrumb" style="font-size:0.82rem;margin:20px 0 0;"><a href="/">Home</a> <span style="color:var(--text-muted);margin:0 4px;">/</span> <a href="/answers/">Answers</a> <span style="color:var(--text-muted);margin:0 4px;">/</span> <span style="color:var(--text-muted);">SSL Certificate Checker</span></nav>
+
+  <section class="hero">
+    <h1>SSL Certificate <span>Checker</span></h1>
+    <p>Grade your SSL/TLS configuration with checks for TLS version, cipher suites, certificate details, HSTS, and security headers. Get actionable recommendations for an A+ security rating.</p>
+  </section>
+
+  <div class="tool-section">
+    <h3>Your SSL Configuration</h3>
+    <div class="input-row">
+      <div class="input-field"><label>TLS Version</label><select id="tls-ver"><option value="1.3">TLS 1.3 only</option><option value="1.2-1.3" selected>TLS 1.2 + 1.3</option><option value="1.2">TLS 1.2 only</option><option value="1.0-1.2">TLS 1.0-1.2 (legacy)</option></select></div>
+      <div class="input-field"><label>Certificate Type</label><select id="cert-type"><option value="le">Let's Encrypt (DV)</option><option value="dv">Other DV Certificate</option><option value="ov">Organization Validated (OV)</option><option value="ev">Extended Validation (EV)</option><option value="self">Self-Signed</option><option value="none">No Certificate</option></select></div>
+    </div>
+    <div class="input-row">
+      <div class="input-field"><label>HSTS Enabled</label><select id="hsts"><option value="full">Yes (with includeSubDomains + preload)</option><option value="basic">Yes (basic, no preload)</option><option value="no" selected>No</option></select></div>
+      <div class="input-field"><label>HTTP to HTTPS Redirect</label><select id="redirect"><option value="301" selected>301 Permanent Redirect</option><option value="302">302 Temporary Redirect</option><option value="no">No redirect (HTTP still accessible)</option></select></div>
+    </div>
+    <div class="input-row">
+      <div class="input-field"><label>Content-Security-Policy</label><select id="csp"><option value="strict">Strict CSP</option><option value="basic">Basic CSP</option><option value="report">Report-Only</option><option value="no" selected>None</option></select></div>
+      <div class="input-field"><label>Other Security Headers</label><select id="sec-headers"><option value="all">All present (X-Content-Type, X-Frame, Referrer-Policy, Permissions-Policy)</option><option value="some" selected>Some present</option><option value="none">None</option></select></div>
+    </div>
+    <button class="btn" onclick="SSL.check()">Grade My SSL Configuration</button>
+  </div>
+
+  <div id="results" style="display:none">
+    <div class="tool-section">
+      <h3>Overall Grade</h3>
+      <div class="grade-display"><div class="grade-letter" id="grade-letter">--</div><div class="grade-label" id="grade-label">Analyzing...</div></div>
+      <div class="bp-summary">
+        <div><div class="val" id="s-tls">--</div><div class="lbl">TLS Score</div></div>
+        <div><div class="val" id="s-cert">--</div><div class="lbl">Certificate</div></div>
+        <div><div class="val" id="s-headers">--</div><div class="lbl">Headers</div></div>
+        <div><div class="val" id="s-config">--</div><div class="lbl">Config</div></div>
+      </div>
+    </div>
+
+    <div class="tool-section">
+      <h3>Configuration Checks</h3>
+      <div class="check-grid" id="check-grid"></div>
+    </div>
+
+    <div class="tool-section">
+      <h3>Security Headers</h3>
+      <div class="header-grid" id="header-grid"></div>
+    </div>
+
+    <div class="tool-section">
+      <h3>Recommendations</h3>
+      <div class="rec-list" id="rec-list"></div>
+    </div>
+  </div>
+
+  <section class="explainer-section">
+    <h2>Why SSL/TLS Configuration Matters</h2>
+    <p>SSL/TLS encryption is the foundation of web security. It encrypts data in transit between the user's browser and your server, preventing eavesdropping, tampering, and impersonation. A properly configured SSL setup does more than just show the padlock icon — it ensures that your encryption actually protects against modern attacks, that your certificate chain is valid and trusted, and that security headers prevent common web vulnerabilities like XSS, clickjacking, and downgrade attacks.</p>
+    <p>Misconfigured SSL is surprisingly common and can be worse than no SSL at all, because it creates a false sense of security. A site using TLS 1.0 with RC4 ciphers is technically encrypted but trivially breakable. A site with a valid certificate but no HSTS header is vulnerable to SSL stripping attacks on public WiFi. A site with HTTPS but no Content-Security-Policy is still vulnerable to cross-site scripting. This tool evaluates your complete security posture, not just certificate validity.</p>
+
+    <h2>TLS Version Matters</h2>
+    <p>TLS 1.3, standardized in 2018, is a significant security and performance improvement over TLS 1.2. It removed all legacy cipher suites (including those vulnerable to BEAST, POODLE, and Sweet32 attacks), reduced the handshake from 2 round-trips to 1, and added 0-RTT resumption for repeat connections. With 97%+ browser support in 2026, TLS 1.3 should be your primary protocol. TLS 1.2 is an acceptable fallback for the remaining 3% of clients, but configure it with only AEAD cipher suites (AES-GCM, ChaCha20-Poly1305). TLS 1.0 and 1.1 should be disabled entirely — they have known vulnerabilities and are rejected by all modern browsers.</p>
+
+    <h2>Certificate Types Explained</h2>
+    <p><strong>Domain Validated (DV):</strong> Verifies only that you control the domain. Let's Encrypt provides these for free. DV certificates are sufficient for 99% of websites. They provide the same level of encryption as EV certificates.</p>
+    <p><strong>Organization Validated (OV):</strong> Verifies domain ownership plus the organization's legal existence. Costs $50-200/year. Provides slightly more trust for business sites but browsers do not display OV status differently from DV. The practical benefit over DV is minimal.</p>
+    <p><strong>Extended Validation (EV):</strong> Verifies domain, organization, and physical address. Costs $100-500/year. Previously displayed the organization name in a green address bar, but Chrome and Firefox removed this UI in 2019. EV certificates no longer provide a visible trust indicator. They are not recommended for most websites — the cost and validation time are not justified by any user-visible or SEO benefit.</p>
+    <p><strong>Self-Signed:</strong> Never use self-signed certificates on public websites. Browsers display scary security warnings that most users cannot bypass. Use Let's Encrypt for free, trusted certificates.</p>
+
+    <h2>Essential Security Headers</h2>
+    <p><strong>Strict-Transport-Security (HSTS):</strong> Tells browsers to only use HTTPS for your domain. Prevents SSL stripping attacks and eliminates the HTTP-to-HTTPS redirect on subsequent visits (saving 100-300ms). Use <code>max-age=31536000; includeSubDomains</code>. For maximum protection, submit your domain to the HSTS preload list at hstspreload.org.</p>
+    <p><strong>Content-Security-Policy (CSP):</strong> The most powerful security header. Specifies which sources of content (scripts, styles, images, fonts) are allowed on your page. A strict CSP prevents XSS attacks by blocking inline scripts and unauthorized external resources. Start with report-only mode to identify violations, then enforce once clean.</p>
+    <p><strong>X-Content-Type-Options: nosniff:</strong> Prevents browsers from MIME-sniffing a response away from the declared content type. This stops attacks where a malicious file is uploaded with a misleading extension. Always include this header — it is a single line with no configuration complexity.</p>
+    <p><strong>X-Frame-Options: DENY:</strong> Prevents your page from being embedded in an iframe, protecting against clickjacking attacks. Use DENY unless you specifically need iframe embedding, in which case use SAMEORIGIN. Modern CSP's frame-ancestors directive supersedes X-Frame-Options but include both for backwards compatibility.</p>
+    <p><strong>Referrer-Policy:</strong> Controls how much referrer information is sent when navigating away from your site. <code>strict-origin-when-cross-origin</code> is the recommended value: it sends the full URL for same-origin requests and only the origin (domain) for cross-origin requests, balancing privacy with analytics functionality.</p>
+    <p><strong>Permissions-Policy:</strong> Controls which browser features (camera, microphone, geolocation, payment) your page can use. Disable features you do not need to reduce your attack surface. Example: <code>Permissions-Policy: camera=(), microphone=(), geolocation=()</code> disables all three features.</p>
+  </section>
+
+  <section class="faq-section" style="max-width:760px;margin:40px auto 0;">
+    <h2>Frequently Asked Questions</h2>
+    <details><summary>What TLS version should I use in 2026?</summary><p>TLS 1.3 exclusively if possible, TLS 1.2 minimum. TLS 1.3 is faster and more secure with 97%+ browser support. Disable TLS 1.0 and 1.1 entirely.</p></details>
+    <details><summary>Is an SSL certificate necessary for SEO?</summary><p>Yes — HTTPS is a Google ranking signal and Chrome marks HTTP sites as "Not Secure." Free certificates from Let's Encrypt eliminate cost barriers.</p></details>
+    <details><summary>What is HSTS and should I enable it?</summary><p>HSTS forces browsers to use HTTPS only. It prevents SSL stripping attacks and eliminates redirect latency. Yes, enable it on all HTTPS sites.</p></details>
+    <details><summary>What security headers should every website have?</summary><p>HSTS, Content-Security-Policy, X-Content-Type-Options: nosniff, X-Frame-Options: DENY, Referrer-Policy, and Permissions-Policy.</p></details>
+    <details><summary>How do I get a free SSL certificate?</summary><p>Let's Encrypt via Certbot: "sudo certbot --nginx". Free, automated, auto-renewing. Cloudflare also provides free SSL through its proxy.</p></details>
+  </section>
+
+  <section class="related-tools" style="max-width:760px;margin:40px auto;">
+    <h3>Related Tools &amp; Guides</h3>
+    <div class="related-grid">
+      <a href="/research/http3-readiness-checker.html">HTTP/3 Readiness Checker<small>Check HTTP/3 compatibility</small></a>
+      <a href="/guides/cdn-comparison-2026.html">CDN Comparison 2026<small>Compare CDN providers</small></a>
+      <a href="/answers/web-hosting-comparison.html">Web Hosting Comparison<small>Find the right hosting provider</small></a>
+    </div>
+  </section>
+
+  <div class="author-bio" style="max-width:760px;margin:32px auto;">
+    <p><strong>Written by Michael Lip</strong> — solo dev building free developer tools at <a href="https://zovo.one">zovo.one</a>. No tracking, no accounts, no data collection. If you find this tool useful, check out the full <a href="https://zovo.one/tools">Zovo Tools</a> suite.</p>
+  </div>
+  <div class="last-updated" style="max-width:760px;margin:16px auto;"><time datetime="2026-05-25">Last updated: May 25, 2026</time></div>
+</main>
+
+<footer class="site-footer">
+    <div class="footer-inner">
+        <div class="footer-brand">Zovo Tools</div>
+        <div class="footer-tagline">Free developer tools by a solo dev. No tracking.</div>
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&utm_medium=satellite&utm_campaign=footer-link" class="footer-cta">Zovo Lifetime &mdash; $99 once, free forever &rarr;</a>
+        <div class="footer-copy">&copy; 2026 <a href="https://zovo.one">Zovo</a> &middot; 47/500 founding spots</div>
+    </div>
+</footer>
+
+<nav class="zovo-network" aria-label="Zovo Tools Network">
+    <div class="zovo-network-inner">
+        <h3 class="zovo-network-title">Explore More Tools</h3>
+        <div class="zovo-network-links">
+            <a href="https://abwex.com">ABWex &mdash; A/B Testing</a>
+            <a href="https://claudflow.com">ClaudFlow &mdash; Workflows</a>
+            <a href="https://claudhq.com">ClaudHQ &mdash; AI Code Tools &amp; Fixes</a>
+            <a href="https://claudkit.com">ClaudKit &mdash; API</a>
+            <a href="https://enhio.com">Enhio &mdash; Text Tools</a>
+            <a href="https://epochpilot.com">EpochPilot &mdash; Timestamps</a>
+            <a href="https://gen8x.com">Gen8X &mdash; Color Tools</a>
+            <a href="https://gpt0x.com">GPT0X &mdash; AI Models</a>
+            <a href="https://heytensor.com">HeyTensor &mdash; ML Tools</a>
+            <a href="https://invokebot.com">InvokeBot &mdash; Webhooks</a>
+            <a href="https://kappafy.com">Kappafy &mdash; JSON</a>
+            <a href="https://kappakit.com">KappaKit &mdash; Dev Toolkit</a>
+            <a href="https://kickllm.com">KickLLM &mdash; LLM Costs</a>
+            <a href="https://lochbot.com">LochBot &mdash; Security</a>
+            <a href="https://lockml.com">LockML &mdash; ML Compare</a>
+            <a href="https://ml3x.com">ML3X &mdash; Matrix Math</a>
+        </div>
+    </div>
+</nav>
+
+<script>
+const SSL={
+  check(){
+    const tls=document.getElementById('tls-ver').value;
+    const cert=document.getElementById('cert-type').value;
+    const hsts=document.getElementById('hsts').value;
+    const redirect=document.getElementById('redirect').value;
+    const csp=document.getElementById('csp').value;
+    const secHeaders=document.getElementById('sec-headers').value;
+
+    let score=0;const checks=[];const recs=[];
+
+    // TLS
+    if(tls==='1.3'){checks.push({s:'pass',t:'TLS Version',d:'TLS 1.3 only — excellent'});score+=25;}
+    else if(tls==='1.2-1.3'){checks.push({s:'pass',t:'TLS Version',d:'TLS 1.2 + 1.3 — good configuration'});score+=22;}
+    else if(tls==='1.2'){checks.push({s:'warn',t:'TLS Version',d:'TLS 1.2 only — add TLS 1.3 for better performance'});score+=15;recs.push('<strong>Enable TLS 1.3:</strong> Faster handshakes (1-RTT vs 2-RTT) and stronger security. 97%+ browser support.');}
+    else{checks.push({s:'fail',t:'TLS Version',d:'TLS 1.0/1.1 enabled — disable immediately'});score+=5;recs.push('<strong>Disable TLS 1.0 and 1.1:</strong> Known vulnerabilities, rejected by all modern browsers. Upgrade to TLS 1.2+1.3.');}
+
+    // Certificate
+    if(cert==='none'){checks.push({s:'fail',t:'SSL Certificate',d:'No certificate — site is not encrypted'});score+=0;recs.push('<strong>Install SSL certificate:</strong> Use Let\'s Encrypt (free) via Certbot. HTTPS is required for SEO, security, and modern web features.');}
+    else if(cert==='self'){checks.push({s:'fail',t:'SSL Certificate',d:'Self-signed — not trusted by browsers'});score+=2;recs.push('<strong>Replace self-signed certificate:</strong> Use Let\'s Encrypt for a free, trusted certificate. Self-signed causes security warnings.');}
+    else{checks.push({s:'pass',t:'SSL Certificate',d:cert.toUpperCase()+' certificate — trusted by browsers'});score+=20;}
+
+    // HSTS
+    if(hsts==='full'){checks.push({s:'pass',t:'HSTS',d:'Strict-Transport-Security with includeSubDomains and preload'});score+=15;}
+    else if(hsts==='basic'){checks.push({s:'warn',t:'HSTS',d:'HSTS enabled but missing includeSubDomains and preload'});score+=10;recs.push('<strong>Add HSTS preload:</strong> Add includeSubDomains and preload directives, then submit to hstspreload.org.');}
+    else{checks.push({s:'fail',t:'HSTS',d:'HSTS not enabled — vulnerable to SSL stripping'});score+=0;recs.push('<strong>Enable HSTS:</strong> Add header Strict-Transport-Security: max-age=31536000; includeSubDomains. Prevents downgrade attacks.');}
+
+    // Redirect
+    if(redirect==='301'){checks.push({s:'pass',t:'HTTP Redirect',d:'301 permanent redirect to HTTPS'});score+=10;}
+    else if(redirect==='302'){checks.push({s:'warn',t:'HTTP Redirect',d:'302 temporary redirect — use 301 for permanent HTTPS'});score+=6;recs.push('<strong>Change to 301 redirect:</strong> 302 is temporary. Use 301 to signal permanent HTTPS migration to search engines.');}
+    else{checks.push({s:'fail',t:'HTTP Redirect',d:'No redirect — HTTP version still accessible'});score+=0;recs.push('<strong>Add HTTP to HTTPS redirect:</strong> Configure your server to 301 redirect all HTTP requests to HTTPS.');}
+
+    // CSP
+    if(csp==='strict'){checks.push({s:'pass',t:'Content-Security-Policy',d:'Strict CSP configured — excellent XSS protection'});score+=15;}
+    else if(csp==='basic'){checks.push({s:'warn',t:'Content-Security-Policy',d:'Basic CSP — tighten rules for better protection'});score+=10;}
+    else if(csp==='report'){checks.push({s:'warn',t:'Content-Security-Policy',d:'Report-only mode — good for testing, switch to enforce'});score+=7;recs.push('<strong>Enforce CSP:</strong> Switch from report-only to enforcing once violations are resolved.');}
+    else{checks.push({s:'fail',t:'Content-Security-Policy',d:'No CSP — vulnerable to XSS attacks'});score+=0;recs.push('<strong>Add Content-Security-Policy:</strong> Start with report-only mode to identify violations, then enforce.');}
+
+    // Security headers
+    if(secHeaders==='all'){checks.push({s:'pass',t:'Security Headers',d:'All recommended headers present'});score+=15;}
+    else if(secHeaders==='some'){checks.push({s:'warn',t:'Security Headers',d:'Some headers present — add missing ones'});score+=8;recs.push('<strong>Add missing security headers:</strong> X-Content-Type-Options: nosniff, X-Frame-Options: DENY, Referrer-Policy, Permissions-Policy.');}
+    else{checks.push({s:'fail',t:'Security Headers',d:'No security headers configured'});score+=0;recs.push('<strong>Add all security headers:</strong> X-Content-Type-Options, X-Frame-Options, Referrer-Policy, and Permissions-Policy.');}
+
+    // Grade
+    const grade=score>=90?'A+':score>=80?'A':score>=70?'B':score>=50?'C':score>=30?'D':'F';
+    const gradeClass=grade.startsWith('A')?'grade-a':grade==='B'?'grade-b':grade==='C'?'grade-c':'grade-f';
+    const label=score>=90?'Excellent configuration':score>=80?'Good — minor improvements possible':score>=60?'Fair — several improvements needed':'Poor — significant security gaps';
+
+    document.getElementById('results').style.display='block';
+    document.getElementById('grade-letter').textContent=grade;
+    document.getElementById('grade-letter').className='grade-letter '+gradeClass;
+    document.getElementById('grade-label').textContent=label+' ('+score+'/100)';
+
+    const tlsScore=tls==='1.3'?'A+':tls==='1.2-1.3'?'A':tls==='1.2'?'B':'F';
+    const certScore=cert==='none'?'F':cert==='self'?'F':'A';
+    const hdrScore=secHeaders==='all'&&csp!=='no'?'A+':secHeaders==='some'?'B':'F';
+    const cfgScore=hsts==='full'&&redirect==='301'?'A+':hsts!=='no'?'B':'C';
+
+    document.getElementById('s-tls').textContent=tlsScore;
+    document.getElementById('s-cert').textContent=certScore;
+    document.getElementById('s-headers').textContent=hdrScore;
+    document.getElementById('s-config').textContent=cfgScore;
+    ['s-tls','s-cert','s-headers','s-config'].forEach(id=>{
+      const v=document.getElementById(id).textContent;
+      document.getElementById(id).className='val '+(v.startsWith('A')?'status-ok':v==='B'?'status-warn':'status-bad');
+    });
+
+    document.getElementById('check-grid').innerHTML=checks.map(c=>`<div class="ck-row ${c.s}"><div class="ck-dot"></div><div class="ck-title">${c.t}</div><div class="ck-detail">${c.d}</div></div>`).join('');
+
+    const headers=[
+      {name:'Strict-Transport-Security',present:hsts!=='no',val:hsts==='full'?'max-age=31536000; includeSubDomains; preload':hsts==='basic'?'max-age=31536000':'Not set'},
+      {name:'Content-Security-Policy',present:csp!=='no',val:csp==='strict'?"default-src 'self'":csp==='basic'?"default-src 'self' 'unsafe-inline'":csp==='report'?'Report-Only mode':'Not set'},
+      {name:'X-Content-Type-Options',present:secHeaders!=='none',val:secHeaders!=='none'?'nosniff':'Not set'},
+      {name:'X-Frame-Options',present:secHeaders!=='none',val:secHeaders!=='none'?'DENY':'Not set'},
+      {name:'Referrer-Policy',present:secHeaders==='all',val:secHeaders==='all'?'strict-origin-when-cross-origin':'Not set'},
+      {name:'Permissions-Policy',present:secHeaders==='all',val:secHeaders==='all'?'camera=(), microphone=(), geolocation=()':'Not set'}
+    ];
+    document.getElementById('header-grid').innerHTML=headers.map(h=>`<div class="hdr-row ${h.present?'present':'missing'}"><span class="hdr-name">${h.name}</span><span class="hdr-val">${h.val}</span></div>`).join('');
+
+    if(recs.length===0)recs.push('<strong>Excellent!</strong> Your SSL configuration meets all recommended best practices.');
+    document.getElementById('rec-list').innerHTML=recs.map(r=>`<div class="rec-item">${r}</div>`).join('');
+
+    document.getElementById('results').scrollIntoView({behavior:'smooth'});
+  }
+};
+</script>
+</body>
+</html>

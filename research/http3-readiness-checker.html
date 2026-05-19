@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTTP/3 Readiness Checker — Compatibility Test &amp; Migration Guide | Krzen</title>
+<meta name="description" content="Free HTTP/3 readiness checker with QUIC compatibility analysis, server configuration guide, migration checklist, and performance comparison vs HTTP/2. Test your server's HTTP/3 support.">
+<meta name="keywords" content="HTTP/3 checker, QUIC protocol test, HTTP/3 readiness, HTTP/3 vs HTTP/2, QUIC migration guide, HTTP/3 server configuration, HTTP/3 performance, HTTP/3 compatibility">
+<link rel="canonical" href="https://krzen.com/research/http3-readiness-checker.html">
+<link rel="alternate" hreflang="en" href="https://krzen.com/research/http3-readiness-checker.html">
+<link rel="alternate" hreflang="x-default" href="https://krzen.com/research/http3-readiness-checker.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="HTTP/3 Readiness Checker — Compatibility Test &amp; Migration Guide">
+<meta property="og:description" content="Free HTTP/3 readiness checker with QUIC compatibility analysis, migration checklist, and performance comparison.">
+<meta property="og:url" content="https://krzen.com/research/http3-readiness-checker.html">
+<meta property="og:site_name" content="Zovo Tools">
+<meta property="og:image" content="https://krzen.com/assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="HTTP/3 Readiness Checker — Compatibility Test &amp; Migration Guide">
+<meta name="twitter:description" content="Free HTTP/3 readiness checker with QUIC compatibility analysis, migration checklist, and performance comparison.">
+<meta name="twitter:image" content="https://krzen.com/assets/og-image.png">
+<link rel="stylesheet" href="/assets/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "HTTP/3 Readiness Checker — Compatibility Test & Migration Guide",
+  "url": "https://krzen.com/research/http3-readiness-checker.html",
+  "description": "Free HTTP/3 readiness checker with QUIC compatibility analysis, server configuration guide, migration checklist, and performance comparison vs HTTP/2.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+  "author": {"@type": "Person", "name": "Michael Lip", "url": "https://zovo.one"},
+  "publisher": {"@type": "Organization", "name": "Krzen", "url": "https://krzen.com"},
+  "datePublished": "2026-05-25",
+  "dateModified": "2026-05-25",
+  "featureList": ["HTTP/3 readiness assessment", "Server configuration checker", "Migration checklist", "HTTP/2 vs HTTP/3 comparison", "QUIC protocol analysis", "CDN support matrix", "Client-side processing"],
+  "browserRequirements": "Requires JavaScript"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is HTTP/3 and how is it different from HTTP/2?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "HTTP/3 is the latest version of HTTP that runs on QUIC (UDP-based) instead of TCP. The key difference is that HTTP/3 eliminates head-of-line blocking — if one packet is lost, only that stream is affected while others continue loading. HTTP/2 over TCP blocks all streams when a single packet is lost. HTTP/3 also has faster connection establishment (0-RTT vs 1-2 RTT for TCP+TLS), built-in encryption, and connection migration (your connection survives WiFi-to-cellular switches). The performance improvement is most significant on lossy or high-latency networks."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is HTTP/3 faster than HTTP/2?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "HTTP/3 is faster than HTTP/2 in specific scenarios: lossy networks (mobile, WiFi), high-latency connections, and initial page loads (thanks to 0-RTT). On a clean, low-latency wired connection, the difference is minimal (5-10ms). On a 4G mobile connection with 2% packet loss, HTTP/3 can be 20-30% faster because it avoids TCP head-of-line blocking. The biggest visible improvement is connection time: HTTP/3 with 0-RTT can save an entire round trip (50-200ms depending on server distance). For most websites, the improvement is meaningful but not dramatic."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Which browsers support HTTP/3 in 2026?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "All major browsers support HTTP/3 in 2026: Chrome (since v87, 2020), Firefox (since v88, 2021), Safari (since v14, 2020), Edge (since v87, 2020), Opera (since v73). Global browser support exceeds 96%. The remaining unsupported traffic comes from very old browser versions and some embedded/IoT browsers. HTTP/3 is backwards compatible — browsers that don't support it automatically fall back to HTTP/2 or HTTP/1.1. There is no risk of breaking compatibility by enabling HTTP/3."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I enable HTTP/3 on my server?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The easiest way is to use a CDN that supports HTTP/3: Cloudflare (enabled by default), AWS CloudFront (opt-in), Fastly, and Google Cloud CDN all support it. For self-hosted servers: Nginx supports HTTP/3 since version 1.25.0 (use the --with-http_v3_module build flag). Caddy supports HTTP/3 by default. Apache does not natively support HTTP/3 — use a reverse proxy. You must also open UDP port 443 in your firewall and add the Alt-Svc header to advertise HTTP/3 support to browsers."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Should I migrate from HTTP/2 to HTTP/3?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, if you use a CDN it's usually a one-click toggle with zero risk. If you self-host, migrate when your server software supports it natively. HTTP/3 is fully backwards compatible — enabling it doesn't affect HTTP/2 clients. The performance benefit is modest on good networks but significant for mobile users (your largest audience segment). The main blockers are corporate firewalls that block UDP 443 (5-10% of enterprise traffic) and server software that doesn't support QUIC yet. There is no downside to enabling HTTP/3 alongside HTTP/2."
+      }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://krzen.com/"},
+    {"@type": "ListItem", "position": 2, "name": "Research", "item": "https://krzen.com/research/"},
+    {"@type": "ListItem", "position": 3, "name": "HTTP/3 Readiness Checker", "item": "https://krzen.com/research/http3-readiness-checker.html"}
+  ]
+}
+</script>
+<style>
+.tool-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin:20px 0}
+.tool-section h3{font-family:var(--font-display);font-size:0.85rem;text-transform:uppercase;color:var(--accent);margin-bottom:16px;letter-spacing:0.04em}
+.input-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.input-field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:200px}
+.input-field label{font-size:0.78rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;letter-spacing:0.3px}
+.input-field input,.input-field select{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:8px 12px;font-family:var(--font-body);font-size:0.9rem}
+.input-field input:focus,.input-field select:focus{outline:none;border-color:var(--accent)}
+.check-grid{display:grid;gap:12px;margin:16px 0}
+.check-row{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius)}
+.check-row.pass{border-color:#34D399}.check-row.fail{border-color:#F87171}.check-row.warn{border-color:#FBBF24}
+.check-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.check-row.pass .check-dot{background:#34D399}.check-row.fail .check-dot{background:#F87171}.check-row.warn .check-dot{background:#FBBF24}
+.check-row .ck-title{font-weight:600;font-size:0.9rem;flex:1}
+.check-row .ck-status{font-size:0.78rem;font-weight:600;text-transform:uppercase}
+.check-row.pass .ck-status{color:#34D399}.check-row.fail .ck-status{color:#F87171}.check-row.warn .ck-status{color:#FBBF24}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin:16px 0}
+.compare-col{padding:20px}
+.compare-col h4{font-size:0.9rem;margin:0 0 12px;text-align:center}
+.compare-col:first-child{border-right:1px solid var(--border)}
+.compare-item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.85rem}
+.compare-item:last-child{border-bottom:none}
+.compare-item .ci-label{color:var(--text-muted)}
+.compare-item .ci-val{font-weight:600}
+.bp-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;text-align:center;margin:16px 0}
+.bp-summary .val{font-family:var(--font-display);font-size:1.4rem;font-weight:700}
+.bp-summary .lbl{font-size:0.78rem;color:var(--text-muted);text-transform:uppercase}
+.status-ok{color:#34D399}.status-warn{color:#FBBF24}.status-bad{color:#F87171}
+.migration-steps{counter-reset:step;margin:16px 0}
+.migration-step{display:flex;gap:16px;padding:16px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px}
+.migration-step::before{counter-increment:step;content:counter(step);font-family:var(--font-display);font-size:1.2rem;font-weight:700;color:var(--accent);min-width:30px;text-align:center}
+.migration-step .ms-content{flex:1}
+.migration-step .ms-title{font-weight:600;font-size:0.9rem;margin-bottom:4px}
+.migration-step .ms-desc{font-size:0.82rem;color:var(--text-muted);line-height:1.5}
+.config-block{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:16px;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--text-muted);overflow-x:auto;white-space:pre;line-height:1.6;margin:12px 0}
+.explainer-section{max-width:760px;margin:40px auto 0;padding:0 0 20px}
+.explainer-section h2{font-size:1.3rem;margin:32px 0 12px;color:var(--accent)}
+.explainer-section h3{font-size:1.1rem;margin:24px 0 8px}
+.explainer-section p{color:var(--text-muted);margin-bottom:16px;line-height:1.7}
+.explainer-section ul,.explainer-section ol{color:var(--text-muted);margin:0 0 16px 24px}
+.explainer-section li{margin-bottom:6px}
+.explainer-section code{font-family:var(--font-display);background:var(--bg-card);padding:2px 6px;border-radius:3px;font-size:0.9em}
+.related-tools{margin:40px 0 0}
+.related-tools h3{font-family:var(--font-display);text-align:center;margin-bottom:16px;font-size:1rem}
+.related-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.related-grid a{display:block;padding:14px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);text-decoration:none;font-size:0.9rem;transition:border-color 0.2s}
+.related-grid a:hover{border-color:var(--accent);text-decoration:none}
+.related-grid a small{display:block;color:var(--text-muted);font-size:0.78rem;margin-top:4px}
+.author-bio{margin:32px 0;padding:20px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius)}
+.author-bio p{color:var(--text-muted);font-size:0.9rem;line-height:1.6;margin:0}
+.author-bio p strong{color:var(--text)}
+.last-updated{text-align:center;color:var(--text-muted);font-size:0.8rem;margin:24px 0 0}
+@media(max-width:768px){.input-row{flex-direction:column}.bp-summary{grid-template-columns:1fr}.compare-grid{grid-template-columns:1fr}.compare-col:first-child{border-right:none;border-bottom:1px solid var(--border)}}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <a href="/" class="logo">krzen</a>
+    <nav>
+      <a href="/">Tool</a>
+      <a href="/research/">Research</a>
+      <a href="/guides/">Guides</a>
+      <a href="/tools/">Tools</a>
+      <a href="/blog/">Blog</a>
+      <a href="/about.html">About</a>
+      <div class="nav-right">
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&amp;utm_medium=satellite&amp;utm_campaign=nav-link" class="nav-pro" target="_blank">Go Pro &#10022;</a>
+        <a href="https://zovo.one/tools" class="nav-zovo">Zovo Tools</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <nav class="breadcrumb" aria-label="Breadcrumb" style="font-size:0.82rem;margin:20px 0 0;"><a href="/">Home</a> <span style="color:var(--text-muted);margin:0 4px;">/</span> <a href="/research/">Research</a> <span style="color:var(--text-muted);margin:0 4px;">/</span> <span style="color:var(--text-muted);">HTTP/3 Readiness Checker</span></nav>
+
+  <section class="hero">
+    <h1>HTTP/3 Readiness <span>Checker</span></h1>
+    <p>Assess your infrastructure's HTTP/3 readiness with compatibility checks, server configuration guides, and a step-by-step migration checklist. Compare HTTP/2 vs HTTP/3 performance benefits.</p>
+  </section>
+
+  <div class="tool-section">
+    <h3>Your Infrastructure</h3>
+    <div class="input-row">
+      <div class="input-field"><label>Web Server</label><select id="server-type"><option value="nginx">Nginx (1.25+)</option><option value="nginx-old">Nginx (older)</option><option value="caddy">Caddy</option><option value="apache">Apache</option><option value="litespeed">LiteSpeed</option><option value="iis">IIS</option><option value="other">Other / Unknown</option></select></div>
+      <div class="input-field"><label>CDN / Proxy</label><select id="cdn-type"><option value="cloudflare">Cloudflare</option><option value="cloudfront">AWS CloudFront</option><option value="fastly">Fastly</option><option value="bunny">Bunny.net</option><option value="gcp">Google Cloud CDN</option><option value="none" selected>None / Direct</option></select></div>
+      <div class="input-field"><label>TLS Version</label><select id="tls-ver"><option value="1.3" selected>TLS 1.3</option><option value="1.2">TLS 1.2</option><option value="1.1">TLS 1.1 or older</option></select></div>
+    </div>
+    <div class="input-row">
+      <div class="input-field"><label>UDP Port 443</label><select id="udp-port"><option value="open" selected>Open</option><option value="closed">Closed / Blocked</option><option value="unknown">Unknown</option></select></div>
+      <div class="input-field"><label>Primary Audience</label><select id="audience"><option value="global">Global</option><option value="mobile">Mostly Mobile</option><option value="enterprise">Enterprise / Corporate</option><option value="developers">Developers</option></select></div>
+    </div>
+    <button class="btn" onclick="H3.check()">Check HTTP/3 Readiness</button>
+  </div>
+
+  <div id="results" style="display:none">
+    <div class="tool-section">
+      <h3>Readiness Score</h3>
+      <div class="bp-summary">
+        <div><div class="val" id="ready-score">--</div><div class="lbl">Readiness</div></div>
+        <div><div class="val" id="effort-level">--</div><div class="lbl">Migration Effort</div></div>
+        <div><div class="val" id="impact-level">--</div><div class="lbl">Expected Impact</div></div>
+      </div>
+    </div>
+
+    <div class="tool-section">
+      <h3>Compatibility Checks</h3>
+      <div class="check-grid" id="check-grid"></div>
+    </div>
+
+    <div class="tool-section">
+      <h3>HTTP/2 vs HTTP/3 for Your Setup</h3>
+      <div class="compare-grid">
+        <div class="compare-col">
+          <h4>HTTP/2 (Current)</h4>
+          <div class="compare-item"><span class="ci-label">Transport</span><span class="ci-val">TCP + TLS</span></div>
+          <div class="compare-item"><span class="ci-label">Connection</span><span class="ci-val">1-2 RTT</span></div>
+          <div class="compare-item"><span class="ci-label">Packet Loss</span><span class="ci-val">All streams blocked</span></div>
+          <div class="compare-item"><span class="ci-label">Migration</span><span class="ci-val">Connection drops</span></div>
+          <div class="compare-item"><span class="ci-label">Browser Support</span><span class="ci-val">98%+</span></div>
+        </div>
+        <div class="compare-col">
+          <h4 style="color:var(--accent)">HTTP/3 (Target)</h4>
+          <div class="compare-item"><span class="ci-label">Transport</span><span class="ci-val" style="color:var(--accent)">QUIC (UDP)</span></div>
+          <div class="compare-item"><span class="ci-label">Connection</span><span class="ci-val" style="color:#34D399">0-1 RTT</span></div>
+          <div class="compare-item"><span class="ci-label">Packet Loss</span><span class="ci-val" style="color:#34D399">Per-stream only</span></div>
+          <div class="compare-item"><span class="ci-label">Migration</span><span class="ci-val" style="color:#34D399">Seamless handoff</span></div>
+          <div class="compare-item"><span class="ci-label">Browser Support</span><span class="ci-val">96%+</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tool-section">
+      <h3>Migration Steps</h3>
+      <div class="migration-steps" id="migration-steps"></div>
+    </div>
+
+    <div class="tool-section">
+      <h3>Server Configuration</h3>
+      <pre class="config-block" id="config-output"></pre>
+      <button class="btn" style="margin-top:12px" onclick="H3.copy()">Copy Configuration</button>
+    </div>
+  </div>
+
+  <section class="explainer-section">
+    <h2>Understanding HTTP/3 and QUIC</h2>
+    <p>HTTP/3 is the third major version of the Hypertext Transfer Protocol, standardized as RFC 9114 in June 2022. Its defining characteristic is that it runs on QUIC (RFC 9000) instead of TCP. QUIC is a transport protocol built on UDP that integrates TLS 1.3 encryption, multiplexed streams without head-of-line blocking, and connection migration. These features address fundamental limitations in TCP that become bottlenecks on modern networks, particularly mobile connections with variable latency and frequent network changes.</p>
+    <p>The most impactful improvement is the elimination of head-of-line (HOL) blocking. In HTTP/2 over TCP, all multiplexed streams share a single TCP connection. If one TCP packet is lost, every stream is paused until that packet is retransmitted — even streams whose data was not in the lost packet. On a connection with 2% packet loss (typical for mobile), this causes frequent 100-200ms stalls. HTTP/3 over QUIC handles each stream independently: a lost packet only affects its own stream, while all others continue uninterrupted.</p>
+
+    <h2>Performance Benefits by Scenario</h2>
+    <h3>Mobile Users (Biggest Improvement)</h3>
+    <p>Mobile connections have two characteristics that make HTTP/3 shine: packet loss and network changes. Cellular networks typically have 1-5% packet loss rates, and users frequently move between WiFi and cellular. HTTP/3's per-stream loss handling eliminates the cascading stalls that HTTP/2 suffers on lossy networks. QUIC's connection migration feature lets the connection survive network switches (WiFi to 4G) without re-establishing the session, saving 200-500ms per switch. For mobile-heavy audiences, HTTP/3 delivers a 15-30% improvement in page load time.</p>
+
+    <h3>High-Latency Connections (Significant Improvement)</h3>
+    <p>HTTP/3 with 0-RTT (zero round-trip time) can send data in the very first packet to a server the client has previously connected to. Traditional TCP+TLS requires 2-3 round trips before any application data can be exchanged. On a connection with 150ms latency (intercontinental), this saves 300-450ms on the initial connection. The improvement compounds when users navigate between pages on the same site, as subsequent connections use 0-RTT to send requests immediately.</p>
+
+    <h3>Clean Wired Connections (Minimal Improvement)</h3>
+    <p>On a wired connection with sub-20ms latency and near-zero packet loss, the difference between HTTP/2 and HTTP/3 is minimal — typically 5-15ms. The HOL blocking advantage does not manifest because packet loss is rare. The 0-RTT benefit is small because round-trip times are already low. If your audience is primarily on corporate desktops with wired connections, HTTP/3 adoption is low priority. However, enabling it costs nothing if your CDN supports it.</p>
+
+    <h2>Migration Path</h2>
+    <p>The migration complexity depends entirely on your infrastructure. If you use a CDN (Cloudflare, CloudFront, Fastly), HTTP/3 is typically a single toggle — the CDN handles QUIC termination and your origin server continues using HTTP/2 or HTTP/1.1. This is the zero-risk approach: the CDN negotiates the best protocol with each client automatically.</p>
+    <p>For self-hosted servers, the migration requires three steps: update server software (Nginx 1.25+, Caddy 2.x, or LiteSpeed), open UDP port 443 on your firewall, and add the Alt-Svc response header. The Alt-Svc header tells browsers that HTTP/3 is available: <code>Alt-Svc: h3=":443"; ma=86400</code>. Without this header, browsers will not attempt QUIC connections. The migration is backwards compatible — HTTP/2 and HTTP/1.1 continue to work for clients that cannot use HTTP/3.</p>
+
+    <h2>Common Blockers</h2>
+    <p><strong>Firewall rules:</strong> Corporate firewalls and some ISPs block UDP port 443. QUIC uses UDP, and many firewalls are configured to allow only TCP on standard ports. This affects 5-10% of enterprise traffic. Browsers automatically fall back to HTTP/2 over TCP when QUIC is blocked, so there is no user-facing breakage — just no HTTP/3 benefit for those users.</p>
+    <p><strong>Server software:</strong> Apache does not support HTTP/3 natively. If you use Apache as your web server, you need a QUIC-capable reverse proxy (Nginx, Caddy) in front of it, or use a CDN for HTTP/3 termination. Node.js has experimental QUIC support but it is not production-ready. Most server-side languages and frameworks do not need changes — HTTP/3 is handled at the web server/reverse proxy level.</p>
+    <p><strong>Load balancers:</strong> Some older load balancers do not support UDP health checks or QUIC connection ID routing. AWS ALB supports HTTP/3 termination natively. HAProxy added QUIC support in version 2.6. If your load balancer does not support QUIC, terminate HTTP/3 at the CDN layer and use HTTP/2 between CDN and origin.</p>
+    <p><strong>Monitoring and debugging:</strong> HTTP/3 traffic is encrypted at the transport layer, making packet-level debugging harder than TCP. Wireshark supports QUIC decryption with TLS keys. Chrome DevTools shows HTTP/3 connections in the Network tab's Protocol column. Ensure your monitoring tools can distinguish HTTP/3 from HTTP/2 traffic before migrating, so you can measure the actual impact.</p>
+  </section>
+
+  <section class="faq-section" style="max-width:760px;margin:40px auto 0;">
+    <h2>Frequently Asked Questions</h2>
+    <details><summary>What is HTTP/3 and how is it different from HTTP/2?</summary><p>HTTP/3 runs on QUIC (UDP) instead of TCP. It eliminates head-of-line blocking, has faster connection setup (0-RTT), built-in encryption, and connection migration for mobile users.</p></details>
+    <details><summary>Is HTTP/3 faster than HTTP/2?</summary><p>On lossy/mobile networks, yes — 15-30% faster. On clean wired connections, the difference is minimal (5-15ms). The biggest gain is on initial connections with 0-RTT saving 100-400ms.</p></details>
+    <details><summary>Which browsers support HTTP/3?</summary><p>All major browsers: Chrome, Firefox, Safari, Edge — 96%+ global support. Browsers auto-fallback to HTTP/2 when HTTP/3 is unavailable.</p></details>
+    <details><summary>How do I enable HTTP/3 on my server?</summary><p>Easiest: use a CDN with HTTP/3 (Cloudflare, CloudFront). Self-hosted: Nginx 1.25+ or Caddy, open UDP 443, add Alt-Svc header.</p></details>
+    <details><summary>Should I migrate from HTTP/2 to HTTP/3?</summary><p>Yes — it's backwards compatible with zero risk. If you use a CDN, it's a one-click toggle. The performance benefit for mobile users is meaningful.</p></details>
+  </section>
+
+  <section class="related-tools" style="max-width:760px;margin:40px auto;">
+    <h3>Related Tools &amp; Guides</h3>
+    <div class="related-grid">
+      <a href="/guides/cdn-comparison-2026.html">CDN Comparison 2026<small>Compare CDN providers and pricing</small></a>
+      <a href="/answers/ssl-certificate-checker.html">SSL Certificate Checker<small>Grade your SSL configuration</small></a>
+      <a href="/tools/page-speed-analyzer.html">Page Speed Analyzer<small>Performance budget calculator</small></a>
+    </div>
+  </section>
+
+  <div class="author-bio" style="max-width:760px;margin:32px auto;">
+    <p><strong>Written by Michael Lip</strong> — solo dev building free developer tools at <a href="https://zovo.one">zovo.one</a>. No tracking, no accounts, no data collection. If you find this tool useful, check out the full <a href="https://zovo.one/tools">Zovo Tools</a> suite.</p>
+  </div>
+  <div class="last-updated" style="max-width:760px;margin:16px auto;"><time datetime="2026-05-25">Last updated: May 25, 2026</time></div>
+</main>
+
+<footer class="site-footer">
+    <div class="footer-inner">
+        <div class="footer-brand">Zovo Tools</div>
+        <div class="footer-tagline">Free developer tools by a solo dev. No tracking.</div>
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&utm_medium=satellite&utm_campaign=footer-link" class="footer-cta">Zovo Lifetime &mdash; $99 once, free forever &rarr;</a>
+        <div class="footer-copy">&copy; 2026 <a href="https://zovo.one">Zovo</a> &middot; 47/500 founding spots</div>
+    </div>
+</footer>
+
+<nav class="zovo-network" aria-label="Zovo Tools Network">
+    <div class="zovo-network-inner">
+        <h3 class="zovo-network-title">Explore More Tools</h3>
+        <div class="zovo-network-links">
+            <a href="https://abwex.com">ABWex &mdash; A/B Testing</a>
+            <a href="https://claudflow.com">ClaudFlow &mdash; Workflows</a>
+            <a href="https://claudhq.com">ClaudHQ &mdash; AI Code Tools &amp; Fixes</a>
+            <a href="https://claudkit.com">ClaudKit &mdash; API</a>
+            <a href="https://enhio.com">Enhio &mdash; Text Tools</a>
+            <a href="https://epochpilot.com">EpochPilot &mdash; Timestamps</a>
+            <a href="https://gen8x.com">Gen8X &mdash; Color Tools</a>
+            <a href="https://gpt0x.com">GPT0X &mdash; AI Models</a>
+            <a href="https://heytensor.com">HeyTensor &mdash; ML Tools</a>
+            <a href="https://invokebot.com">InvokeBot &mdash; Webhooks</a>
+            <a href="https://kappafy.com">Kappafy &mdash; JSON</a>
+            <a href="https://kappakit.com">KappaKit &mdash; Dev Toolkit</a>
+            <a href="https://kickllm.com">KickLLM &mdash; LLM Costs</a>
+            <a href="https://lochbot.com">LochBot &mdash; Security</a>
+            <a href="https://lockml.com">LockML &mdash; ML Compare</a>
+            <a href="https://ml3x.com">ML3X &mdash; Matrix Math</a>
+        </div>
+    </div>
+</nav>
+
+<script>
+const H3={
+  check(){
+    const server=document.getElementById('server-type').value;
+    const cdn=document.getElementById('cdn-type').value;
+    const tls=document.getElementById('tls-ver').value;
+    const udp=document.getElementById('udp-port').value;
+    const audience=document.getElementById('audience').value;
+
+    const checks=[];
+    let score=0;
+
+    // Server support
+    const serverSupport={nginx:true,'nginx-old':false,caddy:true,apache:false,litespeed:true,iis:false,other:false};
+    if(serverSupport[server]){checks.push({title:'Web Server HTTP/3 Support',status:'pass',note:'Your server supports HTTP/3 natively'});score+=20;}
+    else if(cdn!=='none'){checks.push({title:'Web Server HTTP/3 Support',status:'warn',note:'Server lacks native support, but CDN handles HTTP/3 termination'});score+=15;}
+    else{checks.push({title:'Web Server HTTP/3 Support',status:'fail',note:'Server does not support HTTP/3 — upgrade or add a CDN'});score+=0;}
+
+    // CDN support
+    const cdnH3={cloudflare:true,cloudfront:true,fastly:true,bunny:true,gcp:true,none:false};
+    if(cdnH3[cdn]){checks.push({title:'CDN HTTP/3 Support',status:'pass',note:'Your CDN supports HTTP/3'});score+=25;}
+    else if(cdn==='none'&&serverSupport[server]){checks.push({title:'CDN HTTP/3 Support',status:'warn',note:'No CDN — server must handle HTTP/3 directly'});score+=10;}
+    else{checks.push({title:'CDN HTTP/3 Support',status:'fail',note:'No CDN with HTTP/3 support'});score+=0;}
+
+    // TLS version
+    if(tls==='1.3'){checks.push({title:'TLS 1.3 Required',status:'pass',note:'TLS 1.3 is required for QUIC — already configured'});score+=20;}
+    else if(tls==='1.2'){checks.push({title:'TLS 1.3 Required',status:'fail',note:'QUIC requires TLS 1.3 — upgrade from TLS 1.2'});score+=5;}
+    else{checks.push({title:'TLS 1.3 Required',status:'fail',note:'TLS version too old — upgrade to TLS 1.3'});score+=0;}
+
+    // UDP port
+    if(udp==='open'){checks.push({title:'UDP Port 443',status:'pass',note:'UDP 443 is open — QUIC connections can reach your server'});score+=15;}
+    else if(udp==='unknown'){checks.push({title:'UDP Port 443',status:'warn',note:'Unknown — verify UDP 443 is open in your firewall'});score+=5;}
+    else{checks.push({title:'UDP Port 443',status:'fail',note:'UDP 443 is blocked — QUIC connections will fail'});score+=0;}
+
+    // Audience impact
+    if(audience==='mobile'){checks.push({title:'Audience Impact',status:'pass',note:'Mobile audiences benefit most from HTTP/3 (15-30% faster)'});score+=20;}
+    else if(audience==='global'){checks.push({title:'Audience Impact',status:'pass',note:'Global audience will see meaningful improvement (10-20% faster)'});score+=15;}
+    else if(audience==='enterprise'){checks.push({title:'Audience Impact',status:'warn',note:'Enterprise users may have UDP blocked by corporate firewalls'});score+=8;}
+    else{checks.push({title:'Audience Impact',status:'pass',note:'Developer audience has modern browsers with full HTTP/3 support'});score+=15;}
+
+    document.getElementById('results').style.display='block';
+    document.getElementById('ready-score').textContent=score+'%';
+    document.getElementById('ready-score').className='val '+(score>=80?'status-ok':score>=50?'status-warn':'status-bad');
+
+    const effort=cdn!=='none'?'Low (CDN toggle)':(serverSupport[server]?'Medium (config)':'High (upgrade needed)');
+    document.getElementById('effort-level').textContent=effort;
+    document.getElementById('effort-level').className='val '+(effort.startsWith('Low')?'status-ok':effort.startsWith('Medium')?'status-warn':'status-bad');
+
+    const impact=audience==='mobile'?'High':audience==='enterprise'?'Low':'Medium';
+    document.getElementById('impact-level').textContent=impact;
+    document.getElementById('impact-level').className='val '+(impact==='High'?'status-ok':impact==='Medium'?'status-warn':'status-bad');
+
+    const grid=document.getElementById('check-grid');
+    grid.innerHTML=checks.map(c=>`<div class="check-row ${c.status}"><div class="check-dot"></div><div class="ck-title">${c.title}</div><div class="ck-status">${c.status==='pass'?'Ready':c.status==='warn'?'Warning':'Action Needed'}</div></div>`).join('');
+
+    // Migration steps
+    const steps=[];
+    if(cdn==='none'&&!serverSupport[server])steps.push({title:'Add a CDN with HTTP/3 support',desc:'The fastest path to HTTP/3 is adding Cloudflare (free) as a reverse proxy. It handles QUIC termination automatically.'});
+    if(tls!=='1.3')steps.push({title:'Upgrade to TLS 1.3',desc:'QUIC requires TLS 1.3. Update your server or CDN TLS configuration. TLS 1.3 is faster and more secure than 1.2.'});
+    if(udp!=='open')steps.push({title:'Open UDP port 443',desc:'QUIC runs on UDP. Add a firewall rule: allow UDP inbound on port 443. Check both server and cloud provider firewalls.'});
+    if(cdn!=='none')steps.push({title:'Enable HTTP/3 on your CDN',desc:'Toggle HTTP/3 in your CDN dashboard. Cloudflare: Speed > Optimization. CloudFront: Distribution settings. Fastly: Configuration.'});
+    else if(serverSupport[server])steps.push({title:'Configure HTTP/3 on your web server',desc:'See the server configuration below. Add QUIC support and the Alt-Svc response header.'});
+    steps.push({title:'Add Alt-Svc response header',desc:'Add header: Alt-Svc: h3=":443"; ma=86400 — This tells browsers HTTP/3 is available on your server.'});
+    steps.push({title:'Test and verify',desc:'Use Chrome DevTools Network tab (Protocol column) or curl --http3 to verify HTTP/3 is working. Check from multiple locations.'});
+
+    document.getElementById('migration-steps').innerHTML=steps.map(s=>`<div class="migration-step"><div class="ms-content"><div class="ms-title">${s.title}</div><div class="ms-desc">${s.desc}</div></div></div>`).join('');
+
+    // Config output
+    let config='';
+    if(server==='nginx'||server==='nginx-old'){
+      config=`# Nginx HTTP/3 Configuration (requires Nginx 1.25+)\nserver {\n    listen 443 quic reuseport;\n    listen 443 ssl;\n    http2 on;\n\n    ssl_certificate /etc/ssl/certs/your-cert.pem;\n    ssl_certificate_key /etc/ssl/private/your-key.pem;\n    ssl_protocols TLSv1.3;\n\n    # Advertise HTTP/3 support\n    add_header Alt-Svc 'h3=":443"; ma=86400' always;\n\n    # QUIC transport parameters\n    quic_retry on;\n    ssl_early_data on;\n\n    server_name example.com;\n    root /var/www/html;\n}`;
+    }else if(server==='caddy'){
+      config=`# Caddy HTTP/3 Configuration (enabled by default)\nexample.com {\n    # HTTP/3 is enabled automatically in Caddy 2.x\n    # TLS is automatic via Let's Encrypt\n    \n    root * /var/www/html\n    file_server\n    \n    header Alt-Svc {>Alt-Svc} h3=":443"; ma=86400\n}`;
+    }else if(server==='apache'){
+      config=`# Apache does NOT support HTTP/3 natively.\n# Option 1: Use Cloudflare (free) as a reverse proxy for HTTP/3\n# Option 2: Use Nginx as a reverse proxy in front of Apache:\n\n# Nginx reverse proxy config:\nserver {\n    listen 443 quic reuseport;\n    listen 443 ssl;\n    http2 on;\n\n    ssl_protocols TLSv1.3;\n    add_header Alt-Svc 'h3=":443"; ma=86400' always;\n\n    location / {\n        proxy_pass http://127.0.0.1:8080;  # Apache backend\n        proxy_set_header Host $host;\n    }\n}`;
+    }else{
+      config=`# For CDN-based HTTP/3:\n# No server configuration changes needed.\n# Enable HTTP/3 in your CDN dashboard:\n#\n# Cloudflare: Speed > Optimization > HTTP/3\n# CloudFront: Distribution > Behaviors > Supported HTTP Versions\n# Fastly: Configuration > HTTP/3\n#\n# Your origin server continues using HTTP/2 to the CDN.`;
+    }
+    document.getElementById('config-output').textContent=config;
+    document.getElementById('results').scrollIntoView({behavior:'smooth'});
+  },
+
+  copy(){
+    navigator.clipboard.writeText(document.getElementById('config-output').textContent).then(()=>{
+      const btn=event.target;const orig=btn.textContent;btn.textContent='Copied!';btn.style.borderColor='#34D399';btn.style.color='#34D399';setTimeout(()=>{btn.textContent=orig;btn.style.borderColor='';btn.style.color='';},2000);
+    });
+  }
+};
+</script>
+</body>
+</html>

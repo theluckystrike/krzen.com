@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Font Loading Optimizer — Subsetting &amp; Loading Strategy Planner | Krzen</title>
+<meta name="description" content="Free font loading optimizer with subsetting planner, loading strategy generator, font-display comparison, preload code generator, and performance impact estimator. Optimize web font delivery.">
+<meta name="keywords" content="font loading optimizer, web font subsetting, font-display swap, font preload generator, WOFF2 optimization, web font performance, font loading strategy, Google Fonts optimizer">
+<link rel="canonical" href="https://krzen.com/tools/font-loading-optimizer.html">
+<link rel="alternate" hreflang="en" href="https://krzen.com/tools/font-loading-optimizer.html">
+<link rel="alternate" hreflang="x-default" href="https://krzen.com/tools/font-loading-optimizer.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Font Loading Optimizer — Subsetting &amp; Loading Strategy Planner">
+<meta property="og:description" content="Free font loading optimizer with subsetting planner, loading strategy generator, and performance impact estimator.">
+<meta property="og:url" content="https://krzen.com/tools/font-loading-optimizer.html">
+<meta property="og:site_name" content="Zovo Tools">
+<meta property="og:image" content="https://krzen.com/assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Font Loading Optimizer — Subsetting &amp; Loading Strategy Planner">
+<meta name="twitter:description" content="Free font loading optimizer with subsetting planner, loading strategy generator, and performance impact estimator.">
+<meta name="twitter:image" content="https://krzen.com/assets/og-image.png">
+<link rel="stylesheet" href="/assets/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Font Loading Optimizer — Subsetting & Loading Strategy Planner",
+  "url": "https://krzen.com/tools/font-loading-optimizer.html",
+  "description": "Free font loading optimizer with subsetting planner, loading strategy generator, font-display comparison, preload code generator, and performance impact estimator.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+  "author": {"@type": "Person", "name": "Michael Lip", "url": "https://zovo.one"},
+  "publisher": {"@type": "Organization", "name": "Krzen", "url": "https://krzen.com"},
+  "datePublished": "2026-05-25",
+  "dateModified": "2026-05-25",
+  "featureList": ["Font subsetting strategy planner", "Loading strategy code generator", "font-display value comparison", "Preload link generator", "Performance impact estimator", "WOFF2 size calculator", "Client-side processing"],
+  "browserRequirements": "Requires JavaScript"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the best font-display value for web performance?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "font-display: swap is the best default choice. It shows fallback text immediately and swaps to the custom font when loaded, ensuring text is always visible. font-display: optional is better for non-critical fonts because it avoids layout shift entirely — if the font is not cached, the browser uses the fallback permanently for that page load. Google Fonts uses swap by default. For body text, use swap. For decorative or brand fonts where layout shift is unacceptable, use optional."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How much can font subsetting reduce file size?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Font subsetting can reduce file size by 50-90% depending on the original font. A full Inter variable font is 300KB+ but subsetting to Latin characters reduces it to 20-40KB. Subsetting to only the characters used on your page can bring it under 15KB. The most impactful subset is unicode-range: U+0020-007F (Basic Latin, 95 characters) which covers English text and common punctuation. Google Fonts automatically serves subset files based on the unicode-range CSS descriptor."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Should I self-host fonts or use Google Fonts?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Self-hosting is faster in 2026. Previously, Google Fonts benefited from cross-site caching (fonts cached from one site were reused on another), but Chrome, Firefox, and Safari now partition their caches by domain, eliminating this advantage. Self-hosted fonts require only one DNS lookup (your domain) versus two (your domain + fonts.googleapis.com + fonts.gstatic.com). Self-hosting also gives you full control over subsetting, format selection, and cache headers. Use google-webfonts-helper to download Google Fonts for self-hosting."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is FOIT and FOUT in web fonts?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "FOIT (Flash of Invisible Text) occurs when the browser hides text while waiting for a web font to download. FOUT (Flash of Unstyled Text) occurs when the browser shows text in a fallback font, then swaps to the web font when loaded. FOIT is worse for user experience because users see blank content. font-display: swap causes FOUT (preferred), while font-display: block causes FOIT (avoid). The ideal approach is to use swap with a size-adjusted fallback font that closely matches the web font metrics, minimizing the visual jump during swap."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I preload web fonts correctly?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Use the link preload tag: <link rel='preload' href='/fonts/inter.woff2' as='font' type='font/woff2' crossorigin>. The crossorigin attribute is required even for same-origin fonts because font requests use CORS. Only preload fonts used above the fold — preloading too many fonts wastes bandwidth and can delay other critical resources. Limit preloads to 1-2 font files maximum. Always preload WOFF2 format only (not WOFF or TTF). Place the preload link before your stylesheet link in the head for maximum effectiveness."
+      }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://krzen.com/"},
+    {"@type": "ListItem", "position": 2, "name": "Tools", "item": "https://krzen.com/tools/"},
+    {"@type": "ListItem", "position": 3, "name": "Font Loading Optimizer", "item": "https://krzen.com/tools/font-loading-optimizer.html"}
+  ]
+}
+</script>
+<style>
+.tool-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin:20px 0}
+.tool-section h3{font-family:var(--font-display);font-size:0.85rem;text-transform:uppercase;color:var(--accent);margin-bottom:16px;letter-spacing:0.04em}
+.input-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.input-field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:200px}
+.input-field label{font-size:0.78rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;letter-spacing:0.3px}
+.input-field input,.input-field select,.input-field textarea{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:8px 12px;font-family:var(--font-body);font-size:0.9rem}
+.input-field input:focus,.input-field select:focus{outline:none;border-color:var(--accent)}
+.font-entry{padding:16px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px}
+.font-entry .fe-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.font-entry .fe-title{font-weight:600;font-size:0.9rem}
+.remove-btn{background:transparent;border:1px solid #F87171;color:#F87171;padding:4px 10px;border-radius:var(--radius);font-size:0.75rem;cursor:pointer}
+.strategy-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:16px 0}
+.strategy-card{padding:16px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all 0.2s}
+.strategy-card:hover,.strategy-card.active{border-color:var(--accent)}
+.strategy-card.active{background:rgba(251,146,60,0.04)}
+.strategy-card h4{font-size:0.9rem;margin:0 0 6px}
+.strategy-card p{font-size:0.78rem;color:var(--text-muted);margin:0;line-height:1.4}
+.code-output{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:16px;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--text-muted);overflow-x:auto;max-height:400px;white-space:pre;line-height:1.6}
+.bp-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;text-align:center;margin:16px 0}
+.bp-summary .val{font-family:var(--font-display);font-size:1.4rem;font-weight:700}
+.bp-summary .lbl{font-size:0.78rem;color:var(--text-muted);text-transform:uppercase}
+.status-ok{color:#34D399}
+.status-warn{color:#FBBF24}
+.status-bad{color:#F87171}
+.subset-chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.subset-chip{background:transparent;color:var(--text-muted);border:1px solid var(--border);border-radius:var(--radius);padding:5px 12px;font-size:0.78rem;cursor:pointer;transition:all 0.2s}
+.subset-chip:hover,.subset-chip.active{border-color:var(--accent);color:var(--accent);background:rgba(251,146,60,0.06)}
+.display-compare{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:16px 0}
+.display-card{padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);text-align:center}
+.display-card .dc-val{font-family:var(--font-display);font-weight:700;font-size:0.95rem;margin-bottom:4px}
+.display-card .dc-desc{font-size:0.72rem;color:var(--text-muted)}
+.explainer-section{max-width:760px;margin:40px auto 0;padding:0 0 20px}
+.explainer-section h2{font-size:1.3rem;margin:32px 0 12px;color:var(--accent)}
+.explainer-section h3{font-size:1.1rem;margin:24px 0 8px}
+.explainer-section p{color:var(--text-muted);margin-bottom:16px;line-height:1.7}
+.explainer-section ul,.explainer-section ol{color:var(--text-muted);margin:0 0 16px 24px}
+.explainer-section li{margin-bottom:6px}
+.explainer-section code{font-family:var(--font-display);background:var(--bg-card);padding:2px 6px;border-radius:3px;font-size:0.9em}
+.related-tools{margin:40px 0 0}
+.related-tools h3{font-family:var(--font-display);text-align:center;margin-bottom:16px;font-size:1rem}
+.related-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.related-grid a{display:block;padding:14px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);text-decoration:none;font-size:0.9rem;transition:border-color 0.2s}
+.related-grid a:hover{border-color:var(--accent);text-decoration:none}
+.related-grid a small{display:block;color:var(--text-muted);font-size:0.78rem;margin-top:4px}
+.author-bio{margin:32px 0;padding:20px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius)}
+.author-bio p{color:var(--text-muted);font-size:0.9rem;line-height:1.6;margin:0}
+.author-bio p strong{color:var(--text)}
+.last-updated{text-align:center;color:var(--text-muted);font-size:0.8rem;margin:24px 0 0}
+@media(max-width:768px){.input-row{flex-direction:column}.bp-summary{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <a href="/" class="logo">krzen</a>
+    <nav>
+      <a href="/">Tool</a>
+      <a href="/research/">Research</a>
+      <a href="/guides/">Guides</a>
+      <a href="/tools/">Tools</a>
+      <a href="/blog/">Blog</a>
+      <a href="/about.html">About</a>
+      <div class="nav-right">
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&amp;utm_medium=satellite&amp;utm_campaign=nav-link" class="nav-pro" target="_blank">Go Pro &#10022;</a>
+        <a href="https://zovo.one/tools" class="nav-zovo">Zovo Tools</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <nav class="breadcrumb" aria-label="Breadcrumb" style="font-size:0.82rem;margin:20px 0 0;"><a href="/">Home</a> <span style="color:var(--text-muted);margin:0 4px;">/</span> <a href="/tools/">Tools</a> <span style="color:var(--text-muted);margin:0 4px;">/</span> <span style="color:var(--text-muted);">Font Loading Optimizer</span></nav>
+
+  <section class="hero">
+    <h1>Font Loading <span>Optimizer</span></h1>
+    <p>Plan your font subsetting strategy, generate optimal loading code, compare font-display values, and estimate performance impact. Build the fastest possible web font delivery pipeline.</p>
+  </section>
+
+  <div class="tool-section">
+    <h3>Your Fonts</h3>
+    <div id="font-list">
+      <div class="font-entry" data-idx="0">
+        <div class="fe-header"><span class="fe-title">Font 1</span><button class="remove-btn" onclick="FLO.removeFont(0)">Remove</button></div>
+        <div class="input-row">
+          <div class="input-field"><label>Font Family</label><input type="text" class="f-name" placeholder="Inter" value="Inter"></div>
+          <div class="input-field"><label>Weights Used</label><input type="text" class="f-weights" placeholder="400, 600, 700" value="400, 600, 700"></div>
+          <div class="input-field"><label>Usage</label><select class="f-usage"><option value="body" selected>Body Text</option><option value="heading">Headings</option><option value="display">Display / Hero</option><option value="mono">Code / Mono</option></select></div>
+        </div>
+        <div>
+          <label style="font-size:0.78rem;color:var(--text-muted);text-transform:uppercase;font-weight:600">Character Subsets</label>
+          <div class="subset-chips">
+            <button class="subset-chip active" onclick="this.classList.toggle('active')">Latin (U+0020-007F)</button>
+            <button class="subset-chip" onclick="this.classList.toggle('active')">Latin Extended (U+0100-024F)</button>
+            <button class="subset-chip" onclick="this.classList.toggle('active')">Cyrillic (U+0400-04FF)</button>
+            <button class="subset-chip" onclick="this.classList.toggle('active')">Greek (U+0370-03FF)</button>
+            <button class="subset-chip" onclick="this.classList.toggle('active')">CJK (U+4E00-9FFF)</button>
+            <button class="subset-chip" onclick="this.classList.toggle('active')">Vietnamese (U+0102-0103)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <button class="btn" onclick="FLO.addFont()" style="margin-top:8px">+ Add Another Font</button>
+  </div>
+
+  <div class="tool-section">
+    <h3>Loading Strategy</h3>
+    <div class="strategy-cards">
+      <div class="strategy-card active" onclick="FLO.setStrategy('swap',this)"><h4>Swap (Recommended)</h4><p>Show fallback immediately, swap when loaded. Best for body text.</p></div>
+      <div class="strategy-card" onclick="FLO.setStrategy('optional',this)"><h4>Optional</h4><p>Use font only if cached. No layout shift. Best for non-critical fonts.</p></div>
+      <div class="strategy-card" onclick="FLO.setStrategy('preload-swap',this)"><h4>Preload + Swap</h4><p>Preload critical fonts, swap others. Best overall performance.</p></div>
+      <div class="strategy-card" onclick="FLO.setStrategy('two-stage',this)"><h4>Two-Stage</h4><p>Load critical subset first, full font second. Advanced optimization.</p></div>
+    </div>
+  </div>
+
+  <div class="tool-section">
+    <h3>Hosting Method</h3>
+    <div class="input-row">
+      <div class="input-field">
+        <label>Font Source</label>
+        <select id="font-source"><option value="self" selected>Self-Hosted (recommended)</option><option value="google">Google Fonts</option><option value="adobe">Adobe Fonts</option></select>
+      </div>
+      <div class="input-field">
+        <label>Font Path (self-hosted)</label>
+        <input type="text" id="font-path" value="/fonts/">
+      </div>
+    </div>
+    <button class="btn" onclick="FLO.generate()">Generate Optimized Code</button>
+  </div>
+
+  <div id="results" style="display:none">
+    <div class="tool-section">
+      <h3>Performance Estimate</h3>
+      <div class="bp-summary">
+        <div><div class="val" id="est-fonts">--</div><div class="lbl">Font Files</div></div>
+        <div><div class="val" id="est-size">--</div><div class="lbl">Est. Total Size</div></div>
+        <div><div class="val" id="est-savings">--</div><div class="lbl">Savings vs Full</div></div>
+        <div><div class="val" id="est-lcp">--</div><div class="lbl">LCP Impact</div></div>
+      </div>
+    </div>
+
+    <div class="tool-section">
+      <h3>font-display Comparison</h3>
+      <div class="display-compare">
+        <div class="display-card"><div class="dc-val">auto</div><div class="dc-desc">Browser default. Usually block (3s invisible).</div></div>
+        <div class="display-card"><div class="dc-val">block</div><div class="dc-desc">Invisible text up to 3s. FOIT risk. Avoid.</div></div>
+        <div class="display-card"><div class="dc-val" style="color:var(--accent)">swap</div><div class="dc-desc">Fallback shown immediately. FOUT (preferred).</div></div>
+        <div class="display-card"><div class="dc-val">fallback</div><div class="dc-desc">100ms invisible, then fallback. Swap within 3s.</div></div>
+        <div class="display-card"><div class="dc-val">optional</div><div class="dc-desc">Use if cached only. Zero layout shift.</div></div>
+      </div>
+    </div>
+
+    <div class="tool-section">
+      <h3>Generated CSS (@font-face)</h3>
+      <pre class="code-output" id="css-output"></pre>
+      <button class="btn" style="margin-top:12px" onclick="FLO.copy('css-output')">Copy CSS</button>
+    </div>
+
+    <div class="tool-section">
+      <h3>HTML Head Code</h3>
+      <pre class="code-output" id="html-output"></pre>
+      <button class="btn" style="margin-top:12px" onclick="FLO.copy('html-output')">Copy HTML</button>
+    </div>
+
+    <div class="tool-section">
+      <h3>Fallback Font Stack</h3>
+      <pre class="code-output" id="fallback-output"></pre>
+      <button class="btn" style="margin-top:12px" onclick="FLO.copy('fallback-output')">Copy Fallback CSS</button>
+    </div>
+  </div>
+
+  <section class="explainer-section">
+    <h2>Why Font Loading Performance Matters</h2>
+    <p>Web fonts are one of the most impactful resources on page load performance. A typical website loads 2-4 font files totaling 100-400KB. Without optimization, these fonts block text rendering: the browser hides all text until the font downloads, creating a Flash of Invisible Text (FOIT) that can last 3+ seconds on slow connections. This directly impacts Core Web Vitals — a slow font load delays Largest Contentful Paint (LCP) when the LCP element contains text, and causes Cumulative Layout Shift (CLS) when the font swap changes text dimensions.</p>
+    <p>The good news is that font loading is one of the most optimizable performance bottlenecks. Through subsetting, format selection, strategic loading, and proper caching, you can reduce font payload by 70-90% and eliminate visible loading delays entirely. This tool generates the optimal configuration based on your specific font requirements.</p>
+
+    <h2>Font Format Selection: WOFF2 Is the Only Format You Need</h2>
+    <p>In 2026, WOFF2 has 98%+ browser support globally. There is no reason to serve WOFF, TTF, or EOT formats. WOFF2 uses Brotli compression, achieving 20-30% smaller files than WOFF (which uses zlib). A single WOFF2 file covers all modern browsers. The only exception is if you must support IE 11, which requires WOFF — but IE 11 usage is below 0.1% globally. Dropping legacy formats simplifies your font-face declarations and reduces the number of files the browser must evaluate.</p>
+
+    <h2>Subsetting: The Biggest Single Optimization</h2>
+    <p>A full-character-set font file includes glyphs for Latin, Cyrillic, Greek, CJK, Arabic, and hundreds of other scripts. The Inter font, for example, contains 2,548 glyphs in its full version (310KB WOFF2) but an English-only subset contains roughly 230 glyphs (18KB WOFF2) — a 94% reduction. If your site serves English content, you are paying a 290KB penalty for characters you never display.</p>
+    <p>The most effective subset is Basic Latin (Unicode range U+0020-007F): 95 characters covering A-Z, a-z, 0-9, common punctuation, and spaces. This handles 99% of English text. Add Latin Extended (U+0100-024F) for Western European language support (accented characters like e, u, n). For multi-language sites, use the CSS <code>unicode-range</code> descriptor to serve different subset files for different character ranges, letting the browser download only what each page actually needs.</p>
+
+    <h2>Loading Strategies Explained</h2>
+    <h3>Strategy 1: font-display: swap (Simple and Effective)</h3>
+    <p>The simplest and most widely recommended approach. Add <code>font-display: swap</code> to your @font-face declarations. The browser immediately renders text in the fallback font and swaps to the web font when it loads. This eliminates invisible text entirely. The tradeoff is FOUT (Flash of Unstyled Text) — users see the fallback font briefly before the swap. Minimize the visual impact by choosing a fallback font with similar metrics (x-height, character width, line height) to your web font.</p>
+
+    <h3>Strategy 2: Preload + Swap (Fastest First Paint)</h3>
+    <p>Add a <code>&lt;link rel="preload"&gt;</code> for your most critical font file (typically the body text regular weight) combined with font-display: swap. Preloading tells the browser to start downloading the font immediately, before it even parses the CSS. This reduces the time between first paint (with fallback) and font swap by 200-500ms. Only preload 1-2 font files — preloading more can backfire by competing with other critical resources like CSS and above-the-fold images.</p>
+
+    <h3>Strategy 3: font-display: optional (Zero Layout Shift)</h3>
+    <p>For fonts that are not critical to your brand or readability, <code>font-display: optional</code> is the most performance-friendly choice. The browser uses the web font only if it is already in the cache (from a previous visit). On first visit, the fallback font is used permanently — no swap, no layout shift, no FOUT. This produces the best CLS score but means first-time visitors never see your custom font. It is ideal for secondary fonts, decorative fonts, or any font where the fallback is an acceptable substitute.</p>
+
+    <h3>Strategy 4: Two-Stage Loading (Advanced)</h3>
+    <p>Load a minimal subset (e.g., Latin only, regular weight) first, then load the full font family asynchronously. The first stage provides the most-used characters almost instantly. The second stage fills in additional weights (bold, italic) and character ranges without blocking rendering. This is the approach used by major news sites that need multiple weights and extensive language coverage. Implementation requires more complex CSS with multiple @font-face rules and careful unicode-range declarations.</p>
+
+    <h2>Self-Hosting vs CDN-Hosted Fonts</h2>
+    <p>Self-hosting fonts is faster than using Google Fonts or any third-party CDN in 2026. The reason: browser cache partitioning. Since 2020-2021, Chrome, Firefox, and Safari partition their HTTP cache by the top-level domain. A font cached from Google Fonts on site-a.com cannot be reused when visiting site-b.com. This eliminated the cross-site caching benefit that once made CDN-hosted fonts attractive. Self-hosted fonts require only one DNS lookup and one connection (your server), while Google Fonts requires resolving fonts.googleapis.com and fonts.gstatic.com — adding 100-200ms of connection overhead.</p>
+    <p>To self-host Google Fonts, use the google-webfonts-helper tool to download the WOFF2 files, place them in your project's fonts directory, and add @font-face rules pointing to your local files. Set aggressive cache headers (Cache-Control: public, max-age=31536000, immutable) since font files change rarely. This gives you full control over subsetting, loading strategy, and cache lifetime — all impossible with third-party hosted fonts.</p>
+  </section>
+
+  <section class="faq-section" style="max-width:760px;margin:40px auto 0;">
+    <h2>Frequently Asked Questions</h2>
+    <details><summary>What is the best font-display value for web performance?</summary><p>font-display: swap is the best default. It shows fallback text immediately and swaps when loaded. Use optional for non-critical fonts to avoid any layout shift.</p></details>
+    <details><summary>How much can font subsetting reduce file size?</summary><p>50-90% depending on the font. Inter goes from 310KB to 18KB when subset to Latin only — a 94% reduction. Basic Latin (95 characters) covers 99% of English text.</p></details>
+    <details><summary>Should I self-host fonts or use Google Fonts?</summary><p>Self-hosting is faster in 2026 due to browser cache partitioning. Google Fonts no longer benefits from cross-site caching, and adds 2 extra DNS lookups.</p></details>
+    <details><summary>What is FOIT and FOUT in web fonts?</summary><p>FOIT = invisible text while font loads (bad). FOUT = fallback text that swaps to web font (preferred). Use font-display: swap to get FOUT instead of FOIT.</p></details>
+    <details><summary>How do I preload web fonts correctly?</summary><p>Use &lt;link rel="preload" href="/fonts/font.woff2" as="font" type="font/woff2" crossorigin&gt;. The crossorigin attribute is required. Only preload 1-2 critical fonts.</p></details>
+  </section>
+
+  <section class="related-tools" style="max-width:760px;margin:40px auto;">
+    <h3>Related Tools &amp; Guides</h3>
+    <div class="related-grid">
+      <a href="/tools/css-critical-path-extractor.html">CSS Critical Path Extractor<small>Extract above-the-fold CSS</small></a>
+      <a href="/tools/page-speed-analyzer.html">Page Speed Analyzer<small>Performance budget calculator</small></a>
+      <a href="/answers/image-optimization-checklist.html">Image Optimization Checklist<small>Audit images for web performance</small></a>
+    </div>
+  </section>
+
+  <div class="author-bio" style="max-width:760px;margin:32px auto;">
+    <p><strong>Written by Michael Lip</strong> — solo dev building free developer tools at <a href="https://zovo.one">zovo.one</a>. No tracking, no accounts, no data collection. If you find this tool useful, check out the full <a href="https://zovo.one/tools">Zovo Tools</a> suite.</p>
+  </div>
+
+  <div class="last-updated" style="max-width:760px;margin:16px auto;"><time datetime="2026-05-25">Last updated: May 25, 2026</time></div>
+</main>
+
+<footer class="site-footer">
+    <div class="footer-inner">
+        <div class="footer-brand">Zovo Tools</div>
+        <div class="footer-tagline">Free developer tools by a solo dev. No tracking.</div>
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&utm_medium=satellite&utm_campaign=footer-link" class="footer-cta">Zovo Lifetime &mdash; $99 once, free forever &rarr;</a>
+        <div class="footer-copy">&copy; 2026 <a href="https://zovo.one">Zovo</a> &middot; 47/500 founding spots</div>
+    </div>
+</footer>
+
+<nav class="zovo-network" aria-label="Zovo Tools Network">
+    <div class="zovo-network-inner">
+        <h3 class="zovo-network-title">Explore More Tools</h3>
+        <div class="zovo-network-links">
+            <a href="https://abwex.com">ABWex &mdash; A/B Testing</a>
+            <a href="https://claudflow.com">ClaudFlow &mdash; Workflows</a>
+            <a href="https://claudhq.com">ClaudHQ &mdash; AI Code Tools &amp; Fixes</a>
+            <a href="https://claudkit.com">ClaudKit &mdash; API</a>
+            <a href="https://enhio.com">Enhio &mdash; Text Tools</a>
+            <a href="https://epochpilot.com">EpochPilot &mdash; Timestamps</a>
+            <a href="https://gen8x.com">Gen8X &mdash; Color Tools</a>
+            <a href="https://gpt0x.com">GPT0X &mdash; AI Models</a>
+            <a href="https://heytensor.com">HeyTensor &mdash; ML Tools</a>
+            <a href="https://invokebot.com">InvokeBot &mdash; Webhooks</a>
+            <a href="https://kappafy.com">Kappafy &mdash; JSON</a>
+            <a href="https://kappakit.com">KappaKit &mdash; Dev Toolkit</a>
+            <a href="https://kickllm.com">KickLLM &mdash; LLM Costs</a>
+            <a href="https://lochbot.com">LochBot &mdash; Security</a>
+            <a href="https://lockml.com">LockML &mdash; ML Compare</a>
+            <a href="https://ml3x.com">ML3X &mdash; Matrix Math</a>
+        </div>
+    </div>
+</nav>
+
+<script>
+const FLO={
+  fontCount:1,
+  strategy:'swap',
+
+  setStrategy(s,el){
+    this.strategy=s;
+    document.querySelectorAll('.strategy-card').forEach(c=>c.classList.remove('active'));
+    el.classList.add('active');
+  },
+
+  addFont(){
+    this.fontCount++;
+    const div=document.createElement('div');
+    div.className='font-entry';
+    div.dataset.idx=this.fontCount-1;
+    div.innerHTML=`<div class="fe-header"><span class="fe-title">Font ${this.fontCount}</span><button class="remove-btn" onclick="FLO.removeFont(${this.fontCount-1})">Remove</button></div><div class="input-row"><div class="input-field"><label>Font Family</label><input type="text" class="f-name" placeholder="Roboto"></div><div class="input-field"><label>Weights Used</label><input type="text" class="f-weights" placeholder="400, 700" value="400, 700"></div><div class="input-field"><label>Usage</label><select class="f-usage"><option value="body">Body Text</option><option value="heading" selected>Headings</option><option value="display">Display / Hero</option><option value="mono">Code / Mono</option></select></div></div><div><label style="font-size:0.78rem;color:var(--text-muted);text-transform:uppercase;font-weight:600">Character Subsets</label><div class="subset-chips"><button class="subset-chip active" onclick="this.classList.toggle('active')">Latin (U+0020-007F)</button><button class="subset-chip" onclick="this.classList.toggle('active')">Latin Extended (U+0100-024F)</button><button class="subset-chip" onclick="this.classList.toggle('active')">Cyrillic (U+0400-04FF)</button></div></div>`;
+    document.getElementById('font-list').appendChild(div);
+  },
+
+  removeFont(idx){
+    const entries=document.querySelectorAll('.font-entry');
+    if(entries.length<=1)return;
+    entries.forEach(e=>{if(parseInt(e.dataset.idx)===idx)e.remove();});
+  },
+
+  getFonts(){
+    const fonts=[];
+    document.querySelectorAll('.font-entry').forEach(entry=>{
+      const name=entry.querySelector('.f-name').value.trim()||'Inter';
+      const weights=entry.querySelector('.f-weights').value.split(',').map(w=>w.trim()).filter(Boolean);
+      const usage=entry.querySelector('.f-usage').value;
+      const subsets=[];
+      entry.querySelectorAll('.subset-chip.active').forEach(c=>subsets.push(c.textContent.trim()));
+      fonts.push({name,weights:weights.length?weights:['400'],usage,subsets});
+    });
+    return fonts;
+  },
+
+  generate(){
+    const fonts=this.getFonts();
+    const source=document.getElementById('font-source').value;
+    const path=document.getElementById('font-path').value||'/fonts/';
+    const strategy=this.strategy;
+
+    let totalFiles=0;
+    let estSizeKB=0;
+    let fullSizeKB=0;
+
+    let css='/* Font Loading — Generated by Krzen Font Loading Optimizer */\n\n';
+    let html='<!-- Font Preload & Loading -->\n';
+    let fallback='/* Fallback Font Stacks */\n';
+
+    const displayVal=strategy==='optional'?'optional':'swap';
+    const fallbackMap={body:"-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",heading:"-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",display:"Georgia, 'Times New Roman', serif",mono:"'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace"};
+
+    fonts.forEach((font,fi)=>{
+      const slug=font.name.toLowerCase().replace(/\s+/g,'-');
+      const subsetHasLatin=font.subsets.some(s=>s.includes('Latin'));
+      const subsetCount=font.subsets.length||1;
+      const baseSize=subsetHasLatin?18:35;
+
+      font.weights.forEach((weight,wi)=>{
+        totalFiles++;
+        const estFile=baseSize*subsetCount;
+        estSizeKB+=estFile;
+        fullSizeKB+=baseSize*6;
+        const fileName=`${slug}-${weight}.woff2`;
+
+        if(source==='self'){
+          let unicodeRange='';
+          if(font.subsets.some(s=>s.includes('U+0020-007F')))unicodeRange='unicode-range: U+0020-007F;';
+
+          css+=`@font-face {\n  font-family: '${font.name}';\n  font-style: normal;\n  font-weight: ${weight};\n  font-display: ${displayVal};\n  src: url('${path}${fileName}') format('woff2');\n  ${unicodeRange}\n}\n\n`;
+
+          if((strategy==='preload-swap'||strategy==='two-stage')&&wi===0&&fi===0){
+            html+=`<link rel="preload" href="${path}${fileName}" as="font" type="font/woff2" crossorigin>\n`;
+          }
+        }
+      });
+
+      fallback+=`.font-${slug} {\n  font-family: '${font.name}', ${fallbackMap[font.usage]||fallbackMap.body};\n}\n\n`;
+    });
+
+    if(source==='google'){
+      const families=fonts.map(f=>`family=${f.name.replace(/\s/g,'+')}:wght@${f.weights.join(';')}`).join('&');
+      html+=`<link rel="preconnect" href="https://fonts.googleapis.com">\n`;
+      html+=`<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n`;
+      html+=`<link href="https://fonts.googleapis.com/css2?${families}&display=${displayVal}" rel="stylesheet">\n`;
+      css='/* Using Google Fonts — CSS loaded via HTML link above */\n/* For better performance, self-host instead */\n';
+    }
+
+    if(source==='self'&&strategy!=='preload-swap'&&strategy!=='two-stage'){
+      html+='<!-- No preload needed for this strategy -->\n';
+    }
+
+    html+=`\n<!-- Inline critical @font-face in <style> tag, or link external CSS -->\n<style>\n${css}</style>`;
+
+    document.getElementById('results').style.display='block';
+    document.getElementById('est-fonts').textContent=totalFiles;
+    document.getElementById('est-size').textContent=estSizeKB+'KB';
+    const savingsPct=Math.round((1-estSizeKB/fullSizeKB)*100);
+    document.getElementById('est-savings').textContent=savingsPct+'%';
+    document.getElementById('est-savings').className='val '+(savingsPct>50?'status-ok':'status-warn');
+    document.getElementById('est-lcp').textContent=estSizeKB<50?'Minimal':'Moderate';
+    document.getElementById('est-lcp').className='val '+(estSizeKB<50?'status-ok':'status-warn');
+
+    document.getElementById('css-output').textContent=css;
+    document.getElementById('html-output').textContent=html;
+    document.getElementById('fallback-output').textContent=fallback;
+    document.getElementById('results').scrollIntoView({behavior:'smooth'});
+  },
+
+  copy(id){
+    navigator.clipboard.writeText(document.getElementById(id).textContent).then(()=>{
+      const btn=event.target;const orig=btn.textContent;btn.textContent='Copied!';btn.style.borderColor='#34D399';btn.style.color='#34D399';setTimeout(()=>{btn.textContent=orig;btn.style.borderColor='';btn.style.color='';},2000);
+    });
+  }
+};
+</script>
+</body>
+</html>

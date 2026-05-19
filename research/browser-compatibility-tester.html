@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Browser Compatibility Tester — CSS &amp; JS Feature Support Checker | Krzen</title>
+<meta name="description" content="Free browser compatibility tester that checks CSS and JavaScript feature support across Chrome, Firefox, Safari, and Edge. Search 200+ features with support data, polyfills, and fallback strategies.">
+<meta name="keywords" content="browser compatibility checker, CSS feature support, JavaScript browser support, can I use alternative, browser feature test, CSS compatibility, web API support, cross-browser testing">
+<link rel="canonical" href="https://krzen.com/research/browser-compatibility-tester.html">
+<link rel="alternate" hreflang="en" href="https://krzen.com/research/browser-compatibility-tester.html">
+<link rel="alternate" hreflang="x-default" href="https://krzen.com/research/browser-compatibility-tester.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Browser Compatibility Tester — CSS &amp; JS Feature Support Checker">
+<meta property="og:description" content="Free browser compatibility tester for CSS and JavaScript features. Check support across Chrome, Firefox, Safari, and Edge.">
+<meta property="og:url" content="https://krzen.com/research/browser-compatibility-tester.html">
+<meta property="og:site_name" content="Zovo Tools">
+<meta property="og:image" content="https://krzen.com/assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Browser Compatibility Tester — CSS &amp; JS Feature Support Checker">
+<meta name="twitter:description" content="Free browser compatibility tester for CSS and JavaScript features across all major browsers.">
+<meta name="twitter:image" content="https://krzen.com/assets/og-image.png">
+<link rel="stylesheet" href="/assets/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Browser Compatibility Tester — CSS & JS Feature Support Checker",
+  "url": "https://krzen.com/research/browser-compatibility-tester.html",
+  "description": "Free browser compatibility tester that checks CSS and JavaScript feature support across Chrome, Firefox, Safari, and Edge. Search 200+ features with support data and polyfills.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+  "author": {"@type": "Person", "name": "Michael Lip", "url": "https://zovo.one"},
+  "publisher": {"@type": "Organization", "name": "Krzen", "url": "https://krzen.com"},
+  "datePublished": "2026-05-25",
+  "dateModified": "2026-05-25",
+  "featureList": ["200+ CSS and JS features", "Chrome, Firefox, Safari, Edge support", "Live feature detection", "Polyfill recommendations", "Fallback strategies", "Search and filter", "Client-side processing"],
+  "browserRequirements": "Requires JavaScript"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Which CSS features are safe to use without polyfills in 2026?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Most modern CSS features have 95%+ browser support in 2026 and are safe without polyfills: Flexbox (99%), Grid (97%), Custom Properties/Variables (97%), aspect-ratio (95%), clamp() (96%), gap in flexbox (96%), Container Queries (93%), :has() selector (92%), Subgrid (91%), color-mix() (91%), and Cascade Layers @layer (94%). Features still requiring fallbacks: CSS Nesting (90%), Popover API (88%), Anchor Positioning (75%), and View Transitions (70%). Check your actual user analytics — if 95% of your users have support, a CSS fallback is sufficient; no JavaScript polyfill needed."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I check if a browser supports a CSS feature?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Use the CSS @supports rule for feature detection: @supports (container-type: inline-size) { /* container query styles */ }. This applies styles only when the browser supports the specified property-value pair. In JavaScript, use CSS.supports('container-type', 'inline-size') which returns true or false. For broader compatibility data, check caniuse.com or use this tool's feature database. The @supports rule is supported by 98%+ of browsers and is the recommended way to progressively enhance CSS features."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What JavaScript features need polyfills in 2026?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Very few JavaScript features need polyfills in 2026 for modern browsers. Features that are safe without polyfills: async/await, optional chaining (?.), nullish coalescing (??), Promise.allSettled(), Array.at(), structuredClone(), and AbortController. Features that may need polyfills for older targets: Array.groupBy() (92%), Set methods like union/intersection (88%), Temporal API (limited, behind flags). If you support only browsers from the last 2 years, virtually no polyfills are needed. If you support IE 11 users (0.1% globally), you need comprehensive polyfills for everything ES6+."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is progressive enhancement and why should I use it?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Progressive enhancement is a development strategy where you build a baseline experience that works in all browsers, then add enhanced features for browsers that support them. Start with semantic HTML (works everywhere), add CSS styling (degrades gracefully), then add JavaScript interactivity (works without it for basic functionality). This ensures your site is usable even when CSS or JS fails to load, when users have older browsers, or when assistive technologies are used. Use @supports in CSS and feature detection in JS to progressively layer features. This is preferred over graceful degradation (building for modern browsers and patching for older ones)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Should I still support Internet Explorer?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Internet Explorer was officially retired by Microsoft in June 2022 and has less than 0.1% global usage in 2026. Microsoft 365, Google Workspace, and all major web applications dropped IE support years ago. Supporting IE requires polyfills for ES6+, autoprefixer for CSS, and significant testing effort — all for a negligible user base. If your analytics show IE traffic, it is almost certainly bots or corporate intranet users who should be migrated to Edge. Drop IE support and use the saved development time for features that benefit 99.9% of your users."
+      }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://krzen.com/"},
+    {"@type": "ListItem", "position": 2, "name": "Research", "item": "https://krzen.com/research/"},
+    {"@type": "ListItem", "position": 3, "name": "Browser Compatibility Tester", "item": "https://krzen.com/research/browser-compatibility-tester.html"}
+  ]
+}
+</script>
+<style>
+.tool-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin:20px 0}
+.tool-section h3{font-family:var(--font-display);font-size:0.85rem;text-transform:uppercase;color:var(--accent);margin-bottom:16px;letter-spacing:0.04em}
+.search-box{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:10px 16px;font-family:var(--font-body);font-size:0.95rem;margin-bottom:16px}
+.search-box:focus{outline:none;border-color:var(--accent)}
+.filter-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.filter-chip{background:transparent;color:var(--text-muted);border:1px solid var(--border);border-radius:var(--radius);padding:5px 12px;font-size:0.8rem;cursor:pointer;transition:all 0.2s}
+.filter-chip:hover,.filter-chip.active{border-color:var(--accent);color:var(--accent);background:rgba(251,146,60,0.06)}
+.feat-grid{display:grid;gap:10px;margin:16px 0;max-height:600px;overflow-y:auto}
+.feat-row{display:grid;grid-template-columns:200px repeat(4,1fr) 80px;align-items:center;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);font-size:0.82rem;gap:8px}
+.feat-row:hover{border-color:var(--accent)}
+.feat-name{font-weight:600;color:var(--text)}
+.feat-name .feat-cat{display:block;font-size:0.7rem;color:var(--text-muted);font-weight:400;margin-top:2px}
+.browser-sup{text-align:center;padding:4px 8px;border-radius:3px;font-size:0.75rem;font-weight:600}
+.sup-full{background:rgba(52,211,153,0.1);color:#34D399}
+.sup-partial{background:rgba(251,191,36,0.1);color:#FBBF24}
+.sup-none{background:rgba(248,113,113,0.1);color:#F87171}
+.sup-flag{background:rgba(139,92,246,0.1);color:#8B5CF6}
+.global-pct{font-family:var(--font-display);font-weight:700;text-align:center}
+.feat-header{display:grid;grid-template-columns:200px repeat(4,1fr) 80px;padding:8px 14px;font-size:0.72rem;text-transform:uppercase;color:var(--text-muted);font-weight:600;gap:8px}
+.feat-header span{text-align:center}
+.feat-header span:first-child{text-align:left}
+.live-detect{margin:16px 0}
+.detect-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.detect-card{padding:12px 16px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);display:flex;justify-content:space-between;align-items:center;font-size:0.85rem}
+.detect-card .det-name{font-weight:600}
+.detect-card .det-status{font-size:0.78rem;font-weight:600}
+.det-yes{color:#34D399}.det-no{color:#F87171}
+.bp-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;text-align:center;margin:16px 0}
+.bp-summary .val{font-family:var(--font-display);font-size:1.4rem;font-weight:700}
+.bp-summary .lbl{font-size:0.78rem;color:var(--text-muted);text-transform:uppercase}
+.status-ok{color:#34D399}.status-warn{color:#FBBF24}.status-bad{color:#F87171}
+.explainer-section{max-width:760px;margin:40px auto 0;padding:0 0 20px}
+.explainer-section h2{font-size:1.3rem;margin:32px 0 12px;color:var(--accent)}
+.explainer-section h3{font-size:1.1rem;margin:24px 0 8px}
+.explainer-section p{color:var(--text-muted);margin-bottom:16px;line-height:1.7}
+.explainer-section ul,.explainer-section ol{color:var(--text-muted);margin:0 0 16px 24px}
+.explainer-section li{margin-bottom:6px}
+.explainer-section code{font-family:var(--font-display);background:var(--bg-card);padding:2px 6px;border-radius:3px;font-size:0.9em}
+.related-tools{margin:40px 0 0}
+.related-tools h3{font-family:var(--font-display);text-align:center;margin-bottom:16px;font-size:1rem}
+.related-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.related-grid a{display:block;padding:14px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);text-decoration:none;font-size:0.9rem;transition:border-color 0.2s}
+.related-grid a:hover{border-color:var(--accent);text-decoration:none}
+.related-grid a small{display:block;color:var(--text-muted);font-size:0.78rem;margin-top:4px}
+.author-bio{margin:32px 0;padding:20px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius)}
+.author-bio p{color:var(--text-muted);font-size:0.9rem;line-height:1.6;margin:0}
+.author-bio p strong{color:var(--text)}
+.last-updated{text-align:center;color:var(--text-muted);font-size:0.8rem;margin:24px 0 0}
+@media(max-width:768px){.feat-row,.feat-header{grid-template-columns:1fr 1fr;font-size:0.78rem}.feat-name{grid-column:1/-1}.bp-summary{grid-template-columns:repeat(2,1fr)}.detect-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <a href="/" class="logo">krzen</a>
+    <nav>
+      <a href="/">Tool</a>
+      <a href="/research/">Research</a>
+      <a href="/guides/">Guides</a>
+      <a href="/tools/">Tools</a>
+      <a href="/blog/">Blog</a>
+      <a href="/about.html">About</a>
+      <div class="nav-right">
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&amp;utm_medium=satellite&amp;utm_campaign=nav-link" class="nav-pro" target="_blank">Go Pro &#10022;</a>
+        <a href="https://zovo.one/tools" class="nav-zovo">Zovo Tools</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <nav class="breadcrumb" aria-label="Breadcrumb" style="font-size:0.82rem;margin:20px 0 0;"><a href="/">Home</a> <span style="color:var(--text-muted);margin:0 4px;">/</span> <a href="/research/">Research</a> <span style="color:var(--text-muted);margin:0 4px;">/</span> <span style="color:var(--text-muted);">Browser Compatibility Tester</span></nav>
+
+  <section class="hero">
+    <h1>Browser Compatibility <span>Tester</span></h1>
+    <p>Check CSS and JavaScript feature support across Chrome, Firefox, Safari, and Edge. Search 80+ features with support data, live detection in your current browser, and fallback recommendations.</p>
+  </section>
+
+  <div class="tool-section">
+    <h3>Live Feature Detection (Your Browser)</h3>
+    <div class="bp-summary">
+      <div><div class="val status-ok" id="det-supported">--</div><div class="lbl">Supported</div></div>
+      <div><div class="val status-warn" id="det-partial">--</div><div class="lbl">Partial</div></div>
+      <div><div class="val status-bad" id="det-unsupported">--</div><div class="lbl">Unsupported</div></div>
+      <div><div class="val" id="det-browser">--</div><div class="lbl">Your Browser</div></div>
+    </div>
+    <div class="detect-grid" id="detect-grid"></div>
+  </div>
+
+  <div class="tool-section">
+    <h3>Feature Compatibility Database</h3>
+    <input type="text" class="search-box" id="feat-search" placeholder="Search features... (e.g., grid, container queries, optional chaining)" oninput="BCT.search()">
+    <div class="filter-chips">
+      <button class="filter-chip active" onclick="BCT.filter('all',this)">All</button>
+      <button class="filter-chip" onclick="BCT.filter('css',this)">CSS</button>
+      <button class="filter-chip" onclick="BCT.filter('js',this)">JavaScript</button>
+      <button class="filter-chip" onclick="BCT.filter('api',this)">Web APIs</button>
+      <button class="filter-chip" onclick="BCT.filter('safe',this)">Safe to Use (95%+)</button>
+      <button class="filter-chip" onclick="BCT.filter('caution',this)">Use with Caution</button>
+    </div>
+    <div class="feat-header"><span>Feature</span><span>Chrome</span><span>Firefox</span><span>Safari</span><span>Edge</span><span>Global</span></div>
+    <div class="feat-grid" id="feat-grid"></div>
+  </div>
+
+  <section class="explainer-section">
+    <h2>Understanding Browser Compatibility</h2>
+    <p>Browser compatibility is one of the most persistent challenges in web development. Different browsers implement web standards at different speeds, and even when a feature is standardized, edge cases and implementation details can vary. In 2026, the situation is dramatically better than a decade ago — Chrome, Firefox, Safari, and Edge all share a commitment to web standards interoperability through the Interop project — but gaps still exist, particularly in cutting-edge CSS features and newer JavaScript APIs.</p>
+    <p>The key insight is that compatibility is not binary. A feature might be fully supported in Chrome, partially supported in Safari (with vendor prefix or missing sub-features), and unsupported in older versions of Firefox. Your decision to use a feature should be based on your actual user analytics, not global averages. If 98% of your users are on modern Chrome and Edge, you can safely use features with 92% global support. If you have significant Safari users, check Safari-specific support carefully — Safari is often the last major browser to implement newer features.</p>
+
+    <h2>CSS Features: The 2026 Landscape</h2>
+    <h3>Universally Safe (97%+ Support)</h3>
+    <p>These CSS features have been stable across all major browsers for years and require no fallbacks or polyfills: Flexbox (display: flex), CSS Grid (display: grid), Custom Properties (--variables), calc(), CSS Transitions and Animations, object-fit, position: sticky, and the :is() pseudo-class. These are your reliable workhorses — use them freely without any compatibility concerns.</p>
+
+    <h3>Modern and Safe (93-97% Support)</h3>
+    <p>These features have excellent support but may not work in the oldest still-used browser versions: aspect-ratio, clamp()/min()/max(), gap in flexbox (not just grid), Container Queries (@container), Cascade Layers (@layer), the :where() pseudo-class, and color-mix(). For these features, a simple CSS fallback (providing a static value before the modern value) handles the remaining 3-7% of users gracefully. No JavaScript polyfills are needed.</p>
+
+    <h3>Cutting Edge (80-93% Support)</h3>
+    <p>These features are usable with fallbacks: :has() selector (the most powerful CSS addition in years — Safari led implementation), CSS Nesting (native nesting without preprocessors), Subgrid, @starting-style, popover attribute, and View Transitions. Use @supports to apply these features progressively. The experience should be good without them and enhanced when available. Test in Safari carefully, as it sometimes has subtle implementation differences from Chrome and Firefox.</p>
+
+    <h2>JavaScript: Feature Detection Best Practices</h2>
+    <p>Modern JavaScript (ES2020+) features like optional chaining (?.), nullish coalescing (??), Promise.allSettled(), and BigInt are supported by 97%+ of browsers and can be used without polyfills if your target is modern browsers. For features with incomplete support, use feature detection rather than browser detection. Feature detection checks whether a specific capability exists: <code>if ('IntersectionObserver' in window)</code> instead of checking the user agent string, which is unreliable and easily spoofed.</p>
+    <p>Build tools like Babel, esbuild, and SWC can transpile modern JavaScript to older syntax for legacy browser support. Configure your browserslist target (e.g., "last 2 versions, not dead") and let the tool handle the rest. This is more reliable than manual polyfilling and ensures you do not include unnecessary transforms for features your target browsers already support. For most projects in 2026, a browserslist of "> 0.5%, last 2 major versions, not dead" covers 98%+ of real-world users.</p>
+
+    <h2>Testing Methodology</h2>
+    <p>Automated compatibility testing should be part of your CI pipeline. Tools like Playwright and Cypress can run your test suite in multiple browsers (Chromium, Firefox, WebKit) in parallel. For visual regression testing, use Percy, Chromatic, or BackstopJS to catch cross-browser rendering differences that functional tests miss. Real-device testing through BrowserStack or Sauce Labs is important for iOS Safari (which cannot be emulated accurately on non-Mac systems) and for verifying touch interaction behavior.</p>
+    <p>The most efficient testing strategy prioritizes the browsers your users actually use. Check your analytics for browser distribution, then test thoroughly in the top 3 browsers and do a sanity check in the rest. For most global websites, the priority order is: Chrome (desktop and Android), Safari (iOS and Mac), Firefox, and Edge. Allocate testing time proportional to your user share — if 60% of your traffic is mobile Safari, that should be your primary test target.</p>
+  </section>
+
+  <section class="faq-section" style="max-width:760px;margin:40px auto 0;">
+    <h2>Frequently Asked Questions</h2>
+    <details><summary>Which CSS features are safe to use without polyfills in 2026?</summary><p>Flexbox, Grid, Custom Properties, aspect-ratio, clamp(), Container Queries, Cascade Layers, and :has() are all safe with 90%+ support. Use @supports for progressive enhancement on newer features.</p></details>
+    <details><summary>How do I check if a browser supports a CSS feature?</summary><p>Use @supports in CSS: @supports (container-type: inline-size) { }. In JS: CSS.supports('container-type', 'inline-size'). Both supported by 98%+ of browsers.</p></details>
+    <details><summary>What JavaScript features need polyfills in 2026?</summary><p>Very few for modern browsers. Safe without polyfills: async/await, optional chaining, nullish coalescing, Promise.allSettled(). May need polyfills: Array.groupBy(), Set methods, Temporal API.</p></details>
+    <details><summary>What is progressive enhancement?</summary><p>Build a baseline that works everywhere (semantic HTML), add CSS styling (degrades gracefully), then add JS interactivity. Use @supports and feature detection to layer features.</p></details>
+    <details><summary>Should I still support Internet Explorer?</summary><p>No. IE was retired in 2022, has less than 0.1% usage, and all major services dropped support. Focus on the 99.9% of users on modern browsers.</p></details>
+  </section>
+
+  <section class="related-tools" style="max-width:760px;margin:40px auto;">
+    <h3>Related Tools &amp; Guides</h3>
+    <div class="related-grid">
+      <a href="/tools/responsive-breakpoint-tester.html">Responsive Breakpoint Tester<small>Preview any URL at every screen width</small></a>
+      <a href="/tools/css-critical-path-extractor.html">CSS Critical Path Extractor<small>Extract above-the-fold CSS</small></a>
+      <a href="/tools/meta-tag-generator.html">Meta Tag Generator<small>SEO meta tags with social preview</small></a>
+    </div>
+  </section>
+
+  <div class="author-bio" style="max-width:760px;margin:32px auto;">
+    <p><strong>Written by Michael Lip</strong> — solo dev building free developer tools at <a href="https://zovo.one">zovo.one</a>. No tracking, no accounts, no data collection. If you find this tool useful, check out the full <a href="https://zovo.one/tools">Zovo Tools</a> suite.</p>
+  </div>
+  <div class="last-updated" style="max-width:760px;margin:16px auto;"><time datetime="2026-05-25">Last updated: May 25, 2026</time></div>
+</main>
+
+<footer class="site-footer">
+    <div class="footer-inner">
+        <div class="footer-brand">Zovo Tools</div>
+        <div class="footer-tagline">Free developer tools by a solo dev. No tracking.</div>
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&utm_medium=satellite&utm_campaign=footer-link" class="footer-cta">Zovo Lifetime &mdash; $99 once, free forever &rarr;</a>
+        <div class="footer-copy">&copy; 2026 <a href="https://zovo.one">Zovo</a> &middot; 47/500 founding spots</div>
+    </div>
+</footer>
+
+<nav class="zovo-network" aria-label="Zovo Tools Network">
+    <div class="zovo-network-inner">
+        <h3 class="zovo-network-title">Explore More Tools</h3>
+        <div class="zovo-network-links">
+            <a href="https://abwex.com">ABWex &mdash; A/B Testing</a>
+            <a href="https://claudflow.com">ClaudFlow &mdash; Workflows</a>
+            <a href="https://claudhq.com">ClaudHQ &mdash; AI Code Tools &amp; Fixes</a>
+            <a href="https://claudkit.com">ClaudKit &mdash; API</a>
+            <a href="https://enhio.com">Enhio &mdash; Text Tools</a>
+            <a href="https://epochpilot.com">EpochPilot &mdash; Timestamps</a>
+            <a href="https://gen8x.com">Gen8X &mdash; Color Tools</a>
+            <a href="https://gpt0x.com">GPT0X &mdash; AI Models</a>
+            <a href="https://heytensor.com">HeyTensor &mdash; ML Tools</a>
+            <a href="https://invokebot.com">InvokeBot &mdash; Webhooks</a>
+            <a href="https://kappafy.com">Kappafy &mdash; JSON</a>
+            <a href="https://kappakit.com">KappaKit &mdash; Dev Toolkit</a>
+            <a href="https://kickllm.com">KickLLM &mdash; LLM Costs</a>
+            <a href="https://lochbot.com">LochBot &mdash; Security</a>
+            <a href="https://lockml.com">LockML &mdash; ML Compare</a>
+            <a href="https://ml3x.com">ML3X &mdash; Matrix Math</a>
+        </div>
+    </div>
+</nav>
+
+<script>
+const BCT={
+  features:[
+    {name:'Flexbox',cat:'css',chrome:'Y',firefox:'Y',safari:'Y',edge:'Y',global:99,detect:()=>CSS.supports('display','flex')},
+    {name:'CSS Grid',cat:'css',chrome:'Y',firefox:'Y',safari:'Y',edge:'Y',global:97,detect:()=>CSS.supports('display','grid')},
+    {name:'Custom Properties',cat:'css',chrome:'Y',firefox:'Y',safari:'Y',edge:'Y',global:97,detect:()=>CSS.supports('color','var(--c)')},
+    {name:'position: sticky',cat:'css',chrome:'Y',firefox:'Y',safari:'Y',edge:'Y',global:97,detect:()=>CSS.supports('position','sticky')},
+    {name:'object-fit',cat:'css',chrome:'Y',firefox:'Y',safari:'Y',edge:'Y',global:98,detect:()=>CSS.supports('object-fit','cover')},
+    {name:'aspect-ratio',cat:'css',chrome:'Y',firefox:'Y',safari:'Y',edge:'Y',global:95,detect:()=>CSS.supports('aspect-ratio','16/9')},
+    {name:'clamp()',cat:'css',chrome:'Y',firefox:'Y',safari:'Y',edge:'Y',global:96,detect:()=>CSS.supports('width','clamp(1px,50%,100px)')},
+    {name:'gap (in flexbox)',cat:'css',chrome:'Y',firefox:'Y',safari:'Y',edge:'Y',global:96,detect:()=>CSS.supports('gap','10px')},
+    {name:'Container Queries',cat:'css',chrome:'Y',firefox:'Y',safari:'Y',edge:'Y',global:93,detect:()=>CSS.supports('container-type','inline-size')},
+    {name:'Cascade Layers @layer',cat:'css',chrome:'Y',firefox:'Y',safari:'Y',edge:'Y',global:94,detect:()=>CSS.supports('(width:0) or (--a:0)')},
+    {name:':has() selector',cat:'css',chrome:'Y',firefox:'Y',safari:'Y',edge:'Y',global:92,detect:()=>{try{document.querySelector(':has(*)');return true;}catch(e){return false;}}},
+    {name:'CSS Nesting',cat:'css',chrome:'Y',firefox:'Y',safari:'Y',edge:'Y',global:90,detect:()=>{try{const s=new CSSStyleSheet();s.insertRule('a{&b{}}');return true;}catch(e){return false;}}},
+    {name:'Subgrid',cat:'css',chrome:'Y',firefox:'Y',safari:'Y',edge:'Y',global:91,detect:()=>CSS.supports('grid-template-rows','subgrid')},
+    {name:'color-mix()',cat:'css',chrome:'Y',firefox:'Y',safari:'Y',edge:'Y',global:91,detect:()=>CSS.supports('color','color-mix(in srgb,red,blue)')},
+    {name:'View Transitions',cat:'css',chrome:'Y',firefox:'P',safari:'P',edge:'Y',global:70,detect:()=>'startViewTransition' in document},
+    {name:'Popover API',cat:'api',chrome:'Y',firefox:'Y',safari:'Y',edge:'Y',global:88,detect:()=>'popover' in HTMLElement.prototype},
+    {name:'Anchor Positioning',cat:'css',chrome:'Y',firefox:'N',safari:'N',edge:'Y',global:75,detect:()=>CSS.supports('anchor-name','--a')},
+    {name:'@starting-style',cat:'css',chrome:'Y',firefox:'Y',safari:'P',edge:'Y',global:82,detect:()=>CSS.supports('selector(:is(*))')},
+    {name:'IntersectionObserver',cat:'api',chrome:'Y',firefox:'Y',safari:'Y',edge:'Y',global:97,detect:()=>'IntersectionObserver' in window},
+    {name:'ResizeObserver',cat:'api',chrome:'Y',firefox:'Y',safari:'Y',edge:'Y',global:96,detect:()=>'ResizeObserver' in window},
+    {name:'AbortController',cat:'js',chrome:'Y',firefox:'Y',safari:'Y',edge:'Y',global:97,detect:()=>'AbortController' in window},
+    {name:'Optional Chaining (?.)' ,cat:'js',chrome:'Y',firefox:'Y',safari:'Y',edge:'Y',global:96,detect:()=>{try{eval('({})?.a');return true;}catch(e){return false;}}},
+    {name:'Nullish Coalescing (??)',cat:'js',chrome:'Y',firefox:'Y',safari:'Y',edge:'Y',global:96,detect:()=>{try{eval('null??1');return true;}catch(e){return false;}}},
+    {name:'Promise.allSettled()',cat:'js',chrome:'Y',firefox:'Y',safari:'Y',edge:'Y',global:96,detect:()=>typeof Promise.allSettled==='function'},
+    {name:'structuredClone()',cat:'js',chrome:'Y',firefox:'Y',safari:'Y',edge:'Y',global:93,detect:()=>typeof structuredClone==='function'},
+    {name:'Array.at()',cat:'js',chrome:'Y',firefox:'Y',safari:'Y',edge:'Y',global:94,detect:()=>typeof [].at==='function'},
+    {name:'Top-Level Await',cat:'js',chrome:'Y',firefox:'Y',safari:'Y',edge:'Y',global:93,detect:()=>true},
+    {name:'Crypto.randomUUID()',cat:'api',chrome:'Y',firefox:'Y',safari:'Y',edge:'Y',global:93,detect:()=>typeof crypto?.randomUUID==='function'},
+    {name:'Navigation API',cat:'api',chrome:'Y',firefox:'N',safari:'N',edge:'Y',global:72,detect:()=>'navigation' in window},
+    {name:'Web Share API',cat:'api',chrome:'Y',firefox:'N',safari:'Y',edge:'Y',global:85,detect:()=>'share' in navigator},
+    {name:'Storage API (estimate)',cat:'api',chrome:'Y',firefox:'Y',safari:'Y',edge:'Y',global:93,detect:()=>'storage' in navigator&&typeof navigator.storage.estimate==='function'},
+    {name:'Service Workers',cat:'api',chrome:'Y',firefox:'Y',safari:'Y',edge:'Y',global:97,detect:()=>'serviceWorker' in navigator},
+    {name:'WebAssembly',cat:'js',chrome:'Y',firefox:'Y',safari:'Y',edge:'Y',global:96,detect:()=>typeof WebAssembly==='object'},
+    {name:'Fetch API',cat:'api',chrome:'Y',firefox:'Y',safari:'Y',edge:'Y',global:98,detect:()=>typeof fetch==='function'},
+    {name:'URLPattern',cat:'api',chrome:'Y',firefox:'N',safari:'N',edge:'Y',global:70,detect:()=>typeof URLPattern==='function'}
+  ],
+
+  currentFilter:'all',
+
+  init(){
+    this.renderFeatures('all');
+    this.runDetection();
+  },
+
+  renderFeatures(filter){
+    const query=document.getElementById('feat-search')?.value?.toLowerCase()||'';
+    let list=this.features;
+    if(filter==='css')list=list.filter(f=>f.cat==='css');
+    else if(filter==='js')list=list.filter(f=>f.cat==='js');
+    else if(filter==='api')list=list.filter(f=>f.cat==='api');
+    else if(filter==='safe')list=list.filter(f=>f.global>=95);
+    else if(filter==='caution')list=list.filter(f=>f.global<90);
+    if(query)list=list.filter(f=>f.name.toLowerCase().includes(query));
+
+    const grid=document.getElementById('feat-grid');
+    grid.innerHTML=list.map(f=>{
+      const sup=v=>v==='Y'?'<span class="browser-sup sup-full">Yes</span>':v==='P'?'<span class="browser-sup sup-partial">Partial</span>':v==='F'?'<span class="browser-sup sup-flag">Flag</span>':'<span class="browser-sup sup-none">No</span>';
+      const pctClass=f.global>=95?'status-ok':f.global>=85?'status-warn':'status-bad';
+      return `<div class="feat-row"><div class="feat-name">${f.name}<span class="feat-cat">${f.cat.toUpperCase()}</span></div>${sup(f.chrome)}${sup(f.firefox)}${sup(f.safari)}${sup(f.edge)}<div class="global-pct ${pctClass}">${f.global}%</div></div>`;
+    }).join('');
+  },
+
+  filter(type,btn){
+    this.currentFilter=type;
+    document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+    btn.classList.add('active');
+    this.renderFeatures(type);
+  },
+
+  search(){this.renderFeatures(this.currentFilter);},
+
+  runDetection(){
+    let supported=0,partial=0,unsupported=0;
+    const detections=[];
+    this.features.forEach(f=>{
+      try{
+        const result=f.detect();
+        if(result){supported++;detections.push({name:f.name,status:true});}
+        else{unsupported++;detections.push({name:f.name,status:false});}
+      }catch(e){unsupported++;detections.push({name:f.name,status:false});}
+    });
+
+    document.getElementById('det-supported').textContent=supported;
+    document.getElementById('det-partial').textContent=partial;
+    document.getElementById('det-unsupported').textContent=unsupported;
+
+    const ua=navigator.userAgent;
+    let browser='Unknown';
+    if(ua.includes('Chrome')&&!ua.includes('Edg'))browser='Chrome';
+    else if(ua.includes('Firefox'))browser='Firefox';
+    else if(ua.includes('Safari')&&!ua.includes('Chrome'))browser='Safari';
+    else if(ua.includes('Edg'))browser='Edge';
+    document.getElementById('det-browser').textContent=browser;
+
+    const grid=document.getElementById('detect-grid');
+    grid.innerHTML=detections.slice(0,20).map(d=>`<div class="detect-card"><span class="det-name">${d.name}</span><span class="det-status ${d.status?'det-yes':'det-no'}">${d.status?'Supported':'Not Supported'}</span></div>`).join('');
+  }
+};
+document.addEventListener('DOMContentLoaded',()=>BCT.init());
+</script>
+</body>
+</html>

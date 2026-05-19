@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Service Worker Builder — Offline-First Generator with Caching Strategies | Krzen</title>
+<meta name="description" content="Free service worker generator for offline-first web apps. Choose caching strategies (cache-first, network-first, stale-while-revalidate), configure precaching, and generate production-ready code.">
+<meta name="keywords" content="service worker generator, offline first PWA, service worker builder, caching strategy planner, workbox alternative, PWA offline, cache first strategy, service worker code generator">
+<link rel="canonical" href="https://krzen.com/guides/service-worker-builder.html">
+<link rel="alternate" hreflang="en" href="https://krzen.com/guides/service-worker-builder.html">
+<link rel="alternate" hreflang="x-default" href="https://krzen.com/guides/service-worker-builder.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Service Worker Builder — Offline-First Generator with Caching Strategies">
+<meta property="og:description" content="Free service worker generator for offline-first apps. Choose caching strategies, configure precaching, and get production-ready code.">
+<meta property="og:url" content="https://krzen.com/guides/service-worker-builder.html">
+<meta property="og:site_name" content="Zovo Tools">
+<meta property="og:image" content="https://krzen.com/assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Service Worker Builder — Offline-First Generator with Caching Strategies">
+<meta name="twitter:description" content="Free service worker generator for offline-first apps. Choose caching strategies, configure precaching, and get production-ready code.">
+<meta name="twitter:image" content="https://krzen.com/assets/og-image.png">
+<link rel="stylesheet" href="/assets/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Service Worker Builder — Offline-First Generator",
+  "url": "https://krzen.com/guides/service-worker-builder.html",
+  "description": "Free service worker generator for offline-first web apps. Choose caching strategies, configure precaching, and generate production-ready service worker code.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+  "author": {"@type": "Person", "name": "Michael Lip", "url": "https://zovo.one"},
+  "publisher": {"@type": "Organization", "name": "Krzen", "url": "https://krzen.com"},
+  "datePublished": "2026-05-25",
+  "dateModified": "2026-05-25",
+  "featureList": ["Multiple caching strategies", "Precache configuration", "Offline fallback page", "Background sync support", "Push notification setup", "Registration code generator", "Client-side processing"],
+  "browserRequirements": "Requires JavaScript"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is a service worker and what does it do?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A service worker is a JavaScript file that runs in the background of a web browser, separate from the web page. It acts as a programmable network proxy: it intercepts every network request made by your page and can respond with cached content, fetch from the network, or return a custom response. This enables offline functionality, background sync, push notifications, and sophisticated caching strategies. Service workers are the foundation of Progressive Web Apps (PWAs). They run on a separate thread and cannot directly access the DOM."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What caching strategy should I use for my service worker?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The best strategy depends on your content type. Cache-First (fastest): serve from cache, fall back to network. Best for static assets (CSS, JS, images, fonts) that rarely change. Network-First: try network, fall back to cache. Best for frequently updated content (API responses, HTML pages). Stale-While-Revalidate (best balance): serve from cache immediately while fetching an update in the background. Best for content that changes occasionally (blog posts, product pages). Most apps use a combination: cache-first for assets, stale-while-revalidate for pages, network-first for API calls."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I make my website work offline?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "To make a website work offline: 1) Register a service worker that caches your core assets (HTML, CSS, JS) during installation. 2) Implement a cache-first or stale-while-revalidate strategy for those assets. 3) Create an offline fallback page that displays when the network is unavailable and the requested page is not cached. 4) Use the Cache API to store responses and the fetch event to intercept requests. The minimum viable offline experience requires caching your app shell (layout HTML, styles, scripts) and providing a meaningful offline page for uncached content."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do service workers affect SEO?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Service workers do not negatively affect SEO when implemented correctly. Googlebot executes JavaScript and processes service worker registrations, but it typically fetches pages with a cold cache (no service worker active). Key considerations: ensure your service worker does not serve stale content to crawlers, do not cache-first your HTML if content changes frequently (use network-first or stale-while-revalidate), and always let the initial page load work without a service worker. Service workers can improve SEO indirectly by enabling faster subsequent page loads and improving Core Web Vitals on repeat visits."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the difference between service workers and web workers?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Service workers and web workers are both background JavaScript threads, but they serve different purposes. Web workers run CPU-intensive tasks off the main thread (data processing, calculations) and only live as long as the page is open. Service workers act as network proxies — they intercept fetch requests, manage caches, and can run even when the page is closed (for push notifications and background sync). Service workers have a lifecycle (install, activate, fetch events) and persist across page loads. Web workers are created per-page and destroyed when the page closes. You can use both simultaneously."
+      }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://krzen.com/"},
+    {"@type": "ListItem", "position": 2, "name": "Guides", "item": "https://krzen.com/guides/"},
+    {"@type": "ListItem", "position": 3, "name": "Service Worker Builder", "item": "https://krzen.com/guides/service-worker-builder.html"}
+  ]
+}
+</script>
+<style>
+.tool-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin:20px 0}
+.tool-section h3{font-family:var(--font-display);font-size:0.85rem;text-transform:uppercase;color:var(--accent);margin-bottom:16px;letter-spacing:0.04em}
+.input-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.input-field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:200px}
+.input-field label{font-size:0.78rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;letter-spacing:0.3px}
+.input-field input,.input-field select,.input-field textarea{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:8px 12px;font-family:var(--font-body);font-size:0.9rem}
+.input-field input:focus,.input-field select:focus{outline:none;border-color:var(--accent)}
+.input-field textarea{min-height:80px;resize:vertical;font-family:'Space Mono',monospace;font-size:0.82rem}
+.strategy-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:16px 0}
+.strategy-card{padding:16px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all 0.2s}
+.strategy-card:hover,.strategy-card.active{border-color:var(--accent)}
+.strategy-card.active{background:rgba(251,146,60,0.04)}
+.strategy-card h4{font-size:0.9rem;margin:0 0 6px;color:var(--text)}
+.strategy-card p{font-size:0.78rem;color:var(--text-muted);margin:0;line-height:1.4}
+.strategy-card .best-for{font-size:0.72rem;color:var(--accent);margin-top:8px;font-weight:600}
+.route-entry{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+.route-entry input{flex:1;min-width:150px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:6px 10px;font-family:'Space Mono',monospace;font-size:0.82rem}
+.route-entry select{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:6px 10px;font-size:0.82rem}
+.route-entry .remove-btn{background:transparent;border:1px solid #F87171;color:#F87171;padding:4px 10px;border-radius:var(--radius);font-size:0.75rem;cursor:pointer}
+.toggle-row{display:flex;gap:20px;flex-wrap:wrap;margin:16px 0}
+.toggle-item{display:flex;align-items:center;gap:8px;font-size:0.85rem;cursor:pointer}
+.toggle-item input[type="checkbox"]{accent-color:var(--accent)}
+.code-output{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:16px;font-family:'Space Mono',monospace;font-size:0.78rem;color:var(--text-muted);overflow-x:auto;max-height:500px;white-space:pre;line-height:1.6;overflow-y:auto}
+.explainer-section{max-width:760px;margin:40px auto 0;padding:0 0 20px}
+.explainer-section h2{font-size:1.3rem;margin:32px 0 12px;color:var(--accent)}
+.explainer-section h3{font-size:1.1rem;margin:24px 0 8px}
+.explainer-section p{color:var(--text-muted);margin-bottom:16px;line-height:1.7}
+.explainer-section ul,.explainer-section ol{color:var(--text-muted);margin:0 0 16px 24px}
+.explainer-section li{margin-bottom:6px}
+.explainer-section code{font-family:var(--font-display);background:var(--bg-card);padding:2px 6px;border-radius:3px;font-size:0.9em}
+.related-tools{margin:40px 0 0}
+.related-tools h3{font-family:var(--font-display);text-align:center;margin-bottom:16px;font-size:1rem}
+.related-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.related-grid a{display:block;padding:14px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);text-decoration:none;font-size:0.9rem;transition:border-color 0.2s}
+.related-grid a:hover{border-color:var(--accent);text-decoration:none}
+.related-grid a small{display:block;color:var(--text-muted);font-size:0.78rem;margin-top:4px}
+.author-bio{margin:32px 0;padding:20px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius)}
+.author-bio p{color:var(--text-muted);font-size:0.9rem;line-height:1.6;margin:0}
+.author-bio p strong{color:var(--text)}
+.last-updated{text-align:center;color:var(--text-muted);font-size:0.8rem;margin:24px 0 0}
+@media(max-width:768px){.input-row{flex-direction:column}.strategy-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <a href="/" class="logo">krzen</a>
+    <nav>
+      <a href="/">Tool</a>
+      <a href="/research/">Research</a>
+      <a href="/guides/">Guides</a>
+      <a href="/tools/">Tools</a>
+      <a href="/blog/">Blog</a>
+      <a href="/about.html">About</a>
+      <div class="nav-right">
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&amp;utm_medium=satellite&amp;utm_campaign=nav-link" class="nav-pro" target="_blank">Go Pro &#10022;</a>
+        <a href="https://zovo.one/tools" class="nav-zovo">Zovo Tools</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <nav class="breadcrumb" aria-label="Breadcrumb" style="font-size:0.82rem;margin:20px 0 0;"><a href="/">Home</a> <span style="color:var(--text-muted);margin:0 4px;">/</span> <a href="/guides/">Guides</a> <span style="color:var(--text-muted);margin:0 4px;">/</span> <span style="color:var(--text-muted);">Service Worker Builder</span></nav>
+
+  <section class="hero">
+    <h1>Service Worker <span>Builder</span></h1>
+    <p>Generate a production-ready service worker with configurable caching strategies, precaching, offline fallback, and background sync. Choose your routes, pick your strategies, and get copy-ready code.</p>
+  </section>
+
+  <div class="tool-section">
+    <h3>Default Caching Strategy</h3>
+    <div class="strategy-grid">
+      <div class="strategy-card active" onclick="SWB.setDefault('cache-first',this)"><h4>Cache First</h4><p>Serve from cache, fall back to network. Fastest responses.</p><div class="best-for">Best for: static assets</div></div>
+      <div class="strategy-card" onclick="SWB.setDefault('network-first',this)"><h4>Network First</h4><p>Try network, fall back to cache. Always fresh.</p><div class="best-for">Best for: API, dynamic pages</div></div>
+      <div class="strategy-card" onclick="SWB.setDefault('stale-while-revalidate',this)"><h4>Stale While Revalidate</h4><p>Serve cache immediately, update in background.</p><div class="best-for">Best for: content pages</div></div>
+      <div class="strategy-card" onclick="SWB.setDefault('network-only',this)"><h4>Network Only</h4><p>Always fetch from network. No caching.</p><div class="best-for">Best for: real-time data</div></div>
+    </div>
+  </div>
+
+  <div class="tool-section">
+    <h3>Route-Specific Strategies</h3>
+    <div id="routes">
+      <div class="route-entry"><input type="text" placeholder="/assets/*" value="/assets/*"><select><option value="cache-first" selected>Cache First</option><option value="network-first">Network First</option><option value="stale-while-revalidate">Stale While Revalidate</option><option value="network-only">Network Only</option></select><button class="remove-btn" onclick="this.parentElement.remove()">x</button></div>
+      <div class="route-entry"><input type="text" placeholder="/api/*" value="/api/*"><select><option value="cache-first">Cache First</option><option value="network-first" selected>Network First</option><option value="stale-while-revalidate">Stale While Revalidate</option><option value="network-only">Network Only</option></select><button class="remove-btn" onclick="this.parentElement.remove()">x</button></div>
+      <div class="route-entry"><input type="text" placeholder="*.html" value="*.html"><select><option value="cache-first">Cache First</option><option value="network-first">Network First</option><option value="stale-while-revalidate" selected>Stale While Revalidate</option><option value="network-only">Network Only</option></select><button class="remove-btn" onclick="this.parentElement.remove()">x</button></div>
+    </div>
+    <button class="btn" onclick="SWB.addRoute()" style="margin-top:8px">+ Add Route</button>
+  </div>
+
+  <div class="tool-section">
+    <h3>Precache Files</h3>
+    <div class="input-field">
+      <label>Files to precache (one per line)</label>
+      <textarea id="precache-files" placeholder="/&#10;/index.html&#10;/assets/style.css&#10;/assets/app.js&#10;/offline.html">/
+/index.html
+/assets/style.css
+/assets/app.js
+/offline.html</textarea>
+    </div>
+  </div>
+
+  <div class="tool-section">
+    <h3>Options</h3>
+    <div class="toggle-row">
+      <label class="toggle-item"><input type="checkbox" id="opt-offline" checked> Offline fallback page</label>
+      <label class="toggle-item"><input type="checkbox" id="opt-skip"> Skip waiting (auto-activate)</label>
+      <label class="toggle-item"><input type="checkbox" id="opt-nav"> Navigation preload</label>
+      <label class="toggle-item"><input type="checkbox" id="opt-cleanup"> Auto cleanup old caches</label>
+    </div>
+    <div class="input-row" style="margin-top:12px">
+      <div class="input-field"><label>Cache Name Prefix</label><input type="text" id="cache-name" value="my-app-v1"></div>
+      <div class="input-field"><label>Offline Fallback URL</label><input type="text" id="offline-url" value="/offline.html"></div>
+    </div>
+    <button class="btn" onclick="SWB.generate()" style="margin-top:12px">Generate Service Worker</button>
+  </div>
+
+  <div id="results" style="display:none">
+    <div class="tool-section">
+      <h3>Service Worker (sw.js)</h3>
+      <pre class="code-output" id="sw-output"></pre>
+      <button class="btn" style="margin-top:12px" onclick="SWB.copy('sw-output')">Copy sw.js</button>
+    </div>
+
+    <div class="tool-section">
+      <h3>Registration Code (add to your HTML)</h3>
+      <pre class="code-output" id="reg-output"></pre>
+      <button class="btn" style="margin-top:12px" onclick="SWB.copy('reg-output')">Copy Registration Code</button>
+    </div>
+  </div>
+
+  <section class="explainer-section">
+    <h2>Service Worker Fundamentals</h2>
+    <p>A service worker is a JavaScript file that the browser runs in the background, separate from your web page. It sits between your application and the network, intercepting every HTTP request your page makes. This proxy position gives it extraordinary power: it can serve responses from a local cache instead of the network (enabling offline functionality), modify requests and responses in-flight, manage a sophisticated multi-layered cache, receive push notifications even when your page is closed, and synchronize data in the background when connectivity is restored.</p>
+    <p>Service workers have a distinct lifecycle with three phases: registration (your page tells the browser where to find the service worker file), installation (the service worker downloads and caches essential resources), and activation (the service worker takes control of pages and begins intercepting requests). Understanding this lifecycle is crucial because it dictates when cached resources are available and when old caches are cleaned up. A newly installed service worker does not take control until all tabs using the old version are closed, unless you explicitly call <code>skipWaiting()</code>.</p>
+
+    <h2>Caching Strategies Deep Dive</h2>
+    <h3>Cache First (Offline First)</h3>
+    <p>The cache-first strategy checks the cache before the network. If a cached response exists, it is returned immediately (in under 1ms) without any network request. If the resource is not in the cache, it is fetched from the network and the response is cached for future use. This strategy provides the fastest possible response times and works offline for any previously visited page. The tradeoff is staleness: users may see outdated content until the cache is updated. This is ideal for static assets (CSS, JS, images, fonts) that have versioned filenames and rarely change at the same URL.</p>
+
+    <h3>Network First (Freshness First)</h3>
+    <p>The network-first strategy always tries the network first. If the network request succeeds, the response is returned and cached. If the network fails (offline or timeout), the cached response is returned as a fallback. This ensures users always see the latest content when online while still providing a functional offline experience. The tradeoff is speed: every request incurs network latency even when a cached response is available. This is ideal for API responses and HTML pages where freshness is more important than speed.</p>
+
+    <h3>Stale While Revalidate (Best of Both Worlds)</h3>
+    <p>Stale-while-revalidate returns the cached response immediately (fast!) and simultaneously fetches an updated version from the network in the background. The next time the user requests the same resource, they get the freshly cached version. This strategy provides instant responses with near-real-time freshness — the content is at most one visit old. It is the best strategy for content pages, blog posts, and any resource where a brief delay in freshness is acceptable. Google's Workbox library recommends this as the default strategy for most web applications.</p>
+
+    <h2>Precaching: The App Shell Model</h2>
+    <p>Precaching downloads and caches specified resources during the service worker's install event, before the user requests them. This ensures that your core application files (HTML shell, CSS, JavaScript, critical images) are available offline from the very first visit. The precache list should include everything needed to render the basic page structure — the "app shell" — without any network requests.</p>
+    <p>Keep the precache list small. Every file in the precache list is downloaded during service worker installation, which happens on the user's first visit. A precache list of 500KB feels instant. A list of 5MB causes a noticeable delay and wastes bandwidth for users who may never visit all the precached pages. Focus on the critical path: your HTML shell, main CSS bundle, main JS bundle, and an offline fallback page. Cache other resources on-demand using runtime caching strategies.</p>
+
+    <h2>Common Pitfalls</h2>
+    <p><strong>Caching HTML with cache-first:</strong> If you cache your HTML pages with a cache-first strategy, users will see stale content indefinitely. Use network-first or stale-while-revalidate for HTML pages. Reserve cache-first for versioned static assets.</p>
+    <p><strong>Forgetting cache busting:</strong> When you update your CSS or JS, the service worker serves the old cached version. Use filename hashing (style.a1b2c3.css) or update the cache version name in your service worker to force re-downloads.</p>
+    <p><strong>Not handling service worker updates:</strong> When you deploy a new service worker, it installs but waits for all existing tabs to close before activating. Users on long-lived tabs may run outdated code for hours. Implement an update notification that prompts users to reload, or use <code>skipWaiting()</code> with <code>clients.claim()</code> for immediate activation (but be aware this can cause inconsistencies if the page's cached HTML expects old JS).</p>
+    <p><strong>Caching error responses:</strong> Always check <code>response.ok</code> before caching. Without this check, a 404 or 500 error response gets cached, and the service worker keeps serving the error even after the server is fixed. Only cache responses with status 200.</p>
+  </section>
+
+  <section class="faq-section" style="max-width:760px;margin:40px auto 0;">
+    <h2>Frequently Asked Questions</h2>
+    <details><summary>What is a service worker and what does it do?</summary><p>A service worker is a background JavaScript thread that intercepts network requests, enabling offline functionality, caching strategies, push notifications, and background sync. It is the foundation of Progressive Web Apps.</p></details>
+    <details><summary>What caching strategy should I use?</summary><p>Cache-first for static assets, network-first for APIs, stale-while-revalidate for content pages. Most apps use a combination of all three based on content type.</p></details>
+    <details><summary>How do I make my website work offline?</summary><p>Register a service worker, precache your app shell (HTML, CSS, JS), implement a cache-first or stale-while-revalidate strategy, and create an offline fallback page.</p></details>
+    <details><summary>Do service workers affect SEO?</summary><p>Not negatively when implemented correctly. Googlebot fetches with a cold cache. Use network-first for HTML to ensure crawlers get fresh content. Service workers improve repeat-visit performance.</p></details>
+    <details><summary>What is the difference between service workers and web workers?</summary><p>Service workers are network proxies that persist across page loads. Web workers run CPU tasks off the main thread and die when the page closes. Both run on background threads.</p></details>
+  </section>
+
+  <section class="related-tools" style="max-width:760px;margin:40px auto;">
+    <h3>Related Tools &amp; Guides</h3>
+    <div class="related-grid">
+      <a href="/tools/page-speed-analyzer.html">Page Speed Analyzer<small>Performance budget calculator</small></a>
+      <a href="/tools/css-critical-path-extractor.html">CSS Critical Path Extractor<small>Extract above-the-fold CSS</small></a>
+      <a href="/research/http3-readiness-checker.html">HTTP/3 Readiness Checker<small>Check HTTP/3 compatibility</small></a>
+    </div>
+  </section>
+
+  <div class="author-bio" style="max-width:760px;margin:32px auto;">
+    <p><strong>Written by Michael Lip</strong> — solo dev building free developer tools at <a href="https://zovo.one">zovo.one</a>. No tracking, no accounts, no data collection. If you find this tool useful, check out the full <a href="https://zovo.one/tools">Zovo Tools</a> suite.</p>
+  </div>
+  <div class="last-updated" style="max-width:760px;margin:16px auto;"><time datetime="2026-05-25">Last updated: May 25, 2026</time></div>
+</main>
+
+<footer class="site-footer">
+    <div class="footer-inner">
+        <div class="footer-brand">Zovo Tools</div>
+        <div class="footer-tagline">Free developer tools by a solo dev. No tracking.</div>
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&utm_medium=satellite&utm_campaign=footer-link" class="footer-cta">Zovo Lifetime &mdash; $99 once, free forever &rarr;</a>
+        <div class="footer-copy">&copy; 2026 <a href="https://zovo.one">Zovo</a> &middot; 47/500 founding spots</div>
+    </div>
+</footer>
+
+<nav class="zovo-network" aria-label="Zovo Tools Network">
+    <div class="zovo-network-inner">
+        <h3 class="zovo-network-title">Explore More Tools</h3>
+        <div class="zovo-network-links">
+            <a href="https://abwex.com">ABWex &mdash; A/B Testing</a>
+            <a href="https://claudflow.com">ClaudFlow &mdash; Workflows</a>
+            <a href="https://claudhq.com">ClaudHQ &mdash; AI Code Tools &amp; Fixes</a>
+            <a href="https://claudkit.com">ClaudKit &mdash; API</a>
+            <a href="https://enhio.com">Enhio &mdash; Text Tools</a>
+            <a href="https://epochpilot.com">EpochPilot &mdash; Timestamps</a>
+            <a href="https://gen8x.com">Gen8X &mdash; Color Tools</a>
+            <a href="https://gpt0x.com">GPT0X &mdash; AI Models</a>
+            <a href="https://heytensor.com">HeyTensor &mdash; ML Tools</a>
+            <a href="https://invokebot.com">InvokeBot &mdash; Webhooks</a>
+            <a href="https://kappafy.com">Kappafy &mdash; JSON</a>
+            <a href="https://kappakit.com">KappaKit &mdash; Dev Toolkit</a>
+            <a href="https://kickllm.com">KickLLM &mdash; LLM Costs</a>
+            <a href="https://lochbot.com">LochBot &mdash; Security</a>
+            <a href="https://lockml.com">LockML &mdash; ML Compare</a>
+            <a href="https://ml3x.com">ML3X &mdash; Matrix Math</a>
+        </div>
+    </div>
+</nav>
+
+<script>
+const SWB={
+  defaultStrategy:'cache-first',
+
+  setDefault(s,el){
+    this.defaultStrategy=s;
+    document.querySelectorAll('.strategy-card').forEach(c=>c.classList.remove('active'));
+    el.classList.add('active');
+  },
+
+  addRoute(){
+    const div=document.createElement('div');
+    div.className='route-entry';
+    div.innerHTML='<input type="text" placeholder="/path/*"><select><option value="cache-first">Cache First</option><option value="network-first">Network First</option><option value="stale-while-revalidate">Stale While Revalidate</option><option value="network-only">Network Only</option></select><button class="remove-btn" onclick="this.parentElement.remove()">x</button>';
+    document.getElementById('routes').appendChild(div);
+  },
+
+  getRoutes(){
+    const routes=[];
+    document.querySelectorAll('.route-entry').forEach(el=>{
+      const pattern=el.querySelector('input').value.trim();
+      const strategy=el.querySelector('select').value;
+      if(pattern)routes.push({pattern,strategy});
+    });
+    return routes;
+  },
+
+  generate(){
+    const cacheName=document.getElementById('cache-name').value||'app-v1';
+    const offlineUrl=document.getElementById('offline-url').value||'/offline.html';
+    const precacheRaw=document.getElementById('precache-files').value;
+    const precacheFiles=precacheRaw.split('\n').map(f=>f.trim()).filter(Boolean);
+    const useOffline=document.getElementById('opt-offline').checked;
+    const skipWaiting=document.getElementById('opt-skip').checked;
+    const navPreload=document.getElementById('opt-nav').checked;
+    const autoCleanup=document.getElementById('opt-cleanup').checked;
+    const routes=this.getRoutes();
+    const ds=this.defaultStrategy;
+
+    let sw=`// Service Worker — Generated by Krzen Service Worker Builder\n// https://krzen.com/guides/service-worker-builder.html\n\nconst CACHE_NAME = '${cacheName}';\nconst PRECACHE_URLS = [\n${precacheFiles.map(f=>`  '${f}'`).join(',\n')}\n];\n\n`;
+
+    // Install
+    sw+=`// Install: Precache essential resources\nself.addEventListener('install', event => {\n  event.waitUntil(\n    caches.open(CACHE_NAME)\n      .then(cache => cache.addAll(PRECACHE_URLS))\n      .then(() => {\n`;
+    if(skipWaiting)sw+=`        self.skipWaiting();\n`;
+    sw+=`        console.log('[SW] Precache complete');\n      })\n  );\n});\n\n`;
+
+    // Activate
+    sw+=`// Activate: Clean up old caches\nself.addEventListener('activate', event => {\n  event.waitUntil(\n`;
+    if(autoCleanup){
+      sw+=`    caches.keys().then(keys => \n      Promise.all(\n        keys.filter(key => key !== CACHE_NAME)\n            .map(key => caches.delete(key))\n      )\n    ).then(() => {\n`;
+    }
+    if(navPreload){
+      sw+=`      // Enable navigation preload\n      if (self.registration.navigationPreload) {\n        return self.registration.navigationPreload.enable();\n      }\n`;
+    }
+    sw+=`      self.clients.claim();\n      console.log('[SW] Activated');\n`;
+    if(autoCleanup)sw+=`    })\n`;
+    sw+=`  );\n});\n\n`;
+
+    // Strategy functions
+    sw+=`// Caching strategies\n`;
+    sw+=`function cacheFirst(request) {\n  return caches.match(request).then(cached => {\n    if (cached) return cached;\n    return fetch(request).then(response => {\n      if (!response || response.status !== 200) return response;\n      const clone = response.clone();\n      caches.open(CACHE_NAME).then(cache => cache.put(request, clone));\n      return response;\n    });\n  });\n}\n\n`;
+
+    sw+=`function networkFirst(request) {\n  return fetch(request).then(response => {\n    if (response && response.status === 200) {\n      const clone = response.clone();\n      caches.open(CACHE_NAME).then(cache => cache.put(request, clone));\n    }\n    return response;\n  }).catch(() => caches.match(request));\n}\n\n`;
+
+    sw+=`function staleWhileRevalidate(request) {\n  return caches.match(request).then(cached => {\n    const fetchPromise = fetch(request).then(response => {\n      if (response && response.status === 200) {\n        const clone = response.clone();\n        caches.open(CACHE_NAME).then(cache => cache.put(request, clone));\n      }\n      return response;\n    });\n    return cached || fetchPromise;\n  });\n}\n\n`;
+
+    // Fetch event
+    sw+=`// Fetch: Route requests to strategies\nself.addEventListener('fetch', event => {\n  const url = new URL(event.request.url);\n  \n  // Skip non-GET requests\n  if (event.request.method !== 'GET') return;\n  \n  // Skip cross-origin requests\n  if (url.origin !== location.origin) return;\n\n`;
+
+    routes.forEach(r=>{
+      const regex=r.pattern.replace(/\*/g,'.*').replace(/\//g,'\\/');
+      const fn=r.strategy==='cache-first'?'cacheFirst':r.strategy==='network-first'?'networkFirst':r.strategy==='stale-while-revalidate'?'staleWhileRevalidate':'fetch';
+      if(r.strategy==='network-only'){
+        sw+=`  // ${r.pattern} — Network Only\n  if (url.pathname.match(/^${regex}$/)) return;\n\n`;
+      }else{
+        sw+=`  // ${r.pattern} — ${r.strategy}\n  if (url.pathname.match(/^${regex}/)) {\n    event.respondWith(${fn}(event.request));\n    return;\n  }\n\n`;
+      }
+    });
+
+    const defaultFn=ds==='cache-first'?'cacheFirst':ds==='network-first'?'networkFirst':ds==='stale-while-revalidate'?'staleWhileRevalidate':'fetch';
+    if(ds==='network-only'){
+      sw+=`  // Default: Network Only\n  return;\n`;
+    }else{
+      sw+=`  // Default strategy: ${ds}\n  event.respondWith(\n    ${defaultFn}(event.request)`;
+      if(useOffline){
+        sw+=`\n      .catch(() => caches.match('${offlineUrl}'))`;
+      }
+      sw+=`\n  );\n`;
+    }
+    sw+=`});\n`;
+
+    // Registration code
+    let reg=`<!-- Service Worker Registration -->\n<script>\nif ('serviceWorker' in navigator) {\n  window.addEventListener('load', () => {\n    navigator.serviceWorker.register('/sw.js')\n      .then(reg => console.log('[SW] Registered:', reg.scope))\n      .catch(err => console.error('[SW] Registration failed:', err));\n  });\n}\n<\/script>`;
+
+    document.getElementById('results').style.display='block';
+    document.getElementById('sw-output').textContent=sw;
+    document.getElementById('reg-output').textContent=reg;
+    document.getElementById('results').scrollIntoView({behavior:'smooth'});
+  },
+
+  copy(id){
+    navigator.clipboard.writeText(document.getElementById(id).textContent).then(()=>{
+      const btn=event.target;const orig=btn.textContent;btn.textContent='Copied!';btn.style.borderColor='#34D399';btn.style.color='#34D399';setTimeout(()=>{btn.textContent=orig;btn.style.borderColor='';btn.style.color='';},2000);
+    });
+  }
+};
+</script>
+</body>
+</html>

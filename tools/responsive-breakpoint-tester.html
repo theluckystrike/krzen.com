@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Responsive Breakpoint Tester — Device Preview & Custom Breakpoint Builder | Krzen</title>
+<meta name="description" content="Free responsive breakpoint tester with device frame presets, custom breakpoint builder, side-by-side comparison, and CSS export. Preview any URL or HTML at every screen width. Client-side only.">
+<meta name="keywords" content="responsive breakpoint tester, device preview tool, responsive design tester, screen width preview, breakpoint builder, media query generator, responsive CSS export, mobile preview tool">
+<link rel="canonical" href="https://krzen.com/tools/responsive-breakpoint-tester.html">
+<link rel="alternate" hreflang="en" href="https://krzen.com/tools/responsive-breakpoint-tester.html">
+<link rel="alternate" hreflang="x-default" href="https://krzen.com/tools/responsive-breakpoint-tester.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Responsive Breakpoint Tester — Device Preview & Custom Breakpoint Builder">
+<meta property="og:description" content="Free responsive breakpoint tester with device frame presets, side-by-side comparison, and CSS export. Preview any URL or HTML at every screen width.">
+<meta property="og:url" content="https://krzen.com/tools/responsive-breakpoint-tester.html">
+<meta property="og:site_name" content="Zovo Tools">
+<meta property="og:image" content="https://krzen.com/assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Responsive Breakpoint Tester — Device Preview & Custom Breakpoint Builder">
+<meta name="twitter:description" content="Free responsive breakpoint tester with device frame presets, side-by-side comparison, and CSS export. Preview any URL or HTML at every screen width.">
+<meta name="twitter:image" content="https://krzen.com/assets/og-image.png">
+<link rel="stylesheet" href="/assets/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Responsive Breakpoint Tester — Device Preview & Breakpoint Builder",
+  "url": "https://krzen.com/tools/responsive-breakpoint-tester.html",
+  "description": "Free responsive breakpoint tester with device frame presets, custom breakpoint builder, side-by-side comparison mode, and CSS export. Preview any URL or paste HTML at every screen width.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+  "author": {"@type": "Person", "name": "Michael Lip", "url": "https://zovo.one"},
+  "publisher": {"@type": "Organization", "name": "Krzen", "url": "https://krzen.com"},
+  "datePublished": "2026-05-25",
+  "dateModified": "2026-05-25",
+  "featureList": ["Device frame presets (iPhone, iPad, MacBook)", "Custom breakpoint builder with drag handles", "Side-by-side comparison mode", "Export breakpoint CSS", "Standard widths: 320-1920px", "Paste HTML or enter URL", "Client-side processing"],
+  "browserRequirements": "Requires JavaScript"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What are the standard responsive breakpoints in 2026?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The most widely used responsive breakpoints are 320px (small phones), 375px (iPhone SE/13 Mini), 414px (iPhone Plus/Pro Max), 768px (tablets in portrait), 1024px (tablets in landscape and small laptops), 1280px (standard laptops), 1440px (large desktops), and 1920px (full HD monitors). These correspond to the most common viewport widths in real-world analytics data. Tailwind CSS uses 640, 768, 1024, 1280, and 1536px. Bootstrap uses 576, 768, 992, 1200, and 1400px."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How many breakpoints should a responsive design have?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Most sites need 3-5 breakpoints. A minimal setup uses three: mobile (up to 768px), tablet (768-1024px), and desktop (1024px+). More complex layouts add a large phone breakpoint at 414px and a wide desktop at 1440px. Adding more than 5 breakpoints increases CSS complexity without meaningful UX improvement. The key is to set breakpoints where your content breaks, not at specific device widths. Resize your browser slowly and add a breakpoint wherever the layout looks awkward."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Should I use min-width or max-width media queries?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Use min-width (mobile-first) media queries in almost all cases. Mobile-first means your base CSS targets the smallest screens, and you progressively add complexity for larger viewports. This approach results in faster mobile load times because phones download less CSS. The syntax is @media (min-width: 768px) { ... }. Max-width (desktop-first) queries work in the opposite direction and are useful when retrofitting an existing desktop site to be responsive, but they typically produce larger CSS files for mobile users."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I test responsive design without real devices?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Browser DevTools offer the most accessible option: Chrome's Device Toolbar (Ctrl+Shift+M) includes presets for popular devices with accurate viewport dimensions and device pixel ratios. Online tools like this breakpoint tester let you preview at multiple widths simultaneously. For higher fidelity, BrowserStack and Sauce Labs provide access to real device emulators. However, nothing fully replaces testing on actual hardware — touch targets, scroll inertia, and font rendering vary across real devices in ways emulators cannot capture."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the difference between viewport width and device width?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Viewport width is the CSS pixel width of the browser window, which is what media queries target. Device width is the physical pixel width of the screen. Modern devices have a device pixel ratio (DPR) of 2-3x, meaning an iPhone 14 Pro with a 1179px physical width reports a 393px CSS viewport width. When building responsive layouts, always think in CSS pixels (viewport width), not device pixels. The meta viewport tag <meta name='viewport' content='width=device-width, initial-scale=1.0'> ensures the CSS viewport matches the device's logical width rather than the physical resolution."
+      }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://krzen.com/"},
+    {"@type": "ListItem", "position": 2, "name": "Tools", "item": "https://krzen.com/tools/"},
+    {"@type": "ListItem", "position": 3, "name": "Responsive Breakpoint Tester", "item": "https://krzen.com/tools/responsive-breakpoint-tester.html"}
+  ]
+}
+</script>
+<style>
+.tool-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin:20px 0}
+.tool-section h3{font-family:var(--font-display);font-size:0.85rem;text-transform:uppercase;color:var(--accent);margin-bottom:16px;letter-spacing:0.04em}
+.input-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.input-field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:200px}
+.input-field label{font-size:0.78rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;letter-spacing:0.3px}
+.input-field input,.input-field textarea,.input-field select{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:8px 12px;font-family:var(--font-body);font-size:0.9rem}
+.input-field input:focus,.input-field textarea:focus,.input-field select:focus{outline:none;border-color:var(--accent)}
+.input-field textarea{min-height:100px;resize:vertical;font-family:'Space Mono',monospace;font-size:0.82rem}
+.mode-tabs{display:flex;gap:0;margin-bottom:16px}
+.mode-tab{background:transparent;color:var(--text-muted);border:1px solid var(--border);padding:8px 20px;font-size:0.82rem;font-family:var(--font-body);cursor:pointer;transition:all 0.2s}
+.mode-tab:first-child{border-radius:var(--radius) 0 0 var(--radius)}
+.mode-tab:last-child{border-radius:0 var(--radius) var(--radius) 0}
+.mode-tab.active{border-color:var(--accent);color:var(--accent);background:rgba(251,146,60,0.06)}
+.device-presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.device-btn{background:transparent;color:var(--text-muted);border:1px solid var(--border);border-radius:var(--radius);padding:6px 14px;font-size:0.82rem;font-family:var(--font-body);cursor:pointer;transition:all 0.2s}
+.device-btn:hover,.device-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(251,146,60,0.06)}
+.device-btn .dev-size{font-size:0.72rem;color:var(--text-muted);margin-left:4px;opacity:0.7}
+.width-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.width-chip{background:transparent;color:var(--text-muted);border:1px solid var(--border);border-radius:var(--radius);padding:5px 12px;font-size:0.8rem;font-family:'Space Mono',monospace;cursor:pointer;transition:all 0.2s;position:relative}
+.width-chip:hover{border-color:var(--accent);color:var(--accent)}
+.width-chip.active{border-color:var(--accent);color:var(--accent);background:rgba(251,146,60,0.06)}
+.width-chip .chip-x{display:none;position:absolute;top:-6px;right:-6px;width:16px;height:16px;background:#F87171;color:#fff;border-radius:50%;font-size:0.6rem;line-height:16px;text-align:center;cursor:pointer}
+.width-chip.custom .chip-x{display:block}
+.custom-bp-row{display:flex;gap:8px;align-items:flex-end;margin-bottom:16px}
+.custom-bp-row input{width:100px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:6px 10px;font-family:'Space Mono',monospace;font-size:0.85rem}
+.custom-bp-row input:focus{outline:none;border-color:var(--accent)}
+.custom-bp-row button{padding:6px 14px}
+.preview-controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.preview-controls label{font-size:0.8rem;color:var(--text-muted);display:flex;align-items:center;gap:6px;cursor:pointer}
+.preview-controls input[type="checkbox"]{accent-color:var(--accent)}
+.preview-grid{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;margin:20px 0}
+.preview-frame{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;flex-shrink:0;transition:all 0.3s}
+.preview-frame-header{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--bg-card);border-bottom:1px solid var(--border);font-size:0.72rem;font-family:'Space Mono',monospace;color:var(--text-muted)}
+.preview-frame-header .frame-width{color:var(--accent);font-weight:600}
+.preview-frame-header .frame-device{opacity:0.7}
+.preview-frame iframe{border:none;width:100%;background:#fff}
+.preview-frame .drag-handle{width:100%;height:8px;background:var(--bg-card);border-top:1px solid var(--border);cursor:col-resize;display:flex;justify-content:center;align-items:center}
+.preview-frame .drag-handle::after{content:'';width:30px;height:3px;background:var(--border);border-radius:2px}
+.compare-container{display:flex;gap:20px;overflow-x:auto;padding-bottom:12px}
+.export-area{margin-top:16px}
+.export-area pre{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:16px;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--text-muted);overflow-x:auto;max-height:300px;white-space:pre;line-height:1.6}
+.copy-btn{margin-top:8px}
+.status-ok{color:#34D399}
+.status-warn{color:#FBBF24}
+.status-over{color:#F87171}
+.bp-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;text-align:center;margin:16px 0}
+.bp-summary .val{font-family:var(--font-display);font-size:1.4rem;font-weight:700}
+.bp-summary .lbl{font-size:0.78rem;color:var(--text-muted);text-transform:uppercase}
+.explainer-section{max-width:760px;margin:40px auto 0;padding:0 0 20px}
+.explainer-section h2{font-size:1.3rem;margin:32px 0 12px;color:var(--accent)}
+.explainer-section h3{font-size:1.1rem;margin:24px 0 8px}
+.explainer-section p{color:var(--text-muted);margin-bottom:16px;line-height:1.7}
+.explainer-section ul,.explainer-section ol{color:var(--text-muted);margin:0 0 16px 24px}
+.explainer-section li{margin-bottom:6px}
+.explainer-section code{font-family:var(--font-display);background:var(--bg-card);padding:2px 6px;border-radius:3px;font-size:0.9em}
+.related-tools{margin:40px 0 0}
+.related-tools h3{font-family:var(--font-display);text-align:center;margin-bottom:16px;font-size:1rem}
+.related-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.related-grid a{display:block;padding:14px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);text-decoration:none;font-size:0.9rem;transition:border-color 0.2s}
+.related-grid a:hover{border-color:var(--accent);text-decoration:none}
+.related-grid a small{display:block;color:var(--text-muted);font-size:0.78rem;margin-top:4px}
+.author-bio{margin:32px 0;padding:20px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius)}
+.author-bio p{color:var(--text-muted);font-size:0.9rem;line-height:1.6;margin:0}
+.author-bio p strong{color:var(--text)}
+.last-updated{text-align:center;color:var(--text-muted);font-size:0.8rem;margin:24px 0 0}
+@media(max-width:768px){.input-row{flex-direction:column}.bp-summary{grid-template-columns:1fr}.preview-grid{flex-direction:column;align-items:center}.compare-container{flex-direction:column}}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <a href="/" class="logo">krzen</a>
+    <nav>
+      <a href="/">Tool</a>
+      <a href="/research/">Research</a>
+      <a href="/guides/">Guides</a>
+      <a href="/tools/">Tools</a>
+      <a href="/blog/">Blog</a>
+      <a href="/about.html">About</a>
+      <div class="nav-right">
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&amp;utm_medium=satellite&amp;utm_campaign=nav-link" class="nav-pro" target="_blank">Go Pro &#10022;</a>
+        <a href="https://zovo.one/tools" class="nav-zovo">Zovo Tools</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <nav class="breadcrumb" aria-label="Breadcrumb" style="font-size:0.82rem;margin:20px 0 0;"><a href="/">Home</a> <span style="color:var(--text-muted);margin:0 4px;">/</span> <a href="/tools/">Tools</a> <span style="color:var(--text-muted);margin:0 4px;">/</span> <span style="color:var(--text-muted);">Responsive Breakpoint Tester</span></nav>
+
+  <section class="hero">
+    <h1>Responsive Breakpoint <span>Tester</span></h1>
+    <p>Preview any page at every screen width. Device frame presets, custom breakpoint builder, side-by-side comparison, and CSS export. No data leaves your browser.</p>
+  </section>
+
+  <div class="tool-section">
+    <h3>Input Source</h3>
+    <div class="mode-tabs">
+      <button class="mode-tab active" onclick="RBT.setMode('url')">Enter URL</button>
+      <button class="mode-tab" onclick="RBT.setMode('html')">Paste HTML</button>
+    </div>
+    <div id="url-input">
+      <div class="input-row">
+        <div class="input-field" style="flex:1">
+          <label>Page URL</label>
+          <input type="url" id="source-url" placeholder="https://example.com" value="">
+        </div>
+      </div>
+    </div>
+    <div id="html-input" style="display:none">
+      <div class="input-field">
+        <label>HTML Source</label>
+        <textarea id="source-html" placeholder="<!DOCTYPE html>&#10;<html>&#10;<head><meta name='viewport' content='width=device-width, initial-scale=1'></head>&#10;<body>&#10;  <h1>Hello World</h1>&#10;</body>&#10;</html>"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="tool-section">
+    <h3>Device Presets</h3>
+    <div class="device-presets">
+      <button class="device-btn" onclick="RBT.selectDevice(this,320,568,'iPhone SE')">iPhone SE <span class="dev-size">320</span></button>
+      <button class="device-btn" onclick="RBT.selectDevice(this,375,667,'iPhone 12')">iPhone 12 <span class="dev-size">375</span></button>
+      <button class="device-btn" onclick="RBT.selectDevice(this,414,896,'iPhone 14 Plus')">iPhone 14 Plus <span class="dev-size">414</span></button>
+      <button class="device-btn" onclick="RBT.selectDevice(this,393,852,'iPhone 15 Pro')">iPhone 15 Pro <span class="dev-size">393</span></button>
+      <button class="device-btn" onclick="RBT.selectDevice(this,412,915,'Pixel 8')">Pixel 8 <span class="dev-size">412</span></button>
+      <button class="device-btn" onclick="RBT.selectDevice(this,360,800,'Galaxy S24')">Galaxy S24 <span class="dev-size">360</span></button>
+      <button class="device-btn" onclick="RBT.selectDevice(this,768,1024,'iPad Mini')">iPad Mini <span class="dev-size">768</span></button>
+      <button class="device-btn" onclick="RBT.selectDevice(this,810,1080,'iPad 10th')">iPad 10th <span class="dev-size">810</span></button>
+      <button class="device-btn" onclick="RBT.selectDevice(this,1024,1366,'iPad Pro 12.9')">iPad Pro 12.9 <span class="dev-size">1024</span></button>
+      <button class="device-btn" onclick="RBT.selectDevice(this,1280,800,'MacBook Air 13')">MacBook Air 13 <span class="dev-size">1280</span></button>
+      <button class="device-btn" onclick="RBT.selectDevice(this,1440,900,'MacBook Pro 15')">MacBook Pro 15 <span class="dev-size">1440</span></button>
+      <button class="device-btn" onclick="RBT.selectDevice(this,1920,1080,'Desktop FHD')">Desktop FHD <span class="dev-size">1920</span></button>
+    </div>
+
+    <h3>Standard Breakpoints</h3>
+    <div class="width-chips" id="width-chips">
+      <button class="width-chip active" data-w="320" onclick="RBT.toggleChip(this)">320px</button>
+      <button class="width-chip active" data-w="375" onclick="RBT.toggleChip(this)">375px</button>
+      <button class="width-chip active" data-w="414" onclick="RBT.toggleChip(this)">414px</button>
+      <button class="width-chip active" data-w="768" onclick="RBT.toggleChip(this)">768px</button>
+      <button class="width-chip active" data-w="1024" onclick="RBT.toggleChip(this)">1024px</button>
+      <button class="width-chip active" data-w="1280" onclick="RBT.toggleChip(this)">1280px</button>
+      <button class="width-chip active" data-w="1440" onclick="RBT.toggleChip(this)">1440px</button>
+      <button class="width-chip active" data-w="1920" onclick="RBT.toggleChip(this)">1920px</button>
+    </div>
+
+    <h3>Custom Breakpoint</h3>
+    <div class="custom-bp-row">
+      <input type="number" id="custom-bp-val" placeholder="e.g. 600" min="100" max="3840" step="1">
+      <button class="btn" onclick="RBT.addCustomBP()">Add Breakpoint</button>
+    </div>
+  </div>
+
+  <div class="tool-section">
+    <h3>Preview Options</h3>
+    <div class="preview-controls">
+      <label><input type="checkbox" id="opt-compare" onchange="RBT.toggleCompare()"> Side-by-side comparison</label>
+      <label><input type="checkbox" id="opt-frames" checked onchange="RBT.refresh()"> Show device frames</label>
+      <label><input type="checkbox" id="opt-labels" checked onchange="RBT.refresh()"> Show width labels</label>
+    </div>
+    <button class="btn" onclick="RBT.render()">Preview All Breakpoints</button>
+  </div>
+
+  <div id="preview-output" style="display:none">
+    <div class="tool-section">
+      <h3>Breakpoint Summary</h3>
+      <div class="bp-summary">
+        <div><div class="val" id="sum-count">--</div><div class="lbl">Breakpoints</div></div>
+        <div><div class="val" id="sum-range">--</div><div class="lbl">Width Range</div></div>
+        <div><div class="val" id="sum-queries">--</div><div class="lbl">Media Queries</div></div>
+      </div>
+    </div>
+
+    <div class="tool-section">
+      <h3>Device Previews</h3>
+      <div class="preview-grid" id="preview-grid"></div>
+    </div>
+
+    <div class="tool-section">
+      <h3>Export Breakpoint CSS</h3>
+      <div class="export-area">
+        <pre id="css-export"></pre>
+        <button class="btn copy-btn" onclick="RBT.copyCSS()">Copy CSS to Clipboard</button>
+      </div>
+    </div>
+  </div>
+
+  <section class="explainer-section">
+    <h2>What Are Responsive Breakpoints?</h2>
+    <p>Responsive breakpoints are specific viewport widths at which a website's layout changes to accommodate different screen sizes. They are implemented through CSS media queries that apply different styles when the browser window crosses a defined pixel threshold. For example, a three-column grid on desktop might collapse to a single column on mobile at a 768px breakpoint. The concept was formalized by Ethan Marcotte in his 2010 article "Responsive Web Design" and has become the standard approach to building websites that work across devices.</p>
+    <p>The challenge with breakpoints is choosing the right ones. Historically, developers picked breakpoints based on popular device widths: 320px for iPhone, 768px for iPad, 1024px for desktop. This device-centric approach was practical in 2012 when there were only a handful of common screen sizes. In 2026, there are hundreds of distinct viewport widths in use, ranging from 280px smartwatches to 3840px 4K monitors. A purely device-driven strategy produces either too many breakpoints (maintenance burden) or misses important sizes (broken layouts).</p>
+    <p>The modern best practice is content-driven breakpoints: resize your browser window gradually and add a breakpoint wherever the content looks broken or uncomfortable. This produces a layout that works at every width, not just the popular ones. Typically this approach yields 3-5 breakpoints, which is manageable in CSS and covers the full viewport spectrum. This tool helps you visualize your page at all the standard widths simultaneously, making it easy to spot where content breaks and where a new breakpoint is needed.</p>
+
+    <h2>Standard Breakpoints and Their Rationale</h2>
+    <p>The eight standard breakpoints in this tool (320, 375, 414, 768, 1024, 1280, 1440, 1920) represent the most commonly encountered viewport widths based on global analytics data. Each serves a specific purpose in the responsive spectrum.</p>
+    <p><strong>320px</strong> represents the narrowest modern phone viewport (iPhone SE, older Android devices). It serves as the absolute minimum width you should support. If your layout works at 320px, it will work on virtually every phone. <strong>375px</strong> is the most common phone viewport width worldwide, used by the iPhone 12/13/14 base models. <strong>414px</strong> covers the "Plus" and "Pro Max" phones with wider screens.</p>
+    <p><strong>768px</strong> is the classic tablet breakpoint, matching iPad in portrait orientation. At this width, most single-column mobile layouts should transition to a two-column or more spacious layout. <strong>1024px</strong> covers tablets in landscape and small laptops. This is typically where navigation shifts from a hamburger menu to a full horizontal bar.</p>
+    <p><strong>1280px</strong> is the standard laptop viewport. <strong>1440px</strong> covers large desktop monitors and is often used as the "maximum content width" for many websites. <strong>1920px</strong> is full HD. At this width, content should either be contained within a max-width container or gracefully use the extra space. Designs that stretch uncomfortably at 1920px typically need a max-width constraint on their content area.</p>
+
+    <h2>Mobile-First vs Desktop-First</h2>
+    <p>The two dominant strategies for ordering media queries are mobile-first (using <code>min-width</code>) and desktop-first (using <code>max-width</code>). Mobile-first has become the industry standard and is recommended by Google, Bootstrap, and Tailwind CSS. The principle is straightforward: write your base CSS for the smallest screen, then add complexity as the viewport grows.</p>
+    <p>A mobile-first media query looks like <code>@media (min-width: 768px) { .sidebar { display: block; } }</code>. The sidebar is hidden by default (mobile) and only appears when the viewport reaches 768px. This approach has two key advantages: first, mobile devices download only the CSS they need, improving load time on slower connections. Second, it forces designers to prioritize content for the smallest screen, leading to cleaner information hierarchy.</p>
+    <p>Desktop-first reverses this: <code>@media (max-width: 767px) { .sidebar { display: none; } }</code>. The sidebar exists by default and is hidden on small screens. This approach is useful when adapting an existing desktop-only site to be responsive, but it typically results in heavier mobile CSS because you are undoing desktop styles rather than progressively adding them. New projects should always start mobile-first.</p>
+
+    <h2>Advanced Breakpoint Techniques</h2>
+    <h3>Container Queries: The Next Evolution</h3>
+    <p>CSS Container Queries (supported in all major browsers since February 2023) allow you to set breakpoints based on a parent element's width rather than the viewport width. This is transformative for component-based design systems. A card component can adapt its layout based on the column it is placed in, regardless of the overall page width. The syntax is <code>@container (min-width: 400px) { ... }</code> applied to elements with <code>container-type: inline-size</code>. Container queries do not replace viewport breakpoints but complement them, allowing truly responsive components.</p>
+
+    <h3>Logical Breakpoints with clamp()</h3>
+    <p>CSS <code>clamp()</code> function can eliminate some breakpoints entirely by creating fluid, continuously-scaling values. For example, <code>font-size: clamp(1rem, 2.5vw, 1.5rem)</code> smoothly scales text between 16px and 24px based on viewport width. Similarly, <code>gap: clamp(8px, 2vw, 32px)</code> creates fluid spacing that adapts without abrupt jumps at breakpoints. This technique is particularly effective for typography and spacing, reducing the total number of media queries needed.</p>
+
+    <h3>Orientation and Aspect Ratio</h3>
+    <p>Viewport width is not the only axis for responsive design. The <code>orientation</code> media feature distinguishes portrait from landscape, which is critical for tablets that are used in both orientations. <code>@media (orientation: landscape) and (max-height: 500px)</code> targets phones in landscape mode, where vertical space is extremely limited and fixed headers may need to collapse. The <code>aspect-ratio</code> media feature enables even more precise targeting: <code>@media (aspect-ratio: 16/9)</code> or <code>@media (min-aspect-ratio: 3/2)</code>.</p>
+
+    <h2>Testing Methodology</h2>
+    <p>Effective responsive testing requires a systematic approach. Start by previewing your page at all eight standard breakpoints using this tool. Look for three categories of issues: content overflow (text or images escaping their containers), awkward spacing (too much or too little whitespace), and touch target size (interactive elements smaller than the 44x44px minimum recommended by Apple and 48x48px by Google).</p>
+    <p>After the standard widths, slowly resize between each pair of breakpoints. The most common failures occur at "in-between" widths — 500-700px where phone layouts are too wide but tablet layouts have not yet kicked in. If you find a broken range, add a custom breakpoint at the exact width where the content starts to look wrong. This tool's custom breakpoint builder lets you add and preview arbitrary widths.</p>
+    <p>Side-by-side comparison mode is particularly useful for verifying that your visual hierarchy remains consistent across breakpoints. The most important content should occupy the most prominent position at every width. If your desktop layout places the call-to-action in a sidebar that disappears on mobile, your responsive design has a hierarchy problem, not just a layout problem.</p>
+
+    <h2>CSS Export and Workflow Integration</h2>
+    <p>After determining your breakpoints, use the CSS export feature to generate a ready-to-use set of media query blocks. The generated CSS follows mobile-first ordering (min-width queries, smallest to largest) and includes comments documenting each breakpoint's purpose. You can paste this directly into your stylesheet as a responsive framework skeleton. Each query block includes a commented device reference and the exact pixel width, making it self-documenting for your team.</p>
+    <p>For teams using CSS preprocessors, the same breakpoint values should be stored as variables: <code>$bp-phone: 375px</code>, <code>$bp-tablet: 768px</code>, <code>$bp-desktop: 1280px</code>. In Tailwind CSS, extend the <code>screens</code> configuration. In styled-components, create a breakpoints object. Centralizing breakpoint values ensures consistency across your entire codebase and makes future adjustments a single-line change.</p>
+    <p>All processing in this tool runs entirely in your browser. No URLs or HTML source code are sent to any server. Previews are rendered in sandboxed iframes that cannot access your browsing data. The tool is designed for local development workflows where privacy and speed are paramount.</p>
+  </section>
+
+  <section class="faq-section" style="max-width:760px;margin:40px auto 0;">
+    <h2>Frequently Asked Questions</h2>
+    <details>
+      <summary>What are the standard responsive breakpoints in 2026?</summary>
+      <p>The most widely used responsive breakpoints are 320px (small phones), 375px (iPhone SE/13 Mini), 414px (iPhone Plus/Pro Max), 768px (tablets in portrait), 1024px (tablets in landscape and small laptops), 1280px (standard laptops), 1440px (large desktops), and 1920px (full HD monitors). These correspond to the most common viewport widths in real-world analytics data. Tailwind CSS uses 640, 768, 1024, 1280, and 1536px. Bootstrap uses 576, 768, 992, 1200, and 1400px.</p>
+    </details>
+    <details>
+      <summary>How many breakpoints should a responsive design have?</summary>
+      <p>Most sites need 3-5 breakpoints. A minimal setup uses three: mobile (up to 768px), tablet (768-1024px), and desktop (1024px+). More complex layouts add a large phone breakpoint at 414px and a wide desktop at 1440px. Adding more than 5 breakpoints increases CSS complexity without meaningful UX improvement. The key is to set breakpoints where your content breaks, not at specific device widths.</p>
+    </details>
+    <details>
+      <summary>Should I use min-width or max-width media queries?</summary>
+      <p>Use min-width (mobile-first) media queries in almost all cases. Mobile-first means your base CSS targets the smallest screens, and you progressively add complexity for larger viewports. This approach results in faster mobile load times because phones download less CSS. Max-width queries work in the opposite direction and are useful when retrofitting an existing desktop site.</p>
+    </details>
+    <details>
+      <summary>How do I test responsive design without real devices?</summary>
+      <p>Browser DevTools offer the most accessible option: Chrome's Device Toolbar (Ctrl+Shift+M) includes presets for popular devices with accurate viewport dimensions and device pixel ratios. Online tools like this breakpoint tester let you preview at multiple widths simultaneously. For higher fidelity, BrowserStack and Sauce Labs provide access to real device emulators.</p>
+    </details>
+    <details>
+      <summary>What is the difference between viewport width and device width?</summary>
+      <p>Viewport width is the CSS pixel width of the browser window, which is what media queries target. Device width is the physical pixel width of the screen. Modern devices have a device pixel ratio (DPR) of 2-3x, meaning an iPhone 14 Pro with a 1179px physical width reports a 393px CSS viewport width. Always think in CSS pixels when building responsive layouts.</p>
+    </details>
+  </section>
+
+  <section class="related-tools" style="max-width:760px;margin:40px auto;">
+    <h3>Related Tools &amp; Guides</h3>
+    <div class="related-grid">
+      <a href="/tools/page-speed-analyzer.html">Page Speed Analyzer<small>Performance budget calculator with waterfall</small></a>
+      <a href="/research/core-web-vitals-guide.html">Core Web Vitals Guide<small>Diagnose and fix LCP, CLS, INP, TTFB</small></a>
+      <a href="/guides/lazy-loading-images-guide.html">Lazy Loading Guide<small>Implement lazy loading for images</small></a>
+    </div>
+  </section>
+
+  <div class="author-bio" style="max-width:760px;margin:32px auto;">
+    <p><strong>Written by Michael Lip</strong> — solo dev building free developer tools at <a href="https://zovo.one">zovo.one</a>. No tracking, no accounts, no data collection. If you find this tool useful, check out the full <a href="https://zovo.one/tools">Zovo Tools</a> suite.</p>
+  </div>
+
+  <div class="last-updated" style="max-width:760px;margin:16px auto;"><time datetime="2026-05-25">Last updated: May 25, 2026</time></div>
+</main>
+
+<footer class="site-footer">
+    <div class="footer-inner">
+        <div class="footer-brand">Zovo Tools</div>
+        <div class="footer-tagline">Free developer tools by a solo dev. No tracking.</div>
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&utm_medium=satellite&utm_campaign=footer-link" class="footer-cta">Zovo Lifetime &mdash; $99 once, free forever &rarr;</a>
+        <div class="footer-copy">&copy; 2026 <a href="https://zovo.one">Zovo</a> &middot; 47/500 founding spots</div>
+    </div>
+</footer>
+
+<nav class="zovo-network" aria-label="Zovo Tools Network">
+    <div class="zovo-network-inner">
+        <h3 class="zovo-network-title">Explore More Tools</h3>
+        <div class="zovo-network-links">
+            <a href="https://abwex.com">ABWex &mdash; A/B Testing</a>
+            <a href="https://claudflow.com">ClaudFlow &mdash; Workflows</a>
+            <a href="https://claudhq.com">ClaudHQ &mdash; AI Code Tools &amp; Fixes</a>
+            <a href="https://claudkit.com">ClaudKit &mdash; API</a>
+            <a href="https://enhio.com">Enhio &mdash; Text Tools</a>
+            <a href="https://epochpilot.com">EpochPilot &mdash; Timestamps</a>
+            <a href="https://gen8x.com">Gen8X &mdash; Color Tools</a>
+            <a href="https://gpt0x.com">GPT0X &mdash; AI Models</a>
+            <a href="https://heytensor.com">HeyTensor &mdash; ML Tools</a>
+            <a href="https://invokebot.com">InvokeBot &mdash; Webhooks</a>
+            <a href="https://kappafy.com">Kappafy &mdash; JSON</a>
+            <a href="https://kappakit.com">KappaKit &mdash; Dev Toolkit</a>
+            <a href="https://kickllm.com">KickLLM &mdash; LLM Costs</a>
+            <a href="https://lochbot.com">LochBot &mdash; Security</a>
+            <a href="https://lockml.com">LockML &mdash; ML Compare</a>
+            <a href="https://ml3x.com">ML3X &mdash; Matrix Math</a>
+        </div>
+    </div>
+</nav>
+
+<script>
+const RBT={
+  mode:'url',
+  activeWidths:[320,375,414,768,1024,1280,1440,1920],
+  defaultWidths:[320,375,414,768,1024,1280,1440,1920],
+  customWidths:[],
+  devices:{320:'iPhone SE',375:'iPhone 12',393:'iPhone 15 Pro',414:'iPhone 14 Plus',412:'Pixel 8',360:'Galaxy S24',768:'iPad Mini',810:'iPad 10th',1024:'iPad Pro 12.9',1280:'MacBook Air 13',1440:'MacBook Pro 15',1920:'Desktop FHD'},
+
+  setMode(m){
+    this.mode=m;
+    document.querySelectorAll('.mode-tab').forEach(t=>t.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('url-input').style.display=m==='url'?'block':'none';
+    document.getElementById('html-input').style.display=m==='html'?'block':'none';
+  },
+
+  selectDevice(btn,w,h,name){
+    document.querySelectorAll('.device-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const chips=document.getElementById('width-chips');
+    const existing=chips.querySelector(`[data-w="${w}"]`);
+    if(!existing){
+      this.addWidthChip(w,true);
+    }else if(!existing.classList.contains('active')){
+      existing.classList.add('active');
+    }
+    this.updateActiveWidths();
+  },
+
+  toggleChip(chip){
+    chip.classList.toggle('active');
+    this.updateActiveWidths();
+  },
+
+  addCustomBP(){
+    const input=document.getElementById('custom-bp-val');
+    const val=parseInt(input.value);
+    if(!val||val<100||val>3840)return;
+    if(this.activeWidths.includes(val))return;
+    this.addWidthChip(val,true);
+    this.customWidths.push(val);
+    input.value='';
+    this.updateActiveWidths();
+  },
+
+  addWidthChip(w,isCustom){
+    const chips=document.getElementById('width-chips');
+    const btn=document.createElement('button');
+    btn.className='width-chip active'+(isCustom?' custom':'');
+    btn.dataset.w=w;
+    btn.innerHTML=w+'px'+(isCustom?'<span class="chip-x" onclick="event.stopPropagation();RBT.removeChip(this.parentElement)">x</span>':'');
+    btn.onclick=function(){RBT.toggleChip(this);};
+    const allChips=[...chips.querySelectorAll('.width-chip')];
+    let inserted=false;
+    for(const c of allChips){
+      if(parseInt(c.dataset.w)>w){chips.insertBefore(btn,c);inserted=true;break;}
+    }
+    if(!inserted)chips.appendChild(btn);
+  },
+
+  removeChip(chip){
+    const w=parseInt(chip.dataset.w);
+    this.customWidths=this.customWidths.filter(v=>v!==w);
+    chip.remove();
+    this.updateActiveWidths();
+  },
+
+  updateActiveWidths(){
+    this.activeWidths=[];
+    document.querySelectorAll('.width-chip.active').forEach(c=>{
+      this.activeWidths.push(parseInt(c.dataset.w));
+    });
+    this.activeWidths.sort((a,b)=>a-b);
+  },
+
+  getSource(){
+    if(this.mode==='url'){
+      const url=document.getElementById('source-url').value.trim();
+      if(!url)return null;
+      return{type:'url',value:url};
+    }else{
+      const html=document.getElementById('source-html').value.trim();
+      if(!html)return null;
+      return{type:'html',value:html};
+    }
+  },
+
+  render(){
+    const src=this.getSource();
+    if(!src){alert('Please enter a URL or paste HTML source.');return;}
+    if(this.activeWidths.length===0){alert('Please select at least one breakpoint width.');return;}
+
+    const showFrames=document.getElementById('opt-frames').checked;
+    const showLabels=document.getElementById('opt-labels').checked;
+    const isCompare=document.getElementById('opt-compare').checked;
+
+    document.getElementById('preview-output').style.display='block';
+    document.getElementById('sum-count').textContent=this.activeWidths.length;
+    document.getElementById('sum-range').textContent=this.activeWidths[0]+'–'+this.activeWidths[this.activeWidths.length-1]+'px';
+    document.getElementById('sum-queries').textContent=this.activeWidths.length-1;
+
+    const grid=document.getElementById('preview-grid');
+    grid.innerHTML='';
+    grid.style.flexDirection=isCompare?'row':'row';
+    grid.style.flexWrap=isCompare?'nowrap':'wrap';
+    grid.style.overflowX=isCompare?'auto':'visible';
+
+    this.activeWidths.forEach(w=>{
+      const scale=Math.min(1,Math.min((window.innerWidth-80)/w,1));
+      const displayW=Math.round(w*scale);
+      const frameH=Math.round(Math.min(600,w*0.75)*scale);
+
+      const frame=document.createElement('div');
+      frame.className='preview-frame';
+      frame.style.width=displayW+'px';
+
+      let headerHTML='';
+      if(showLabels){
+        const devName=this.devices[w]||'Custom';
+        headerHTML=`<div class="preview-frame-header"><span class="frame-width">${w}px</span><span class="frame-device">${devName}</span></div>`;
+      }
+
+      frame.innerHTML=headerHTML;
+
+      const iframe=document.createElement('iframe');
+      iframe.style.width=w+'px';
+      iframe.style.height=Math.round(w*0.75)+'px';
+      iframe.style.transform='scale('+scale+')';
+      iframe.style.transformOrigin='top left';
+      iframe.style.display='block';
+      iframe.setAttribute('sandbox','allow-same-origin allow-scripts');
+      iframe.setAttribute('loading','lazy');
+      iframe.title='Preview at '+w+'px';
+
+      const iframeContainer=document.createElement('div');
+      iframeContainer.style.width=displayW+'px';
+      iframeContainer.style.height=frameH+'px';
+      iframeContainer.style.overflow='hidden';
+      iframeContainer.appendChild(iframe);
+      frame.appendChild(iframeContainer);
+
+      grid.appendChild(frame);
+
+      if(src.type==='url'){
+        iframe.src=src.value;
+      }else{
+        iframe.srcdoc=src.value;
+      }
+    });
+
+    this.generateCSS();
+    document.getElementById('preview-output').scrollIntoView({behavior:'smooth',block:'start'});
+  },
+
+  refresh(){
+    if(document.getElementById('preview-output').style.display!=='none'){
+      this.render();
+    }
+  },
+
+  toggleCompare(){
+    if(document.getElementById('preview-output').style.display!=='none'){
+      this.render();
+    }
+  },
+
+  generateCSS(){
+    const sorted=[...this.activeWidths].sort((a,b)=>a-b);
+    let css='/* Responsive Breakpoints — Mobile First (min-width) */\n';
+    css+='/* Generated by Krzen Responsive Breakpoint Tester */\n';
+    css+='/* https://krzen.com/tools/responsive-breakpoint-tester.html */\n\n';
+    css+='/* Base styles (mobile, <'+sorted[0]+'px) */\n';
+    css+='/* Your mobile-first styles go here */\n\n';
+
+    sorted.forEach((w,i)=>{
+      const devName=this.devices[w]||'Custom';
+      const nextW=sorted[i+1]||null;
+      const range=nextW?w+'px – '+(nextW-1)+'px':w+'px+';
+      css+=`/* ${devName} (${range}) */\n`;
+      css+=`@media (min-width: ${w}px) {\n`;
+      css+=`  /* Styles for ${w}px and above */\n`;
+      css+=`}\n\n`;
+    });
+
+    document.getElementById('css-export').textContent=css;
+  },
+
+  copyCSS(){
+    const text=document.getElementById('css-export').textContent;
+    navigator.clipboard.writeText(text).then(()=>{
+      const btn=document.querySelector('.copy-btn');
+      const orig=btn.textContent;
+      btn.textContent='Copied!';
+      btn.style.borderColor='#34D399';
+      btn.style.color='#34D399';
+      setTimeout(()=>{btn.textContent=orig;btn.style.borderColor='';btn.style.color='';},2000);
+    });
+  }
+};
+
+document.querySelectorAll('.faq-section details summary').forEach(s=>{
+  s.addEventListener('click',function(e){
+    const d=this.parentElement;
+    const open=d.hasAttribute('open');
+    if(!open){/* browser handles it */}
+  });
+});
+</script>
+</body>
+</html>
