@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Web Vitals Monitor — Track LCP, FID, CLS &amp; INP in Real Time | Krzen</title>
+<meta name="description" content="Interactive Core Web Vitals dashboard. Input your LCP, FID, CLS, and INP values to get Good/Needs-Improvement/Poor ratings, specific fix recommendations for each metric, and a historical trend chart.">
+<meta name="keywords" content="core web vitals monitor, LCP checker, CLS checker, INP monitor, FID checker, web vitals dashboard, core web vitals tool, LCP needs improvement fix, cumulative layout shift fix">
+<link rel="canonical" href="https://krzen.com/tools/web-vitals-monitor.html">
+<link rel="alternate" hreflang="en" href="https://krzen.com/tools/web-vitals-monitor.html">
+<link rel="alternate" hreflang="x-default" href="https://krzen.com/tools/web-vitals-monitor.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Web Vitals Monitor — Track LCP, FID, CLS &amp; INP in Real Time">
+<meta property="og:description" content="Interactive Core Web Vitals dashboard with gauge ratings, fix recommendations, and historical trend chart. Free, client-side only.">
+<meta property="og:url" content="https://krzen.com/tools/web-vitals-monitor.html">
+<meta property="og:site_name" content="Zovo Tools">
+<meta property="og:image" content="https://krzen.com/assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Web Vitals Monitor — Track LCP, FID, CLS &amp; INP in Real Time">
+<meta name="twitter:description" content="Interactive Core Web Vitals dashboard with gauge ratings, fix recommendations, and historical trend chart. Free, client-side only.">
+<meta name="twitter:image" content="https://krzen.com/assets/og-image.png">
+<link rel="stylesheet" href="/assets/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Web Vitals Monitor",
+  "url": "https://krzen.com/tools/web-vitals-monitor.html",
+  "description": "Interactive Core Web Vitals dashboard. Input LCP, FID, CLS, and INP values to get Good/Needs-Improvement/Poor ratings, specific fix recommendations, and a historical trend chart.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+  "author": {"@type": "Person", "name": "Michael Lip", "url": "https://zovo.one"},
+  "publisher": {"@type": "Organization", "name": "Zovo Tools", "url": "https://zovo.one"},
+  "datePublished": "2026-05-28",
+  "dateModified": "2026-05-28",
+  "featureList": ["LCP gauge with Good/Needs-Improvement/Poor rating", "FID gauge", "CLS gauge", "INP gauge", "Per-metric fix recommendations", "Historical trend chart with threshold lines", "Client-side processing"],
+  "browserRequirements": "Requires JavaScript"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What are Core Web Vitals?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Core Web Vitals are a set of specific metrics Google uses to measure real-world user experience on the web. They consist of three primary metrics: Largest Contentful Paint (LCP), which measures loading performance; Interaction to Next Paint (INP), which replaced First Input Delay in March 2024 and measures interactivity; and Cumulative Layout Shift (CLS), which measures visual stability. First Input Delay (FID) was the original interactivity metric and is still widely reported in historical data. Since May 2021, Core Web Vitals have been a Google ranking signal via the Page Experience update."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is a good LCP score?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Google classifies LCP (Largest Contentful Paint) as Good when it is 2.5 seconds or less, Needs Improvement between 2.5 and 4.0 seconds, and Poor when it exceeds 4.0 seconds. These thresholds apply to the 75th percentile of all page loads — meaning 75% of your users must experience Good LCP for the page to be classified as Good in Google Search Console. The LCP element is typically the hero image or largest heading on the page."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is a good CLS score?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Cumulative Layout Shift (CLS) is Good when the score is 0.1 or less, Needs Improvement between 0.1 and 0.25, and Poor above 0.25. CLS is a unitless score calculated by multiplying the impact fraction (how much of the viewport shifts) by the distance fraction (how far elements move). A score of 0 means no unexpected layout shifts. Common causes of high CLS are images without dimensions, dynamically injected ads, web fonts causing FOUT, and embeds that resize after loading."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What replaced First Input Delay (FID)?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Interaction to Next Paint (INP) officially replaced First Input Delay (FID) as a Core Web Vital in March 2024. FID only measured the delay before the browser began processing the first interaction, while INP measures the full latency of all interactions throughout the page's lifetime and reports the worst case. INP is Good at 200ms or less, Needs Improvement between 200ms and 500ms, and Poor above 500ms. INP is a much stricter and more comprehensive measure of interactivity than FID."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I improve INP (Interaction to Next Paint)?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "INP is improved by reducing the time between a user interaction and the browser's next paint. The main causes of high INP are: long JavaScript tasks blocking the main thread (break them up with scheduler.yield() or setTimeout(fn, 0)), heavy event handlers executing synchronous DOM operations, excessive re-renders in JavaScript frameworks, and third-party scripts running on interaction. Use Chrome DevTools Performance panel to record interactions and identify the specific tasks causing delay. Offloading work to Web Workers and deferring non-critical updates with requestAnimationFrame also help."
+      }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://krzen.com/"},
+    {"@type": "ListItem", "position": 2, "name": "Tools", "item": "https://krzen.com/tools/"},
+    {"@type": "ListItem", "position": 3, "name": "Web Vitals Monitor", "item": "https://krzen.com/tools/web-vitals-monitor.html"}
+  ]
+}
+</script>
+<style>
+.vitals-input-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:24px}
+.vital-input-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.vital-input-card .vname{font-family:var(--font-display);font-size:0.95rem;font-weight:700;color:var(--text);margin-bottom:2px}
+.vital-input-card .vfull{font-size:0.75rem;color:var(--text-muted);margin-bottom:12px}
+.vital-input-row{display:flex;align-items:center;gap:10px}
+.vital-input-row input{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:8px 10px;font-family:var(--font-display);font-size:1.1rem;font-weight:700;width:100px;-moz-appearance:textfield}
+.vital-input-row input::-webkit-inner-spin-button,.vital-input-row input::-webkit-outer-spin-button{-webkit-appearance:none}
+.vital-input-row input:focus{outline:none;border-color:var(--accent)}
+.vital-unit{font-size:0.8rem;color:var(--text-muted)}
+.vital-thresholds{font-size:0.72rem;color:var(--text-muted);margin-top:8px;line-height:1.6}
+.vital-thresholds .thr-good{color:#34D399}
+.vital-thresholds .thr-needs{color:#FBBF24}
+.vital-thresholds .thr-poor{color:#F87171}
+.tool-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin:20px 0}
+.tool-section h3{font-family:var(--font-display);font-size:0.85rem;text-transform:uppercase;color:var(--accent);margin-bottom:16px;letter-spacing:0.04em}
+#gauges-area{display:none}
+.gauges-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px}
+.gauge-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center}
+.gauge-svg-wrap{width:130px;height:80px;margin:0 auto 8px;overflow:visible}
+.gauge-value{font-family:var(--font-display);font-size:1.5rem;font-weight:700;margin-bottom:4px}
+.gauge-label{font-size:0.72rem;text-transform:uppercase;font-weight:700;letter-spacing:0.05em;padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:10px}
+.gauge-good{color:#34D399;background:rgba(52,211,153,0.12);border:1px solid rgba(52,211,153,0.25)}
+.gauge-needs{color:#FBBF24;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.25)}
+.gauge-poor{color:#F87171;background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.25)}
+.gauge-name{font-size:0.82rem;color:var(--text-muted);margin-bottom:0}
+.fix-panel{margin-top:8px;text-align:left}
+.fix-panel details{margin-top:8px}
+.fix-panel details summary{font-size:0.8rem;color:var(--accent);cursor:pointer;font-weight:600;list-style:none}
+.fix-panel details summary::before{content:'+ '}
+.fix-panel details[open] summary::before{content:'- '}
+.fix-panel details p{font-size:0.78rem;color:var(--text-muted);margin:6px 0 0;line-height:1.5}
+.trend-section{margin-top:20px}
+.trend-controls{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px}
+.trend-controls label{font-size:0.78rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.03em;display:block;margin-bottom:3px}
+.trend-controls select,.trend-controls input{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:7px 10px;font-family:var(--font-body);font-size:0.85rem}
+.trend-controls select:focus,.trend-controls input:focus{outline:none;border-color:var(--accent)}
+.trend-entry-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.trend-entry-row input{width:90px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:6px 8px;font-family:var(--font-display);font-size:0.9rem}
+.trend-entry-row input:focus{outline:none;border-color:var(--accent)}
+.trend-entry-row label{font-size:0.78rem;color:var(--text-muted);min-width:60px}
+#trend-chart-wrap{overflow-x:auto;margin-top:12px}
+.chart-empty{text-align:center;color:var(--text-muted);font-size:0.85rem;padding:30px;border:1px dashed var(--border);border-radius:var(--radius)}
+.history-table{width:100%;border-collapse:collapse;font-size:0.82rem;margin-top:12px}
+.history-table th{text-align:left;color:var(--text-muted);font-weight:600;font-size:0.75rem;text-transform:uppercase;padding:6px 10px;border-bottom:1px solid var(--border)}
+.history-table td{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text)}
+.dot-good{color:#34D399;font-weight:700}
+.dot-needs{color:#FBBF24;font-weight:700}
+.dot-poor{color:#F87171;font-weight:700}
+.explainer-section{max-width:760px;margin:40px auto 0;padding:0 0 20px}
+.explainer-section h2{font-size:1.3rem;margin:32px 0 12px;color:var(--accent)}
+.explainer-section h3{font-size:1.1rem;margin:24px 0 8px}
+.explainer-section p{color:var(--text-muted);margin-bottom:16px;line-height:1.7}
+.explainer-section ul,.explainer-section ol{color:var(--text-muted);margin:0 0 16px 24px}
+.explainer-section li{margin-bottom:6px}
+.explainer-section code{font-family:var(--font-display);background:var(--bg-card);padding:2px 6px;border-radius:3px;font-size:0.9em}
+.related-tools{margin:40px 0 0}
+.related-tools h3{font-family:var(--font-display);text-align:center;margin-bottom:16px;font-size:1rem}
+.related-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.related-grid a{display:block;padding:14px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);text-decoration:none;font-size:0.9rem;transition:border-color 0.2s}
+.related-grid a:hover{border-color:var(--accent);text-decoration:none}
+.related-grid a small{display:block;color:var(--text-muted);font-size:0.78rem;margin-top:4px}
+.author-bio{margin:32px 0;padding:20px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius)}
+.author-bio p{color:var(--text-muted);font-size:0.9rem;line-height:1.6;margin:0}
+.author-bio p strong{color:var(--text)}
+.last-updated{text-align:center;color:var(--text-muted);font-size:0.8rem;margin:24px 0 0}
+@media(max-width:600px){.vitals-input-grid{grid-template-columns:1fr 1fr}.gauges-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <a href="/" class="logo">krzen</a>
+    <nav>
+      <a href="/">Tool</a>
+      <a href="/research/">Research</a>
+      <a href="/guides/">Guides</a>
+      <a href="/tools/">Tools</a>
+      <a href="/blog/">Blog</a>
+      <a href="/about.html">About</a>
+      <div class="nav-right">
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&amp;utm_medium=satellite&amp;utm_campaign=nav-link" class="nav-pro" target="_blank">Go Pro &#10022;</a>
+        <a href="https://zovo.one/tools" class="nav-zovo">Zovo Tools</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <nav class="breadcrumb" aria-label="Breadcrumb" style="font-size:0.82rem;margin:20px 0 0;"><a href="/">Home</a> <span style="color:var(--text-muted);margin:0 4px;">/</span> <a href="/tools/">Tools</a> <span style="color:var(--text-muted);margin:0 4px;">/</span> <span style="color:var(--text-muted);">Web Vitals Monitor</span></nav>
+
+  <section class="hero">
+    <h1>Web Vitals <span>Monitor</span></h1>
+    <p>Enter your Core Web Vitals values — LCP, FID, CLS, INP — and get instant Good / Needs Improvement / Poor ratings with specific fix recommendations and a historical trend chart. All client-side.</p>
+  </section>
+
+  <div class="tool-section">
+    <h3>Enter Your Core Web Vitals</h3>
+    <div class="vitals-input-grid">
+      <div class="vital-input-card">
+        <div class="vname">LCP</div>
+        <div class="vfull">Largest Contentful Paint</div>
+        <div class="vital-input-row">
+          <input type="number" id="inp-lcp" value="3.2" min="0" max="30" step="0.1">
+          <span class="vital-unit">seconds</span>
+        </div>
+        <div class="vital-thresholds">
+          <span class="thr-good">Good: &le;2.5s</span> &middot;
+          <span class="thr-needs">Needs: &le;4.0s</span> &middot;
+          <span class="thr-poor">Poor: &gt;4.0s</span>
+        </div>
+      </div>
+      <div class="vital-input-card">
+        <div class="vname">INP</div>
+        <div class="vfull">Interaction to Next Paint</div>
+        <div class="vital-input-row">
+          <input type="number" id="inp-inp" value="180" min="0" max="5000" step="1">
+          <span class="vital-unit">ms</span>
+        </div>
+        <div class="vital-thresholds">
+          <span class="thr-good">Good: &le;200ms</span> &middot;
+          <span class="thr-needs">Needs: &le;500ms</span> &middot;
+          <span class="thr-poor">Poor: &gt;500ms</span>
+        </div>
+      </div>
+      <div class="vital-input-card">
+        <div class="vname">CLS</div>
+        <div class="vfull">Cumulative Layout Shift</div>
+        <div class="vital-input-row">
+          <input type="number" id="inp-cls" value="0.14" min="0" max="5" step="0.01">
+          <span class="vital-unit">score</span>
+        </div>
+        <div class="vital-thresholds">
+          <span class="thr-good">Good: &le;0.10</span> &middot;
+          <span class="thr-needs">Needs: &le;0.25</span> &middot;
+          <span class="thr-poor">Poor: &gt;0.25</span>
+        </div>
+      </div>
+      <div class="vital-input-card">
+        <div class="vname">FID</div>
+        <div class="vfull">First Input Delay (legacy)</div>
+        <div class="vital-input-row">
+          <input type="number" id="inp-fid" value="45" min="0" max="2000" step="1">
+          <span class="vital-unit">ms</span>
+        </div>
+        <div class="vital-thresholds">
+          <span class="thr-good">Good: &le;100ms</span> &middot;
+          <span class="thr-needs">Needs: &le;300ms</span> &middot;
+          <span class="thr-poor">Poor: &gt;300ms</span>
+        </div>
+      </div>
+    </div>
+    <button class="btn" onclick="WVM.analyze()">Analyze Web Vitals</button>
+  </div>
+
+  <div id="gauges-area">
+    <div class="tool-section">
+      <h3>Metric Ratings &amp; Fix Recommendations</h3>
+      <div class="gauges-grid" id="gauges-grid"></div>
+    </div>
+
+    <div class="tool-section trend-section">
+      <h3>Historical Trend Tracker</h3>
+      <p style="font-size:0.83rem;color:var(--text-muted);margin-bottom:16px;">Log readings over time to track progress. Data is stored in memory only (not persisted). Select the metric, enter a date label and value, then click Add.</p>
+      <div class="trend-controls">
+        <div>
+          <label>Metric</label>
+          <select id="trend-metric">
+            <option value="lcp">LCP (seconds)</option>
+            <option value="inp">INP (ms)</option>
+            <option value="cls">CLS (score)</option>
+            <option value="fid">FID (ms)</option>
+          </select>
+        </div>
+        <div>
+          <label>Date Label</label>
+          <input type="text" id="trend-date" placeholder="e.g. May 28" style="width:120px">
+        </div>
+        <div>
+          <label>Value</label>
+          <input type="number" id="trend-val" placeholder="e.g. 3.2" step="any" style="width:90px">
+        </div>
+        <button class="btn" onclick="WVM.addTrendEntry()" style="margin-bottom:0;padding:8px 16px;">Add Entry</button>
+        <button class="btn" onclick="WVM.clearTrend()" style="margin-bottom:0;padding:8px 14px;background:transparent;border:1px solid var(--border);color:var(--text-muted);">Clear</button>
+      </div>
+      <div id="trend-chart-wrap"><div class="chart-empty">Add entries above to see the trend chart.</div></div>
+      <div id="trend-table-wrap"></div>
+    </div>
+  </div>
+
+  <section class="explainer-section">
+    <h2>Understanding Core Web Vitals</h2>
+    <p>Core Web Vitals are three metrics — LCP, INP, and CLS — that Google uses to measure real user experience as a Page Experience ranking signal. They were first introduced in 2020 and became a ranking factor in May 2021. INP replaced FID as the interactivity metric in March 2024, making the measurement more comprehensive. Google collects field data (from real Chrome users) via the Chrome User Experience Report (CrUX) and surfaces it in Search Console, PageSpeed Insights, and Lighthouse.</p>
+    <p>The key distinction between lab and field data matters for Core Web Vitals. Lab data (from Lighthouse or WebPageTest) runs a simulated test under controlled conditions. Field data reflects actual user experiences across your full traffic distribution, including slow devices, congested networks, and unusual usage patterns. Google's ranking signal uses field data — specifically the 75th percentile of all page loads — so a page that scores well in Lighthouse may still have poor Core Web Vitals in Search Console if real-world conditions differ significantly.</p>
+
+    <h2>LCP: Largest Contentful Paint</h2>
+    <p>LCP measures how long it takes for the largest visible content element to render in the viewport. In practice, this is almost always the hero image, a large banner, or the first large block of text. Google's Good threshold is 2.5 seconds or less at the 75th percentile of page loads.</p>
+    <p>The most impactful LCP optimizations are: preloading the LCP image with <code>&lt;link rel="preload" as="image" fetchpriority="high"&gt;</code>, converting hero images to WebP or AVIF (typically 30–50% smaller than JPEG), ensuring the LCP image is not lazy-loaded (never put <code>loading="lazy"</code> on the first visible image), improving server response time (TTFB contributes directly to LCP), and eliminating render-blocking scripts that delay the browser from painting.</p>
+    <p>A common LCP trap is using CSS background images for the hero. Background images are not discoverable by the browser's preload scanner, meaning they start downloading later than <code>&lt;img&gt;</code> elements. Switching from <code>background-image</code> to an <code>&lt;img&gt;</code> tag with proper sizing can reduce LCP by 0.5–1.5 seconds.</p>
+
+    <h2>INP: Interaction to Next Paint</h2>
+    <p>INP (which replaced FID in March 2024) measures the full duration of every user interaction — click, keypress, or tap — throughout the page lifecycle, and reports the worst-case latency. Unlike FID, which only measured the input delay before the browser began processing the first interaction, INP measures the complete input delay, processing time, and presentation delay. The Good threshold is 200ms or less.</p>
+    <p>High INP is almost always caused by long tasks on the main thread. The main thread can only execute one task at a time; if a JavaScript function takes 300ms to run after a user click, the browser cannot paint an update until that function completes. The fix involves breaking long tasks into smaller chunks using <code>scheduler.yield()</code> (or the older <code>setTimeout(fn, 0)</code> pattern), offloading heavy computation to Web Workers, and avoiding synchronous DOM queries inside event handlers. Framework-heavy pages (React, Vue, Angular) can also suffer from expensive re-render cascades — profiling with Chrome DevTools' Interactions track is the fastest way to pinpoint the culprit.</p>
+
+    <h2>CLS: Cumulative Layout Shift</h2>
+    <p>CLS measures unexpected visual movement of page content during loading. Every time an element moves without a user action, it scores a layout shift. The CLS score is the sum of all individual shift scores, where each individual shift score = impact fraction × distance fraction. The Good threshold is 0.1 or less.</p>
+    <p>The four most common CLS causes are: images without explicit <code>width</code> and <code>height</code> attributes (the browser reserves no space before the image loads, causing a reflow), web fonts using <code>font-display: auto</code> or <code>block</code> (causing a flash of invisible text followed by a reflow when the font loads), dynamically injected banners or ads above content, and iframes or embeds without reserved height. Setting explicit dimensions on images and using <code>font-display: optional</code> or <code>swap</code> with <code>size-adjust</code> to match fallback metrics resolves the majority of CLS issues.</p>
+
+    <h2>FID: First Input Delay (Legacy)</h2>
+    <p>FID measured the delay between a user's first interaction and the browser's response. It was replaced by INP in March 2024 because it only captured a single event and ignored interaction duration. FID is still reported in historical Search Console data and some RUM tools, so it remains useful for trend analysis. The Good threshold is 100ms or less. FID is primarily improved by reducing JavaScript execution time during page load, the same techniques that improve INP.</p>
+
+    <h2>How to Measure Real-World Core Web Vitals</h2>
+    <p>To get field data matching what Google uses for ranking, use: Google Search Console's Core Web Vitals report (shows your actual indexed pages with CrUX data), PageSpeed Insights (shows both lab and field data for any URL), or install the <code>web-vitals</code> JavaScript library to capture values from real users and send them to your analytics. The web-vitals library is the most accurate way to measure INP specifically, as INP is event-driven and varies significantly between sessions.</p>
+    <p>Use this tool to monitor your progress as you implement fixes. Log a reading before and after each optimization sprint to quantify the improvement. When your 75th-percentile values hit the Good thresholds for all three core metrics (LCP &le;2.5s, INP &le;200ms, CLS &le;0.1), your page qualifies for the Good page experience classification in Google Search.</p>
+  </section>
+
+  <section class="faq-section" style="max-width:760px;margin:40px auto 0;">
+    <h2>Frequently Asked Questions</h2>
+    <details>
+      <summary>What are Core Web Vitals?</summary>
+      <p>Core Web Vitals are three metrics Google uses to measure real-world user experience: Largest Contentful Paint (LCP) for loading, Interaction to Next Paint (INP) for interactivity, and Cumulative Layout Shift (CLS) for visual stability. Since 2021, they have been a Google ranking signal. INP replaced FID in March 2024.</p>
+    </details>
+    <details>
+      <summary>What is a good LCP score?</summary>
+      <p>LCP is Good at 2.5 seconds or less, Needs Improvement between 2.5 and 4.0 seconds, and Poor above 4.0 seconds. These thresholds apply at the 75th percentile of all page loads — 75% of your users must experience Good LCP for the page to qualify as Good in Google Search Console.</p>
+    </details>
+    <details>
+      <summary>What is a good CLS score?</summary>
+      <p>CLS is Good at 0.1 or less, Needs Improvement between 0.1 and 0.25, and Poor above 0.25. Common causes of high CLS are images without explicit dimensions, web fonts without font-display:swap, and dynamically injected banners above existing content.</p>
+    </details>
+    <details>
+      <summary>What replaced First Input Delay (FID)?</summary>
+      <p>Interaction to Next Paint (INP) replaced FID as a Core Web Vital in March 2024. INP measures the full latency of all interactions throughout the page's lifetime, reporting the worst case. INP is Good at 200ms or less, Needs Improvement between 200ms and 500ms, and Poor above 500ms.</p>
+    </details>
+    <details>
+      <summary>How do I improve INP?</summary>
+      <p>INP is improved by reducing long tasks on the main thread: break work into chunks using scheduler.yield(), offload heavy computation to Web Workers, remove unused third-party scripts, and profile interactions in Chrome DevTools to identify the specific JavaScript causing delay.</p>
+    </details>
+  </section>
+
+  <section class="related-tools" style="max-width:760px;margin:40px auto;">
+    <h3>Related Tools &amp; Guides</h3>
+    <div class="related-grid">
+      <a href="/tools/lighthouse-score-optimizer.html">Lighthouse Score Optimizer<small>Fix all 4 Lighthouse categories fast</small></a>
+      <a href="/tools/page-speed-analyzer.html">Page Speed Analyzer<small>Performance budget calculator &amp; waterfall</small></a>
+      <a href="/research/core-web-vitals-guide.html">Core Web Vitals Guide<small>In-depth research and benchmarks</small></a>
+    </div>
+  </section>
+
+  <div class="author-bio" style="max-width:760px;margin:32px auto;">
+    <p><strong>Written by Michael Lip</strong> — solo dev building free developer tools at <a href="https://zovo.one">zovo.one</a>. No tracking, no accounts, no data collection. If you find this tool useful, check out the full <a href="https://zovo.one/tools">Zovo Tools</a> suite.</p>
+  </div>
+
+  <div class="last-updated" style="max-width:760px;margin:16px auto;"><time datetime="2026-05-28">Last updated: May 28, 2026</time></div>
+</main>
+
+<footer class="site-footer">
+    <div class="footer-inner">
+        <div class="footer-brand">Zovo Tools</div>
+        <div class="footer-tagline">Free developer tools by a solo dev. No tracking.</div>
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&utm_medium=satellite&utm_campaign=footer-link" class="footer-cta">Zovo Lifetime &mdash; $99 once, free forever &rarr;</a>
+        <div class="footer-copy">&copy; 2026 <a href="https://zovo.one">Zovo</a> &middot; 47/500 founding spots</div>
+    </div>
+</footer>
+
+<nav class="zovo-network" aria-label="Zovo Tools Network">
+    <div class="zovo-network-inner">
+        <h3 class="zovo-network-title">Explore More Tools</h3>
+        <div class="zovo-network-links">
+            <a href="https://abwex.com">ABWex &mdash; A/B Testing</a>
+            <a href="https://claudflow.com">ClaudFlow &mdash; Workflows</a>
+            <a href="https://claudhq.com">ClaudHQ &mdash; AI Code Tools &amp; Fixes</a>
+            <a href="https://claudkit.com">ClaudKit &mdash; API</a>
+            <a href="https://enhio.com">Enhio &mdash; Text Tools</a>
+            <a href="https://epochpilot.com">EpochPilot &mdash; Timestamps</a>
+            <a href="https://gen8x.com">Gen8X &mdash; Color Tools</a>
+            <a href="https://gpt0x.com">GPT0X &mdash; AI Models</a>
+            <a href="https://heytensor.com">HeyTensor &mdash; ML Tools</a>
+            <a href="https://invokebot.com">InvokeBot &mdash; Webhooks</a>
+            <a href="https://kappafy.com">Kappafy &mdash; JSON</a>
+            <a href="https://kappakit.com">KappaKit &mdash; Dev Toolkit</a>
+            <a href="https://kickllm.com">KickLLM &mdash; LLM Costs</a>
+            <a href="https://lochbot.com">LochBot &mdash; Security</a>
+            <a href="https://lockml.com">LockML &mdash; ML Compare</a>
+            <a href="https://ml3x.com">ML3X &mdash; Matrix Math</a>
+        </div>
+    </div>
+</nav>
+
+<script>
+const WVM = {
+  thresholds: {
+    lcp: {good: 2.5, poor: 4.0, unit:'s', decimals:2},
+    inp: {good: 200, poor: 500, unit:'ms', decimals:0},
+    cls: {good: 0.10, poor: 0.25, unit:'', decimals:3},
+    fid: {good: 100, poor: 300, unit:'ms', decimals:0}
+  },
+  fullNames: {lcp:'Largest Contentful Paint', inp:'Interaction to Next Paint', cls:'Cumulative Layout Shift', fid:'First Input Delay'},
+  trendData: {lcp:[], inp:[], cls:[], fid:[]},
+
+  rate(metric, val) {
+    const t = this.thresholds[metric];
+    if(val <= t.good) return 'good';
+    if(val <= t.poor) return 'needs';
+    return 'poor';
+  },
+  rateLabel(r){ return r==='good'?'Good':r==='needs'?'Needs Improvement':'Poor'; },
+  rateColor(r){ return r==='good'?'#34D399':r==='needs'?'#FBBF24':'#F87171'; },
+
+  getVal(id){ return parseFloat(document.getElementById('inp-'+id).value)||0; },
+
+  analyze() {
+    const vals = {lcp:this.getVal('lcp'), inp:this.getVal('inp'), cls:this.getVal('cls'), fid:this.getVal('fid')};
+    document.getElementById('gauges-area').style.display = 'block';
+    this.renderGauges(vals);
+    document.getElementById('gauges-area').scrollIntoView({behavior:'smooth', block:'start'});
+  },
+
+  renderGauges(vals) {
+    const grid = document.getElementById('gauges-grid');
+    grid.innerHTML = ['lcp','inp','cls','fid'].map(m => {
+      const v = vals[m];
+      const t = this.thresholds[m];
+      const r = this.rate(m, v);
+      const color = this.rateColor(r);
+      const gaugeHtml = this.drawGaugeSVG(m, v, color);
+      const dispVal = v.toFixed(t.decimals) + t.unit;
+      const fixes = this.getFixes(m, r, v);
+      const fixHtml = fixes.length > 0 ? `<div class="fix-panel"><details><summary>Fix recommendations</summary><p>${fixes.join('</p><p>')}</p></details></div>` : '';
+      return `<div class="gauge-card">
+        ${gaugeHtml}
+        <div class="gauge-value" style="color:${color}">${dispVal}</div>
+        <div class="gauge-label gauge-${r}">${this.rateLabel(r)}</div>
+        <div class="gauge-name">${this.fullNames[m]}</div>
+        ${fixHtml}
+      </div>`;
+    }).join('');
+  },
+
+  drawGaugeSVG(metric, val, color) {
+    // Semi-circle gauge: 0 = left end of arc, max = right end
+    const maxes = {lcp:6, inp:800, cls:0.4, fid:500};
+    const goods = {lcp:2.5, inp:200, cls:0.1, fid:100};
+    const poors = {lcp:4.0, inp:500, cls:0.25, fid:300};
+    const max = maxes[metric];
+    const pct = Math.min(1, val / max);
+    const goodPct = goods[metric] / max;
+    const poorPct = poors[metric] / max;
+
+    // SVG arc from left (180deg) to right (0deg), semicircle
+    const cx = 65, cy = 68, r = 50;
+    function angleXY(pctVal) {
+      const angle = Math.PI - pctVal * Math.PI;
+      return [cx + r * Math.cos(angle), cy - r * Math.sin(angle)];
+    }
+    function arcPath(startPct, endPct, arcColor) {
+      const [x1,y1] = angleXY(startPct);
+      const [x2,y2] = angleXY(endPct);
+      const large = (endPct - startPct) > 0.5 ? 1 : 0;
+      return `<path d="M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}" stroke="${arcColor}" stroke-width="10" fill="none" stroke-linecap="round"/>`;
+    }
+
+    const needlePct = Math.min(1, pct);
+    const [nx, ny] = angleXY(needlePct);
+
+    let svg = `<svg viewBox="0 0 130 72" xmlns="http://www.w3.org/2000/svg" class="gauge-svg-wrap">`;
+    // background arc
+    svg += `<path d="M ${angleXY(0)[0]} ${angleXY(0)[1]} A ${r} ${r} 0 1 1 ${angleXY(1)[0]} ${angleXY(1)[1]}" stroke="#1e1e1e" stroke-width="10" fill="none"/>`;
+    // colored segments
+    svg += arcPath(0, Math.min(goodPct, needlePct), '#34D399');
+    if(needlePct > goodPct) svg += arcPath(goodPct, Math.min(poorPct, needlePct), '#FBBF24');
+    if(needlePct > poorPct) svg += arcPath(poorPct, needlePct, '#F87171');
+    // needle
+    svg += `<line x1="${cx}" y1="${cy}" x2="${nx}" y2="${ny}" stroke="${color}" stroke-width="2.5" stroke-linecap="round"/>`;
+    svg += `<circle cx="${cx}" cy="${cy}" r="4" fill="${color}"/>`;
+    // threshold ticks
+    const [gx,gy] = angleXY(goodPct);
+    const [px2,py2] = angleXY(poorPct);
+    svg += `<circle cx="${gx}" cy="${gy}" r="3" fill="#34D399" opacity="0.7"/>`;
+    svg += `<circle cx="${px2}" cy="${py2}" r="3" fill="#F87171" opacity="0.7"/>`;
+    svg += `</svg>`;
+    return svg;
+  },
+
+  getFixes(metric, rating, val) {
+    if(rating === 'good') return ['This metric is in the Good range. Continue monitoring to detect regressions.'];
+    const fixes = {
+      lcp: {
+        needs: [
+          'Preload the LCP image: add &lt;link rel="preload" as="image" fetchpriority="high" href="..."&gt; in your &lt;head&gt;.',
+          'Convert the hero image to WebP or AVIF — typically 30–50% smaller than JPEG with equal quality.',
+          'Ensure the LCP element is NOT lazy-loaded. Remove loading="lazy" from the first visible image.',
+          'Check TTFB: if server response exceeds 600ms, improve caching, use a CDN, or upgrade hosting.'
+        ],
+        poor: [
+          'CRITICAL: LCP is Poor. Start with server response time (TTFB). Use a CDN to serve assets from edge nodes close to your users.',
+          'The LCP image is likely your largest bottleneck. Compress to WebP/AVIF, reduce dimensions to match display size, and add fetchpriority="high".',
+          'Eliminate all render-blocking scripts and CSS in &lt;head&gt;. Use defer on scripts, inline critical CSS.',
+          'Switch CSS background-image hero to an &lt;img&gt; tag — background images miss the browser preload scanner.'
+        ]
+      },
+      inp: {
+        needs: [
+          'Profile interactions in Chrome DevTools: record a click and check the Interactions lane for long tasks.',
+          'Break long event handlers into smaller chunks with scheduler.yield() or setTimeout(fn, 0) between steps.',
+          'Defer non-essential work inside click handlers (analytics pings, logging) to run after the paint.'
+        ],
+        poor: [
+          'CRITICAL: INP is Poor. The main thread is heavily blocked during interactions.',
+          'Move heavy computation (data processing, complex DOM queries) to a Web Worker.',
+          'Audit third-party scripts — tag managers, chat widgets, and analytics often run expensive code on user events.',
+          'In React/Vue/Angular: avoid re-rendering large subtrees on every interaction. Use React.memo, useMemo, or shouldComponentUpdate.'
+        ]
+      },
+      cls: {
+        needs: [
+          'Set explicit width and height attributes on all &lt;img&gt; and &lt;video&gt; elements to reserve space before they load.',
+          'Add font-display: swap or font-display: optional to your @font-face declarations to prevent invisible-text layout shifts.',
+          'Reserve space for ads and embeds with a min-height container before the content loads.'
+        ],
+        poor: [
+          'CRITICAL: CLS is Poor. Audit layout shifts with Chrome DevTools (Performance panel &gt; Layout Shifts).',
+          'The most common cause of high CLS is images without dimensions. Add width and height to every img.',
+          'Check for dynamically injected content above existing text (banners, cookie notices, chat launchers).',
+          'Use CSS aspect-ratio or padding-top tricks to reserve space for iframes and embeds.'
+        ]
+      },
+      fid: {
+        needs: [
+          'FID is now a legacy metric (replaced by INP). Optimize by deferring non-critical scripts and reducing JavaScript bundle size.',
+          'Use the defer attribute on third-party scripts to prevent them from blocking the main thread during initial load.'
+        ],
+        poor: [
+          'FID is now a legacy metric. Focus INP optimization instead for current Google ranking signals.',
+          'Reduce main-thread JavaScript during page load: defer analytics, A/B testing scripts, and chat widgets.',
+          'Split large JavaScript bundles and load only the code needed for the current page route.'
+        ]
+      }
+    };
+    return fixes[metric][rating] || [];
+  },
+
+  addTrendEntry() {
+    const metric = document.getElementById('trend-metric').value;
+    const dateLabel = document.getElementById('trend-date').value.trim();
+    const val = parseFloat(document.getElementById('trend-val').value);
+    if(!dateLabel || isNaN(val)) { alert('Please enter a date label and a numeric value.'); return; }
+    this.trendData[metric].push({date: dateLabel, val});
+    document.getElementById('trend-date').value = '';
+    document.getElementById('trend-val').value = '';
+    this.renderTrend(metric);
+  },
+
+  clearTrend() {
+    const metric = document.getElementById('trend-metric').value;
+    this.trendData[metric] = [];
+    this.renderTrend(metric);
+  },
+
+  renderTrend(metric) {
+    const data = this.trendData[metric];
+    const chartWrap = document.getElementById('trend-chart-wrap');
+    const tableWrap = document.getElementById('trend-table-wrap');
+    if(data.length === 0) {
+      chartWrap.innerHTML = '<div class="chart-empty">Add entries above to see the trend chart.</div>';
+      tableWrap.innerHTML = '';
+      return;
+    }
+    const t = this.thresholds[metric];
+    const allVals = data.map(d=>d.val);
+    const maxVal = Math.max(...allVals, t.poor * 1.2);
+    const minVal = 0;
+    const W = 560, H = 180, padL = 52, padR = 20, padT = 20, padB = 36;
+    const plotW = W - padL - padR;
+    const plotH = H - padT - padB;
+
+    function yPos(v) { return padT + plotH - ((v - minVal) / (maxVal - minVal)) * plotH; }
+    function xPos(i) { return padL + (data.length === 1 ? plotW/2 : i * plotW / (data.length - 1)); }
+
+    // threshold lines
+    const goodY = yPos(t.good);
+    const poorY = yPos(t.poor);
+
+    let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-height:220px">`;
+    // background bands
+    svg += `<rect x="${padL}" y="${poorY}" width="${plotW}" height="${H-padB-poorY}" fill="rgba(248,113,113,0.06)"/>`;
+    svg += `<rect x="${padL}" y="${goodY}" width="${plotW}" height="${poorY-goodY}" fill="rgba(251,191,36,0.06)"/>`;
+    svg += `<rect x="${padL}" y="${padT}" width="${plotW}" height="${goodY-padT}" fill="rgba(52,211,153,0.06)"/>`;
+    // threshold lines
+    svg += `<line x1="${padL}" y1="${goodY}" x2="${W-padR}" y2="${goodY}" stroke="#34D399" stroke-width="1" stroke-dasharray="5,4" opacity="0.7"/>`;
+    svg += `<line x1="${padL}" y1="${poorY}" x2="${W-padR}" y2="${poorY}" stroke="#F87171" stroke-width="1" stroke-dasharray="5,4" opacity="0.7"/>`;
+    svg += `<text x="${padL-4}" y="${goodY+4}" text-anchor="end" fill="#34D399" style="font-size:0.6rem">${t.good}${t.unit}</text>`;
+    svg += `<text x="${padL-4}" y="${poorY+4}" text-anchor="end" fill="#F87171" style="font-size:0.6rem">${t.poor}${t.unit}</text>`;
+    // axes
+    svg += `<line x1="${padL}" y1="${padT}" x2="${padL}" y2="${H-padB}" stroke="#333" stroke-width="1"/>`;
+    svg += `<line x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}" stroke="#333" stroke-width="1"/>`;
+    // line path
+    if(data.length > 1) {
+      const pts = data.map((d,i) => `${xPos(i)},${yPos(d.val)}`).join(' ');
+      svg += `<polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/>`;
+    }
+    // dots + labels
+    data.forEach((d, i) => {
+      const x = xPos(i), y = yPos(d.val);
+      const r = this.rate(metric, d.val);
+      const dc = this.rateColor(r);
+      svg += `<circle cx="${x}" cy="${y}" r="5" fill="${dc}" stroke="var(--bg-card)" stroke-width="2"/>`;
+      svg += `<text x="${x}" y="${y-10}" text-anchor="middle" fill="${dc}" style="font-size:0.62rem;font-family:var(--font-display)">${d.val.toFixed(t.decimals)}${t.unit}</text>`;
+      svg += `<text x="${x}" y="${H-padB+14}" text-anchor="middle" fill="#555" style="font-size:0.62rem">${d.date}</text>`;
+    });
+    svg += `</svg>`;
+    chartWrap.innerHTML = svg;
+
+    // table
+    let table = `<table class="history-table"><thead><tr><th>Date</th><th>Value</th><th>Rating</th></tr></thead><tbody>`;
+    data.forEach(d => {
+      const r = this.rate(metric, d.val);
+      const cls = `dot-${r}`;
+      table += `<tr><td>${d.date}</td><td class="${cls}">${d.val.toFixed(t.decimals)}${t.unit}</td><td class="${cls}">${this.rateLabel(r)}</td></tr>`;
+    });
+    table += `</tbody></table>`;
+    tableWrap.innerHTML = table;
+  }
+};
+</script>
+</body>
+</html>

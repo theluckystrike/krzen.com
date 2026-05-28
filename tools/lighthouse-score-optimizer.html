@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lighthouse Score Optimizer — Fix Performance Issues Fast | Krzen</title>
+<meta name="description" content="Enter your Lighthouse scores for Performance, Accessibility, Best Practices, and SEO. Get a prioritized fix list with estimated score impact and a budget calculator showing how each fix moves the needle.">
+<meta name="keywords" content="lighthouse score optimizer, lighthouse performance fix, improve lighthouse score, lighthouse accessibility, lighthouse best practices, lighthouse SEO, web performance audit, core web vitals fix">
+<link rel="canonical" href="https://krzen.com/tools/lighthouse-score-optimizer.html">
+<link rel="alternate" hreflang="en" href="https://krzen.com/tools/lighthouse-score-optimizer.html">
+<link rel="alternate" hreflang="x-default" href="https://krzen.com/tools/lighthouse-score-optimizer.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Lighthouse Score Optimizer — Fix Performance Issues Fast">
+<meta property="og:description" content="Enter your Lighthouse scores and get a prioritized fix list with estimated score impact. Free, client-side only.">
+<meta property="og:url" content="https://krzen.com/tools/lighthouse-score-optimizer.html">
+<meta property="og:site_name" content="Zovo Tools">
+<meta property="og:image" content="https://krzen.com/assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Lighthouse Score Optimizer — Fix Performance Issues Fast">
+<meta name="twitter:description" content="Enter your Lighthouse scores and get a prioritized fix list with estimated score impact. Free, client-side only.">
+<meta name="twitter:image" content="https://krzen.com/assets/og-image.png">
+<link rel="stylesheet" href="/assets/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Lighthouse Score Optimizer",
+  "url": "https://krzen.com/tools/lighthouse-score-optimizer.html",
+  "description": "Enter your Lighthouse Performance, Accessibility, Best Practices, and SEO scores to get a prioritized fix list with estimated score impact and a budget calculator.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+  "author": {"@type": "Person", "name": "Michael Lip", "url": "https://zovo.one"},
+  "publisher": {"@type": "Organization", "name": "Zovo Tools", "url": "https://zovo.one"},
+  "datePublished": "2026-05-28",
+  "dateModified": "2026-05-28",
+  "featureList": ["Score input for all 4 Lighthouse categories", "Prioritized fix list by impact", "Estimated score improvement per fix", "Budget calculator for score targets", "Category gap analysis", "Client-side processing"],
+  "browserRequirements": "Requires JavaScript"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is a good Lighthouse score?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Google Lighthouse scores range from 0 to 100. Scores of 90-100 are considered Good (green), 50-89 Need Improvement (orange), and 0-49 are Poor (red). For SEO impact, aim for all four categories — Performance, Accessibility, Best Practices, and SEO — above 90. Performance scores below 50 can directly affect Core Web Vitals rankings. Accessibility scores below 90 indicate real usability barriers for users with disabilities."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Which Lighthouse fixes have the highest impact on the Performance score?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The highest-impact Performance fixes are: eliminating render-blocking resources (can recover 10-20 points), properly sizing images and serving next-gen formats like WebP/AVIF (5-15 points), removing unused JavaScript and CSS (5-10 points), enabling text compression (3-8 points), and improving server response time / TTFB (2-10 points). Fixing Largest Contentful Paint — typically by optimizing the hero image — often delivers the single biggest score jump."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How does Lighthouse calculate the Performance score?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The Lighthouse Performance score is a weighted average of six metrics: First Contentful Paint (10%), Largest Contentful Paint (25%), Total Blocking Time (30%), Cumulative Layout Shift (25%), Speed Index (10%), and Time to Interactive (10% in older versions, now blended). Each raw metric value is converted to a 0-100 score using a log-normal distribution calibrated against real-world data, then the weights are applied. TBT and LCP together account for 55% of the score."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does my Lighthouse score vary between runs?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Lighthouse scores vary due to network conditions, CPU throttling simulation variance, background processes on your machine, and differences between lab data (Lighthouse) and field data (Chrome User Experience Report). To get a stable reading: run Lighthouse in incognito mode, close other tabs and applications, run 3-5 times and use the median score, and use PageSpeed Insights for more consistent field data. Differences of 5-10 points between runs on the same page are normal."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the fastest way to improve a low Accessibility score?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The quickest Accessibility wins are: adding alt text to images (each missing alt can cost 3-8 points), ensuring sufficient color contrast ratios (4.5:1 for normal text), adding labels to all form inputs, fixing heading hierarchy (don't skip from H1 to H4), and ensuring all interactive elements are keyboard-focusable with visible focus indicators. These five fixes resolve the majority of common Accessibility audit failures and can push a score from 70 to 95+ without architectural changes."
+      }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://krzen.com/"},
+    {"@type": "ListItem", "position": 2, "name": "Tools", "item": "https://krzen.com/tools/"},
+    {"@type": "ListItem", "position": 3, "name": "Lighthouse Score Optimizer", "item": "https://krzen.com/tools/lighthouse-score-optimizer.html"}
+  ]
+}
+</script>
+<style>
+.score-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.score-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center}
+.score-card label{display:block;font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-muted);margin-bottom:10px}
+.score-input-wrap{position:relative;display:inline-block}
+.score-input-wrap input[type=number]{width:100px;background:var(--bg-card);border:2px solid var(--border);border-radius:var(--radius);color:var(--text);padding:10px 8px;font-family:var(--font-display);font-size:1.6rem;font-weight:700;text-align:center;-moz-appearance:textfield}
+.score-input-wrap input[type=number]::-webkit-inner-spin-button,.score-input-wrap input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
+.score-input-wrap input[type=number]:focus{outline:none;border-color:var(--accent)}
+.score-pill{display:inline-block;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:20px;margin-top:8px;text-transform:uppercase;letter-spacing:0.05em}
+.pill-good{background:rgba(52,211,153,0.15);color:#34D399}
+.pill-needs{background:rgba(251,191,36,0.15);color:#FBBF24}
+.pill-poor{background:rgba(248,113,113,0.15);color:#F87171}
+.range-wrap{margin-top:10px}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.tool-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin:20px 0}
+.tool-section h3{font-family:var(--font-display);font-size:0.85rem;text-transform:uppercase;color:var(--accent);margin-bottom:16px;letter-spacing:0.04em}
+.target-row{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;margin-bottom:8px}
+.target-field{display:flex;flex-direction:column;gap:4px}
+.target-field label{font-size:0.78rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;letter-spacing:0.3px}
+.target-field input{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:8px 12px;font-family:var(--font-body);font-size:0.9rem;width:80px}
+.target-field input:focus{outline:none;border-color:var(--accent)}
+#fix-output{display:none}
+.fix-list{list-style:none;padding:0;margin:0}
+.fix-item{padding:14px 16px;margin-bottom:10px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg);display:flex;gap:12px;align-items:flex-start}
+.fix-impact{flex-shrink:0;width:52px;text-align:center;padding:6px 4px;border-radius:6px;font-family:var(--font-display);font-size:0.8rem;font-weight:700}
+.fix-impact.high{background:rgba(52,211,153,0.12);color:#34D399;border:1px solid rgba(52,211,153,0.3)}
+.fix-impact.med{background:rgba(251,191,36,0.12);color:#FBBF24;border:1px solid rgba(251,191,36,0.3)}
+.fix-impact.low{background:rgba(148,163,184,0.12);color:#94A3B8;border:1px solid rgba(148,163,184,0.3)}
+.fix-body{flex:1}
+.fix-body strong{font-size:0.95rem;color:var(--text);display:block;margin-bottom:3px}
+.fix-body span{font-size:0.83rem;color:var(--text-muted);line-height:1.5}
+.fix-cat{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;padding:2px 7px;border-radius:10px;margin-left:6px;vertical-align:middle}
+.cat-perf{background:rgba(96,165,250,0.12);color:#60A5FA}
+.cat-a11y{background:rgba(167,139,250,0.12);color:#A78BFA}
+.cat-bp{background:rgba(244,114,182,0.12);color:#F472B6}
+.cat-seo{background:rgba(251,146,60,0.12);color:var(--accent)}
+.overview-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.ov-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center}
+.ov-score{font-family:var(--font-display);font-size:1.8rem;font-weight:700}
+.ov-label{font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;margin-top:4px}
+.ov-gap{font-size:0.78rem;margin-top:4px}
+.gap-pos{color:#34D399}
+.gap-neg{color:#F87171}
+.budget-bar-wrap{margin:6px 0 14px}
+.budget-bar-bg{background:var(--border);border-radius:20px;height:10px;overflow:hidden;margin-top:4px}
+.budget-bar-fill{height:100%;border-radius:20px;transition:width 0.4s ease}
+.budget-bar-label{font-size:0.75rem;color:var(--text-muted);display:flex;justify-content:space-between;margin-bottom:2px}
+.explainer-section{max-width:760px;margin:40px auto 0;padding:0 0 20px}
+.explainer-section h2{font-size:1.3rem;margin:32px 0 12px;color:var(--accent)}
+.explainer-section h3{font-size:1.1rem;margin:24px 0 8px}
+.explainer-section p{color:var(--text-muted);margin-bottom:16px;line-height:1.7}
+.explainer-section ul,.explainer-section ol{color:var(--text-muted);margin:0 0 16px 24px}
+.explainer-section li{margin-bottom:6px}
+.explainer-section code{font-family:var(--font-display);background:var(--bg-card);padding:2px 6px;border-radius:3px;font-size:0.9em}
+.related-tools{margin:40px 0 0}
+.related-tools h3{font-family:var(--font-display);text-align:center;margin-bottom:16px;font-size:1rem}
+.related-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.related-grid a{display:block;padding:14px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);text-decoration:none;font-size:0.9rem;transition:border-color 0.2s}
+.related-grid a:hover{border-color:var(--accent);text-decoration:none}
+.related-grid a small{display:block;color:var(--text-muted);font-size:0.78rem;margin-top:4px}
+.author-bio{margin:32px 0;padding:20px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius)}
+.author-bio p{color:var(--text-muted);font-size:0.9rem;line-height:1.6;margin:0}
+.author-bio p strong{color:var(--text)}
+.last-updated{text-align:center;color:var(--text-muted);font-size:0.8rem;margin:24px 0 0}
+@media(max-width:600px){.overview-grid{grid-template-columns:repeat(2,1fr)}.score-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <a href="/" class="logo">krzen</a>
+    <nav>
+      <a href="/">Tool</a>
+      <a href="/research/">Research</a>
+      <a href="/guides/">Guides</a>
+      <a href="/tools/">Tools</a>
+      <a href="/blog/">Blog</a>
+      <a href="/about.html">About</a>
+      <div class="nav-right">
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&amp;utm_medium=satellite&amp;utm_campaign=nav-link" class="nav-pro" target="_blank">Go Pro &#10022;</a>
+        <a href="https://zovo.one/tools" class="nav-zovo">Zovo Tools</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <nav class="breadcrumb" aria-label="Breadcrumb" style="font-size:0.82rem;margin:20px 0 0;"><a href="/">Home</a> <span style="color:var(--text-muted);margin:0 4px;">/</span> <a href="/tools/">Tools</a> <span style="color:var(--text-muted);margin:0 4px;">/</span> <span style="color:var(--text-muted);">Lighthouse Score Optimizer</span></nav>
+
+  <section class="hero">
+    <h1>Lighthouse Score <span>Optimizer</span></h1>
+    <p>Enter your current Lighthouse scores, set targets, and get a prioritized fix list with estimated score impact per fix. No data leaves your browser.</p>
+  </section>
+
+  <div class="tool-section">
+    <h3>Your Current Scores (0 – 100)</h3>
+    <div class="score-grid">
+      <div class="score-card">
+        <label>Performance</label>
+        <div class="score-input-wrap">
+          <input type="number" id="sc-perf" value="62" min="0" max="100" oninput="LSO.syncSlider('perf');LSO.updatePill('perf')">
+        </div>
+        <div class="range-wrap"><input type="range" id="sl-perf" min="0" max="100" value="62" oninput="LSO.syncInput('perf')"></div>
+        <div class="score-pill" id="pill-perf">Needs Improvement</div>
+      </div>
+      <div class="score-card">
+        <label>Accessibility</label>
+        <div class="score-input-wrap">
+          <input type="number" id="sc-a11y" value="78" min="0" max="100" oninput="LSO.syncSlider('a11y');LSO.updatePill('a11y')">
+        </div>
+        <div class="range-wrap"><input type="range" id="sl-a11y" min="0" max="100" value="78" oninput="LSO.syncInput('a11y')"></div>
+        <div class="score-pill" id="pill-a11y">Needs Improvement</div>
+      </div>
+      <div class="score-card">
+        <label>Best Practices</label>
+        <div class="score-input-wrap">
+          <input type="number" id="sc-bp" value="83" min="0" max="100" oninput="LSO.syncSlider('bp');LSO.updatePill('bp')">
+        </div>
+        <div class="range-wrap"><input type="range" id="sl-bp" min="0" max="100" value="83" oninput="LSO.syncInput('bp')"></div>
+        <div class="score-pill" id="pill-bp">Needs Improvement</div>
+      </div>
+      <div class="score-card">
+        <label>SEO</label>
+        <div class="score-input-wrap">
+          <input type="number" id="sc-seo" value="91" min="0" max="100" oninput="LSO.syncSlider('seo');LSO.updatePill('seo')">
+        </div>
+        <div class="range-wrap"><input type="range" id="sl-seo" min="0" max="100" value="91" oninput="LSO.syncInput('seo')"></div>
+        <div class="score-pill" id="pill-seo">Good</div>
+      </div>
+    </div>
+
+    <div class="target-row">
+      <div class="target-field">
+        <label>Target (all)</label>
+        <input type="number" id="target-all" value="90" min="0" max="100" placeholder="90">
+      </div>
+      <button class="btn" onclick="LSO.analyze()" style="margin-bottom:0;">Generate Fix Plan</button>
+    </div>
+  </div>
+
+  <div id="fix-output">
+    <div class="tool-section">
+      <h3>Score Overview &amp; Gap Analysis</h3>
+      <div class="overview-grid" id="overview-grid"></div>
+    </div>
+
+    <div class="tool-section">
+      <h3>Score Budget — Points to Gain per Fix</h3>
+      <div id="budget-bars"></div>
+    </div>
+
+    <div class="tool-section">
+      <h3>Prioritized Fix List</h3>
+      <p style="font-size:0.83rem;color:var(--text-muted);margin-bottom:16px;">Sorted by estimated score impact. Fixes marked <strong style="color:#34D399;">HIGH</strong> give the most points per unit of effort.</p>
+      <ul class="fix-list" id="fix-list"></ul>
+    </div>
+  </div>
+
+  <section class="explainer-section">
+    <h2>How Lighthouse Scores Are Calculated</h2>
+    <p>Google Lighthouse audits your page in a simulated environment — a mobile device with throttled CPU and a 4G-equivalent network connection — and measures six timing metrics. Each metric value is converted to a 0–100 score using a log-normal distribution calibrated against millions of real-world pages. The metric scores are then combined using a weighted average: Largest Contentful Paint (25%), Total Blocking Time (30%), Cumulative Layout Shift (25%), First Contentful Paint (10%), and Speed Index (10%). The result is your Performance score.</p>
+    <p>Accessibility, Best Practices, and SEO scores work differently — they are pass/fail audits where each audit is weighted by severity. Failing a high-weight audit (like missing image alt text) has a large impact; failing a low-weight audit (like a missing <code>meta description</code>) has a smaller impact. This means a few targeted fixes can dramatically improve these scores, while Performance improvements require actually making the page faster.</p>
+
+    <h2>The Highest-Impact Performance Fixes</h2>
+    <h3>1. Eliminate Render-Blocking Resources</h3>
+    <p>Any CSS or JavaScript loaded in the <code>&lt;head&gt;</code> without <code>async</code> or <code>defer</code> blocks the browser from rendering the page. Lighthouse penalizes render-blocking resources through their contribution to First Contentful Paint and Total Blocking Time. The fix is to inline critical CSS directly in the <code>&lt;head&gt;</code> (styles needed for above-the-fold content), load the rest asynchronously, and add <code>defer</code> to all non-critical scripts. This single fix can recover 10–20 Performance points on script-heavy pages.</p>
+    <h3>2. Optimize the Largest Contentful Paint Element</h3>
+    <p>LCP accounts for 25% of the Performance score. The LCP element is almost always a hero image or a large heading. For images: serve in WebP or AVIF format, add <code>fetchpriority="high"</code> to the LCP image, preload it with <code>&lt;link rel="preload" as="image"&gt;</code>, and ensure it is not lazy-loaded. Reducing the LCP image from 500KB to 80KB (WebP) on a 4G connection saves about 0.8 seconds, which can push a borderline Needs-Improvement score firmly into Good.</p>
+    <h3>3. Reduce Total Blocking Time</h3>
+    <p>TBT measures how long the main thread is blocked — unable to respond to user input — during page load. The primary cause is large JavaScript bundles. Every script that takes more than 50ms to execute contributes to TBT. Solutions include code-splitting with dynamic <code>import()</code>, moving heavy computations to a Web Worker, removing unused third-party scripts (tag managers, chat widgets, analytics pixels), and deferring analytics to load after the main content is interactive.</p>
+
+    <h2>Quick Wins for Accessibility</h2>
+    <p>Accessibility scores are often the most improvable in a single sprint because the failures tend to be discrete, fixable issues rather than architectural problems. The five most common Lighthouse Accessibility failures are: missing <code>alt</code> attributes on <code>&lt;img&gt;</code> elements, insufficient color contrast, missing form labels, incorrect ARIA roles or missing ARIA names on interactive elements, and a broken heading hierarchy (jumping from <code>h1</code> to <code>h4</code>). Fixing these five categories typically takes 2–4 hours and reliably moves scores from 70 into the 90s.</p>
+    <p>Color contrast is worth special attention because it is the most frequently failed audit and the one most developers overlook. Text must achieve a contrast ratio of at least 4.5:1 against its background for normal-weight text, and 3:1 for large text (18px+ bold or 24px+ regular). Light gray text on white backgrounds — a popular design choice — almost always fails. Use a contrast checker to audit your color palette before implementing.</p>
+
+    <h2>Best Practices and SEO Fixes</h2>
+    <p>The Best Practices score covers security and modern web standards. Common failure points are: serving resources over HTTP instead of HTTPS (critical, high weight), using deprecated APIs like <code>document.write()</code> or <code>XMLHttpRequest</code> synchronously, missing a <code>Content-Security-Policy</code> header, and displaying images at incorrect aspect ratios. Most Best Practices issues can be resolved at the server configuration level without touching application code.</p>
+    <p>The SEO score audits technical SEO signals that Lighthouse can detect locally. Required elements include: a <code>&lt;meta name="description"&gt;</code> tag, a valid <code>&lt;title&gt;</code> tag (10–60 characters), a <code>&lt;meta name="viewport"&gt;</code> tag, an HTTP 200 status code, crawlable links (href attributes, not JavaScript-driven navigation), and <code>robots.txt</code> and <code>hreflang</code> tags where relevant. An SEO score of 90+ does not guarantee search rankings, but it confirms your page's technical foundation is sound.</p>
+
+    <h2>Setting Realistic Score Targets</h2>
+    <p>For most production sites, achieving 90+ across all four categories is a realistic target with concentrated effort. However, some site types have structural score ceilings. Heavy e-commerce pages with many product images, live price fetches, and third-party payment widgets will struggle to reach 90 Performance — aim for 70–80 and focus on field data (Core Web Vitals) rather than lab scores. Single-page applications often have lower Performance scores due to JavaScript execution overhead, but high Accessibility and SEO scores are always achievable regardless of framework.</p>
+    <p>Prioritize fixes by the gap between your current score and 90 in each category, weighted by category importance. Performance matters most for SEO (Core Web Vitals are a ranking factor). Accessibility matters for legal compliance and user experience. SEO and Best Practices are largely pass/fail checklists that can be cleared in a single engineering sprint.</p>
+  </section>
+
+  <section class="faq-section" style="max-width:760px;margin:40px auto 0;">
+    <h2>Frequently Asked Questions</h2>
+    <details>
+      <summary>What is a good Lighthouse score?</summary>
+      <p>Google Lighthouse scores range from 0 to 100. Scores of 90-100 are considered Good (green), 50-89 Need Improvement (orange), and 0-49 are Poor (red). For SEO impact, aim for all four categories above 90. Performance scores below 50 can directly affect Core Web Vitals rankings.</p>
+    </details>
+    <details>
+      <summary>Which Lighthouse fixes have the highest impact on the Performance score?</summary>
+      <p>The highest-impact Performance fixes are: eliminating render-blocking resources (can recover 10-20 points), properly sizing images and serving next-gen formats like WebP/AVIF (5-15 points), removing unused JavaScript and CSS (5-10 points), enabling text compression (3-8 points), and improving server response time / TTFB (2-10 points).</p>
+    </details>
+    <details>
+      <summary>How does Lighthouse calculate the Performance score?</summary>
+      <p>The Lighthouse Performance score is a weighted average of six metrics: First Contentful Paint (10%), Largest Contentful Paint (25%), Total Blocking Time (30%), Cumulative Layout Shift (25%), Speed Index (10%). Each raw metric value is converted to a 0-100 score using a log-normal distribution, then the weights are applied. TBT and LCP together account for 55% of the score.</p>
+    </details>
+    <details>
+      <summary>Why does my Lighthouse score vary between runs?</summary>
+      <p>Lighthouse scores vary due to network conditions, CPU throttling simulation variance, and background processes. To get a stable reading: run in incognito mode, close other tabs, run 3-5 times and use the median score. Differences of 5-10 points between runs on the same page are normal.</p>
+    </details>
+    <details>
+      <summary>What is the fastest way to improve a low Accessibility score?</summary>
+      <p>The quickest Accessibility wins are: adding alt text to images, ensuring sufficient color contrast ratios (4.5:1 for normal text), adding labels to all form inputs, fixing heading hierarchy, and ensuring all interactive elements are keyboard-focusable. These five fixes resolve the majority of common failures and can push a score from 70 to 95+.</p>
+    </details>
+  </section>
+
+  <section class="related-tools" style="max-width:760px;margin:40px auto;">
+    <h3>Related Tools &amp; Guides</h3>
+    <div class="related-grid">
+      <a href="/tools/web-vitals-monitor.html">Web Vitals Monitor<small>Track LCP, FID, CLS &amp; INP with ratings</small></a>
+      <a href="/tools/page-speed-analyzer.html">Page Speed Analyzer<small>Performance budget calculator &amp; waterfall</small></a>
+      <a href="/tools/css-critical-path-extractor.html">CSS Critical Path Extractor<small>Identify above-the-fold styles</small></a>
+    </div>
+  </section>
+
+  <div class="author-bio" style="max-width:760px;margin:32px auto;">
+    <p><strong>Written by Michael Lip</strong> — solo dev building free developer tools at <a href="https://zovo.one">zovo.one</a>. No tracking, no accounts, no data collection. If you find this tool useful, check out the full <a href="https://zovo.one/tools">Zovo Tools</a> suite.</p>
+  </div>
+
+  <div class="last-updated" style="max-width:760px;margin:16px auto;"><time datetime="2026-05-28">Last updated: May 28, 2026</time></div>
+</main>
+
+<footer class="site-footer">
+    <div class="footer-inner">
+        <div class="footer-brand">Zovo Tools</div>
+        <div class="footer-tagline">Free developer tools by a solo dev. No tracking.</div>
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&utm_medium=satellite&utm_campaign=footer-link" class="footer-cta">Zovo Lifetime &mdash; $99 once, free forever &rarr;</a>
+        <div class="footer-copy">&copy; 2026 <a href="https://zovo.one">Zovo</a> &middot; 47/500 founding spots</div>
+    </div>
+</footer>
+
+<nav class="zovo-network" aria-label="Zovo Tools Network">
+    <div class="zovo-network-inner">
+        <h3 class="zovo-network-title">Explore More Tools</h3>
+        <div class="zovo-network-links">
+            <a href="https://abwex.com">ABWex &mdash; A/B Testing</a>
+            <a href="https://claudflow.com">ClaudFlow &mdash; Workflows</a>
+            <a href="https://claudhq.com">ClaudHQ &mdash; AI Code Tools &amp; Fixes</a>
+            <a href="https://claudkit.com">ClaudKit &mdash; API</a>
+            <a href="https://enhio.com">Enhio &mdash; Text Tools</a>
+            <a href="https://epochpilot.com">EpochPilot &mdash; Timestamps</a>
+            <a href="https://gen8x.com">Gen8X &mdash; Color Tools</a>
+            <a href="https://gpt0x.com">GPT0X &mdash; AI Models</a>
+            <a href="https://heytensor.com">HeyTensor &mdash; ML Tools</a>
+            <a href="https://invokebot.com">InvokeBot &mdash; Webhooks</a>
+            <a href="https://kappafy.com">Kappafy &mdash; JSON</a>
+            <a href="https://kappakit.com">KappaKit &mdash; Dev Toolkit</a>
+            <a href="https://kickllm.com">KickLLM &mdash; LLM Costs</a>
+            <a href="https://lochbot.com">LochBot &mdash; Security</a>
+            <a href="https://lockml.com">LockML &mdash; ML Compare</a>
+            <a href="https://ml3x.com">ML3X &mdash; Matrix Math</a>
+        </div>
+    </div>
+</nav>
+
+<script>
+const LSO = {
+  cats: ['perf','a11y','bp','seo'],
+  labels: {perf:'Performance', a11y:'Accessibility', bp:'Best Practices', seo:'SEO'},
+  catClass: {perf:'cat-perf', a11y:'cat-a11y', bp:'cat-bp', seo:'cat-seo'},
+
+  syncSlider(cat) {
+    const v = Math.min(100, Math.max(0, parseInt(document.getElementById('sc-'+cat).value)||0));
+    document.getElementById('sl-'+cat).value = v;
+  },
+  syncInput(cat) {
+    const v = parseInt(document.getElementById('sl-'+cat).value);
+    document.getElementById('sc-'+cat).value = v;
+    this.updatePill(cat);
+  },
+  updatePill(cat) {
+    const v = parseInt(document.getElementById('sc-'+cat).value)||0;
+    const pill = document.getElementById('pill-'+cat);
+    if(v >= 90){ pill.textContent='Good'; pill.className='score-pill pill-good'; }
+    else if(v >= 50){ pill.textContent='Needs Improvement'; pill.className='score-pill pill-needs'; }
+    else { pill.textContent='Poor'; pill.className='score-pill pill-poor'; }
+  },
+
+  getScore(cat){ return Math.min(100, Math.max(0, parseInt(document.getElementById('sc-'+cat).value)||0)); },
+
+  analyze() {
+    const target = Math.min(100, Math.max(0, parseInt(document.getElementById('target-all').value)||90));
+    const scores = {};
+    this.cats.forEach(c => scores[c] = this.getScore(c));
+
+    document.getElementById('fix-output').style.display = 'block';
+    this.renderOverview(scores, target);
+    this.renderBudgetBars(scores, target);
+    this.renderFixList(scores, target);
+    document.getElementById('fix-output').scrollIntoView({behavior:'smooth', block:'start'});
+  },
+
+  renderOverview(scores, target) {
+    const grid = document.getElementById('overview-grid');
+    grid.innerHTML = this.cats.map(c => {
+      const s = scores[c];
+      const gap = target - s;
+      const color = s >= 90 ? '#34D399' : s >= 50 ? '#FBBF24' : '#F87171';
+      const gapHtml = gap <= 0
+        ? `<div class="ov-gap gap-pos">+${Math.abs(gap)} above target</div>`
+        : `<div class="ov-gap gap-neg">${gap} pts to target</div>`;
+      return `<div class="ov-card">
+        <div class="ov-score" style="color:${color}">${s}</div>
+        <div class="ov-label">${this.labels[c]}</div>
+        ${gapHtml}
+      </div>`;
+    }).join('');
+  },
+
+  renderBudgetBars(scores, target) {
+    const container = document.getElementById('budget-bars');
+    container.innerHTML = this.cats.map(c => {
+      const s = scores[c];
+      const pct = Math.min(100, Math.round(s));
+      const color = s >= 90 ? '#34D399' : s >= 50 ? '#FBBF24' : '#F87171';
+      const needed = Math.max(0, target - s);
+      return `<div class="budget-bar-wrap">
+        <div class="budget-bar-label">
+          <span>${this.labels[c]}</span>
+          <span style="color:${color}">${s}/100 &mdash; need <strong>+${needed}</strong> pts to reach ${target}</span>
+        </div>
+        <div class="budget-bar-bg">
+          <div class="budget-bar-fill" style="width:${pct}%;background:${color}"></div>
+        </div>
+      </div>`;
+    }).join('');
+  },
+
+  renderFixList(scores, target) {
+    const fixes = this.buildFixes(scores, target);
+    fixes.sort((a,b) => b.impact - a.impact);
+    const list = document.getElementById('fix-list');
+    if(fixes.length === 0){
+      list.innerHTML = '<li class="fix-item"><div class="fix-body"><strong>All scores are at or above target!</strong><span> All four Lighthouse categories meet your target of ' + target + '. Set a higher target or run real Lighthouse audits to find remaining opportunities.</span></div></li>';
+      return;
+    }
+    list.innerHTML = fixes.map(f => {
+      const tier = f.impact >= 10 ? 'high' : f.impact >= 5 ? 'med' : 'low';
+      const tierLabel = f.impact >= 10 ? 'HIGH' : f.impact >= 5 ? 'MED' : 'LOW';
+      return `<li class="fix-item">
+        <div class="fix-impact ${tier}">${tierLabel}<br>+${f.impact} pts</div>
+        <div class="fix-body">
+          <strong>${f.title}<span class="fix-cat ${this.catClass[f.cat]}">${this.labels[f.cat]}</span></strong>
+          <span>${f.desc}</span>
+        </div>
+      </li>`;
+    }).join('');
+  },
+
+  buildFixes(scores, target) {
+    const fixes = [];
+    const p = scores.perf, a = scores.a11y, b = scores.bp, s = scores.seo;
+
+    // --- PERFORMANCE ---
+    if(p < target) {
+      if(p < 90) fixes.push({cat:'perf', impact: p<50?20:p<70?15:8, title:'Eliminate render-blocking resources', desc:'Add defer or async to non-critical scripts. Inline critical CSS in the <head> and load the rest asynchronously. This is often the single largest TBT and FCP improvement available.'});
+      if(p < 85) fixes.push({cat:'perf', impact: p<50?18:p<70?12:7, title:'Optimize Largest Contentful Paint image', desc:'Add fetchpriority="high" and preload the LCP image. Convert to WebP/AVIF. Ensure it is NOT lazy-loaded. LCP accounts for 25% of the Performance score.'});
+      if(p < 80) fixes.push({cat:'perf', impact: p<50?15:p<70?10:6, title:'Remove unused JavaScript', desc:'Tree-shake unused exports. Use dynamic import() to code-split by route. Audit with webpack-bundle-analyzer or Lighthouse\'s "Unused JavaScript" audit. Every 100KB removed saves ~0.5s TBT on mobile.'});
+      if(p < 75) fixes.push({cat:'perf', impact: p<50?12:8, title:'Properly size and compress images', desc:'Serve images in WebP/AVIF (25-50% smaller than JPEG). Add responsive srcset so mobile devices download smaller images. Lazy-load below-fold images with loading="lazy".'});
+      if(p < 70) fixes.push({cat:'perf', impact: p<50?10:6, title:'Enable text compression (Brotli/gzip)', desc:'Enable Brotli on your server or CDN. HTML, CSS, and JS typically compress 70-80%. A 300KB JS bundle becomes ~75KB transferred. Check with: curl -H "Accept-Encoding: br" -I your-url.'});
+      if(p < 65) fixes.push({cat:'perf', impact: p<50?10:5, title:'Reduce server response time (TTFB)', desc:'Aim for TTFB under 600ms. Use a CDN for static assets. Enable page caching for server-rendered pages. Use HTTP/2 or HTTP/3. TTFB directly affects FCP and LCP.'});
+      if(p < 80) fixes.push({cat:'perf', impact: 5, title:'Minimize Cumulative Layout Shift', desc:'Set explicit width and height on all images and iframes. Use font-display: swap for web fonts. Reserve space for dynamic ads and embeds. CLS accounts for 25% of the Performance score.'});
+      if(p < 90) fixes.push({cat:'perf', impact: 4, title:'Remove unused CSS', desc:'Use PurgeCSS or Tailwind\'s JIT to strip unused rules. Unused CSS adds parse time and blocks rendering. A 50KB stylesheet trimmed to 8KB can shave 0.2s off FCP.'});
+    }
+
+    // --- ACCESSIBILITY ---
+    if(a < target) {
+      if(a < 90) fixes.push({cat:'a11y', impact: a<70?15:10, title:'Add alt text to all images', desc:'Every <img> needs an alt attribute. Decorative images get alt="". Content images need descriptive text. Missing alt text is the highest-weight Accessibility failure in Lighthouse.'});
+      if(a < 85) fixes.push({cat:'a11y', impact: a<70?12:8, title:'Fix color contrast ratios', desc:'Normal text needs 4.5:1 contrast vs background. Large text (18px+ or 14px bold) needs 3:1. Light gray on white (#999 on #fff = 2.85:1) fails. Use a contrast checker to audit your palette.'});
+      if(a < 80) fixes.push({cat:'a11y', impact: a<70?10:6, title:'Add labels to all form inputs', desc:'Every <input>, <select>, and <textarea> must have an associated <label> (via for/id) or aria-label. Placeholders alone do not count as labels and disappear on focus.'});
+      if(a < 75) fixes.push({cat:'a11y', impact: 7, title:'Fix heading hierarchy', desc:'Use headings in order: h1, h2, h3. Do not skip levels (e.g., h1 then h4). Each page should have exactly one h1. Proper heading structure aids screen reader navigation.'});
+      if(a < 85) fixes.push({cat:'a11y', impact: 5, title:'Ensure keyboard focus is visible', desc:'All interactive elements must show a visible focus indicator when navigated via keyboard. Do not use outline:none without providing a custom :focus-visible style.'});
+      if(a < 90) fixes.push({cat:'a11y', impact: 4, title:'Add ARIA roles and names to interactive elements', desc:'Buttons must have discernible text or aria-label. Icon buttons need aria-label. Custom widgets need appropriate ARIA roles. Missing button labels are a common high-weight failure.'});
+    }
+
+    // --- BEST PRACTICES ---
+    if(b < target) {
+      if(b < 90) fixes.push({cat:'bp', impact: b<70?15:8, title:'Serve all resources over HTTPS', desc:'Mixed content (HTTP assets on an HTTPS page) fails Best Practices with high weight. Check for HTTP image/script/iframe sources. Most CDNs serve HTTPS by default — update any hardcoded HTTP URLs.'});
+      if(b < 85) fixes.push({cat:'bp', impact: b<70?10:6, title:'Remove deprecated APIs', desc:'Replace document.write(), synchronous XHR, and other deprecated browser APIs. Lighthouse flags these as Best Practices violations. Use fetch() instead of XHR, and DOM manipulation instead of document.write().'});
+      if(b < 80) fixes.push({cat:'bp', impact: 7, title:'Add Content-Security-Policy header', desc:'A CSP header prevents XSS attacks and is a Best Practices recommendation. Start with a report-only CSP to identify issues: Content-Security-Policy-Report-Only: default-src \'self\''});
+      if(b < 85) fixes.push({cat:'bp', impact: 5, title:'Fix images with incorrect aspect ratios', desc:'Images displayed at a different aspect ratio than their natural dimensions get flagged. Set width and height attributes matching the intrinsic dimensions, or use object-fit:cover for flexible sizing.'});
+      if(b < 90) fixes.push({cat:'bp', impact: 4, title:'Avoid third-party cookies', desc:'Lighthouse flags third-party cookies as a Best Practices issue ahead of the browser cookie deprecation. Audit and remove non-essential third-party tracking that sets cross-site cookies.'});
+    }
+
+    // --- SEO ---
+    if(s < target) {
+      if(s < 90) fixes.push({cat:'seo', impact: s<70?12:7, title:'Add or fix meta description', desc:'Every page needs a unique <meta name="description"> tag between 120-160 characters. Lighthouse fails pages missing this tag. It does not directly affect rankings but significantly affects click-through rates.'});
+      if(s < 85) fixes.push({cat:'seo', impact: s<70?10:6, title:'Ensure all links are crawlable', desc:'Links must use <a href="..."> syntax. JavaScript-driven navigation (onclick handlers, history.pushState without hrefs) makes links uncrawlable. Lighthouse checks that link text is descriptive and hrefs are valid.'});
+      if(s < 80) fixes.push({cat:'seo', impact: 7, title:'Add structured data / JSON-LD', desc:'Add Schema.org structured data (Article, BreadcrumbList, FAQPage, WebApplication) via JSON-LD in the head. Lighthouse audits for valid structured data and flags parsing errors.'});
+      if(s < 85) fixes.push({cat:'seo', impact: 5, title:'Fix document title length', desc:'Titles should be 10-60 characters. Titles over 60 characters get truncated in search results. Missing titles cause an SEO audit failure. Each page needs a unique, descriptive title.'});
+      if(s < 90) fixes.push({cat:'seo', impact: 4, title:'Add hreflang tags for international pages', desc:'If your site serves multiple languages or regions, add <link rel="alternate" hreflang="xx"> tags. Lighthouse flags missing hreflang for sites serving localized content.'});
+    }
+
+    return fixes;
+  }
+};
+
+// Initialize pills on load
+LSO.cats.forEach(c => LSO.updatePill(c));
+</script>
+</body>
+</html>
