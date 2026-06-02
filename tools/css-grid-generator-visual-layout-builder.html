@@ -1,0 +1,579 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSS Grid Generator — Visual Layout Builder</title>
+  <meta name="description" content="Interactive CSS Grid builder: drag areas, set tracks, gaps, responsive breakpoints. Export CSS, Tailwind, styled-components. Live preview.">
+  <link rel="canonical" href="https://krzen.com/tools/css-grid-generator">
+  <!-- JSON-LD: WebApplication & BreadcrumbList -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "CSS Grid Generator — Visual Layout Builder",
+      "url": "https://krzen.com/tools/css-grid-generator",
+      "description": "Interactive CSS Grid builder: drag to create areas, set column/row counts, gap sizes, track sizes (fr, px, %, auto, minmax). Export CSS, Tailwind, styled-components.",
+      "applicationCategory": "Developer Tool",
+      "browserRequirements": "Requires JavaScript"
+    }
+  </script>
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://krzen.com" },
+        { "@type": "ListItem", "position": 2, "name": "Tools", "item": "https://krzen.com/tools" },
+        { "@type": "ListItem", "position": 3, "name": "CSS Grid Generator", "item": "https://krzen.com/tools/css-grid-generator" }
+      ]
+    }
+  </script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    }
+    body {
+      background: #0b0f1a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 1.5rem;
+    }
+    .container {
+      max-width: 1440px;
+      margin: 0 auto;
+    }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid #1e293b;
+      padding-bottom: 1rem;
+    }
+    h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      background: linear-gradient(135deg, #06b6d4, #67e8f9);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.02em;
+    }
+    .presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .preset-btn {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #cbd5e1;
+      padding: 0.4rem 0.8rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .preset-btn:hover {
+      background: #06b6d4;
+      border-color: #06b6d4;
+      color: #0b0f1a;
+    }
+    .grid-builder {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      background: #111827;
+      border-radius: 1.5rem;
+      padding: 1.5rem;
+      border: 1px solid #1e293b;
+    }
+    @media (max-width: 900px) {
+      .grid-builder { grid-template-columns: 1fr; }
+    }
+    .controls {
+      background: #0f172a;
+      border-radius: 1rem;
+      padding: 1.2rem;
+      border: 1px solid #1e293b;
+    }
+    .control-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem 1.2rem;
+      margin-bottom: 1.2rem;
+    }
+    .control-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+    .control-item label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: #94a3b8;
+    }
+    .control-item input, .control-item select {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #f1f5f9;
+      padding: 0.4rem 0.6rem;
+      border-radius: 0.5rem;
+      font-size: 0.8rem;
+      min-width: 70px;
+    }
+    .control-item input[type="number"] { width: 70px; }
+    .control-item input[type="text"] { width: 100px; }
+    .toggle-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.2rem;
+    }
+    .toggle-group input[type="checkbox"] {
+      accent-color: #06b6d4;
+      width: 1rem;
+      height: 1rem;
+    }
+    .area-list {
+      margin-top: 1rem;
+      border-top: 1px solid #1e293b;
+      padding-top: 0.8rem;
+    }
+    .area-tag {
+      display: inline-block;
+      background: #1e293b;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      margin: 0.2rem;
+      border: 1px solid #06b6d4;
+    }
+    .visual-grid {
+      background: #0f172a;
+      border-radius: 1rem;
+      padding: 1rem;
+      border: 1px solid #1e293b;
+      position: relative;
+    }
+    .grid-canvas {
+      display: grid;
+      gap: 4px;
+      background: #1e293b;
+      padding: 4px;
+      border-radius: 0.75rem;
+      min-height: 240px;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .grid-cell {
+      background: #1e293b;
+      border-radius: 0.4rem;
+      padding: 0.3rem 0.5rem;
+      font-size: 0.65rem;
+      color: #94a3b8;
+      border: 1px dashed #334155;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: 0.1s;
+      min-height: 40px;
+      word-break: break-all;
+      text-align: center;
+    }
+    .grid-cell.active {
+      background: #0b1a2a;
+      border: 2px solid #06b6d4;
+      color: #06b6d4;
+      font-weight: 600;
+    }
+    .grid-cell.drag-over {
+      background: #1a2b3c;
+      border-color: #67e8f9;
+    }
+    .code-output {
+      margin-top: 1.5rem;
+      background: #0f172a;
+      border-radius: 1rem;
+      padding: 1.2rem;
+      border: 1px solid #1e293b;
+    }
+    .code-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.8rem;
+    }
+    .code-header select {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #f1f5f9;
+      padding: 0.3rem 0.8rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+    }
+    pre {
+      background: #020617;
+      padding: 1rem;
+      border-radius: 0.75rem;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      line-height: 1.5;
+      color: #e2e8f0;
+      border: 1px solid #1e293b;
+      max-height: 200px;
+    }
+    .btn {
+      background: #06b6d4;
+      border: none;
+      color: #0b0f1a;
+      font-weight: 600;
+      padding: 0.4rem 1rem;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      transition: 0.15s;
+    }
+    .btn:hover { background: #67e8f9; }
+    .footer-note {
+      margin-top: 2rem;
+      text-align: center;
+      font-size: 0.7rem;
+      color: #475569;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>CSS Grid Generator</h1>
+    <div class="presets">
+      <span class="preset-btn" data-preset="holy">Holy Grail</span>
+      <span class="preset-btn" data-preset="dashboard">Dashboard</span>
+      <span class="preset-btn" data-preset="cardgrid">Card Grid</span>
+      <span class="preset-btn" data-preset="magazine">Magazine</span>
+      <span class="preset-btn" data-preset="sidebar">Sidebar+Content</span>
+      <span class="preset-btn" data-preset="footer">Footer Layout</span>
+    </div>
+  </header>
+
+  <div class="grid-builder">
+    <!-- Controls -->
+    <div class="controls">
+      <div class="control-group">
+        <div class="control-item"><label>Columns</label><input type="number" id="cols" value="3" min="1" max="12"></div>
+        <div class="control-item"><label>Rows</label><input type="number" id="rows" value="3" min="1" max="12"></div>
+        <div class="control-item"><label>Gap</label><input type="number" id="gap" value="4" min="0" max="20"></div>
+        <div class="control-item"><label>Col track</label><select id="colTrack"><option value="1fr">1fr</option><option value="2fr">2fr</option><option value="3fr">3fr</option><option value="auto">auto</option><option value="100px">100px</option><option value="200px">200px</option><option value="minmax(100px,1fr)">minmax</option><option value="repeat(2,1fr)">repeat</option></select></div>
+        <div class="control-item"><label>Row track</label><select id="rowTrack"><option value="1fr">1fr</option><option value="2fr">2fr</option><option value="auto">auto</option><option value="80px">80px</option><option value="minmax(60px,1fr)">minmax</option></select></div>
+      </div>
+      <div class="control-group">
+        <div class="control-item"><label>Area name</label><input type="text" id="areaName" value="content" placeholder="name"></div>
+        <div class="toggle-group">
+          <label style="font-size:0.7rem;color:#94a3b8;">Auto‑placement</label>
+          <input type="checkbox" id="autoPlace" checked>
+        </div>
+        <button class="btn" id="applyAreaBtn">Name selected</button>
+        <button class="btn" id="clearAreasBtn">Clear areas</button>
+      </div>
+      <div class="area-list" id="areaList"><span class="area-tag">header</span><span class="area-tag">sidebar</span><span class="area-tag">main</span><span class="area-tag">footer</span></div>
+      <div style="font-size:0.7rem;color:#64748b;margin-top:0.5rem;">Click a cell to select, then name it. Drag over cells to create area (click + drag).</div>
+    </div>
+
+    <!-- Visual Grid -->
+    <div class="visual-grid">
+      <div class="grid-canvas" id="gridCanvas"></div>
+    </div>
+  </div>
+
+  <!-- Code Output -->
+  <div class="code-output">
+    <div class="code-header">
+      <span style="font-weight:600;">📐 Generated CSS</span>
+      <select id="exportSelect">
+        <option value="css">CSS Grid</option>
+        <option value="tailwind">Tailwind (approximate)</option>
+        <option value="styled">styled-components</option>
+      </select>
+      <button class="btn" id="copyBtn">📋 Copy</button>
+    </div>
+    <pre id="codeBlock">/* grid layout */</pre>
+  </div>
+  <div class="footer-note">krzen.com — interactive grid builder. Drag to create areas, set tracks, responsive ready.</div>
+</div>
+
+<script>
+  (function() {
+    const canvas = document.getElementById('gridCanvas');
+    const colsInput = document.getElementById('cols');
+    const rowsInput = document.getElementById('rows');
+    const gapInput = document.getElementById('gap');
+    const colTrack = document.getElementById('colTrack');
+    const rowTrack = document.getElementById('rowTrack');
+    const areaNameInput = document.getElementById('areaName');
+    const autoPlaceCheck = document.getElementById('autoPlace');
+    const areaListDiv = document.getElementById('areaList');
+    const codeBlock = document.getElementById('codeBlock');
+    const exportSelect = document.getElementById('exportSelect');
+    const copyBtn = document.getElementById('copyBtn');
+
+    // state
+    let gridData = []; // 2D array of area names
+    let selectedCell = null; // {row, col}
+    let dragStart = null;
+    let dragEnd = null;
+    let isDragging = false;
+
+    // presets
+    const presets = {
+      holy: { cols:3, rows:3, gap:4, colT:'1fr', rowT:'1fr', areas:[['header','header','header'],['sidebar','main','main'],['footer','footer','footer']] },
+      dashboard: { cols:4, rows:3, gap:4, colT:'1fr', rowT:'1fr', areas:[['header','header','header','header'],['sidebar','card1','card2','card3'],['sidebar','chart','chart','chart']] },
+      cardgrid: { cols:3, rows:2, gap:6, colT:'1fr', rowT:'1fr', areas:[['card1','card2','card3'],['card4','card5','card6']] },
+      magazine: { cols:4, rows:4, gap:4, colT:'1fr', rowT:'1fr', areas:[['head','head','head','head'],['feature','feature','sidebar','sidebar'],['main','main','sidebar','sidebar'],['footer','footer','footer','footer']] },
+      sidebar: { cols:3, rows:2, gap:4, colT:'1fr', rowT:'1fr', areas:[['sidebar','content','content'],['sidebar','content','content']] },
+      footer: { cols:3, rows:3, gap:4, colT:'1fr', rowT:'1fr', areas:[['header','header','header'],['main','main','sidebar'],['footer','footer','footer']] }
+    };
+
+    function initGridData(cols, rows, fill='') {
+      const data = [];
+      for (let r=0; r<rows; r++) {
+        const row = [];
+        for (let c=0; c<cols; c++) row.push(fill);
+        data.push(row);
+      }
+      return data;
+    }
+
+    // default starter: header, sidebar, main, footer
+    function defaultStarter() {
+      const d = initGridData(3,3);
+      d[0]=['header','header','header'];
+      d[1]=['sidebar','main','main'];
+      d[2]=['footer','footer','footer'];
+      return d;
+    }
+    gridData = defaultStarter();
+
+    function renderGrid() {
+      const cols = parseInt(colsInput.value) || 3;
+      const rows = parseInt(rowsInput.value) || 3;
+      const gap = parseInt(gapInput.value) || 4;
+      const colT = colTrack.value || '1fr';
+      const rowT = rowTrack.value || '1fr';
+
+      // ensure gridData size
+      if (gridData.length !== rows || (gridData[0] && gridData[0].length !== cols)) {
+        const newData = initGridData(cols, rows, '');
+        for (let r=0; r<Math.min(rows, gridData.length); r++) {
+          for (let c=0; c<Math.min(cols, gridData[r].length); c++) {
+            newData[r][c] = gridData[r][c] || '';
+          }
+        }
+        gridData = newData;
+      }
+
+      // build grid template
+      const colTemplate = `repeat(${cols}, ${colT})`;
+      const rowTemplate = `repeat(${rows}, ${rowT})`;
+      canvas.style.gridTemplateColumns = colTemplate;
+      canvas.style.gridTemplateRows = rowTemplate;
+      canvas.style.gap = `${gap}px`;
+
+      // clear canvas
+      canvas.innerHTML = '';
+      let areaNames = new Set();
+
+      for (let r=0; r<rows; r++) {
+        for (let c=0; c<cols; c++) {
+          const cell = document.createElement('div');
+          cell.className = 'grid-cell';
+          const area = gridData[r][c] || '';
+          cell.textContent = area || `${r+1},${c+1}`;
+          if (area) areaNames.add(area);
+          cell.dataset.row = r;
+          cell.dataset.col = c;
+          cell.dataset.area = area;
+
+          // click select
+          cell.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (isDragging) return;
+            document.querySelectorAll('.grid-cell.active').forEach(el => el.classList.remove('active'));
+            this.classList.add('active');
+            selectedCell = { row: parseInt(this.dataset.row), col: parseInt(this.dataset.col) };
+          });
+
+          // drag events
+          cell.addEventListener('mousedown', function(e) {
+            if (e.button !== 0) return;
+            isDragging = true;
+            dragStart = { row: parseInt(this.dataset.row), col: parseInt(this.dataset.col) };
+            dragEnd = null;
+            document.querySelectorAll('.grid-cell.drag-over').forEach(el => el.classList.remove('drag-over'));
+          });
+
+          cell.addEventListener('mouseenter', function(e) {
+            if (!isDragging) return;
+            dragEnd = { row: parseInt(this.dataset.row), col: parseInt(this.dataset.col) };
+            // highlight range
+            document.querySelectorAll('.grid-cell.drag-over').forEach(el => el.classList.remove('drag-over'));
+            if (dragStart && dragEnd) {
+              const minR = Math.min(dragStart.row, dragEnd.row);
+              const maxR = Math.max(dragStart.row, dragEnd.row);
+              const minC = Math.min(dragStart.col, dragEnd.col);
+              const maxC = Math.max(dragStart.col, dragEnd.col);
+              for (let rr=minR; rr<=maxR; rr++) {
+                for (let cc=minC; cc<=maxC; cc++) {
+                  const sel = canvas.querySelector(`.grid-cell[data-row="${rr}"][data-col="${cc}"]`);
+                  if (sel) sel.classList.add('drag-over');
+                }
+              }
+            }
+          });
+
+          canvas.appendChild(cell);
+        }
+      }
+
+      // global mouseup to finalize drag
+      document.addEventListener('mouseup', function(e) {
+        if (!isDragging) return;
+        isDragging = false;
+        if (dragStart && dragEnd) {
+          const minR = Math.min(dragStart.row, dragEnd.row);
+          const maxR = Math.max(dragStart.row, dragEnd.row);
+          const minC = Math.min(dragStart.col, dragEnd.col);
+          const maxC = Math.max(dragStart.col, dragEnd.col);
+          const name = areaNameInput.value.trim() || 'area';
+          for (let rr=minR; rr<=maxR; rr++) {
+            for (let cc=minC; cc<=maxC; cc++) {
+              gridData[rr][cc] = name;
+            }
+          }
+          renderGrid();
+          updateAreaList();
+          generateCode();
+        }
+        document.querySelectorAll('.grid-cell.drag-over').forEach(el => el.classList.remove('drag-over'));
+        dragStart = null; dragEnd = null;
+      });
+
+      // update area list
+      updateAreaList();
+      generateCode();
+    }
+
+    function updateAreaList() {
+      const names = new Set();
+      for (let r=0; r<gridData.length; r++) {
+        for (let c=0; c<gridData[0].length; c++) {
+          if (gridData[r][c]) names.add(gridData[r][c]);
+        }
+      }
+      areaListDiv.innerHTML = Array.from(names).map(n => `<span class="area-tag">${n}</span>`).join('');
+    }
+
+    function generateCode() {
+      const cols = parseInt(colsInput.value) || 3;
+      const rows = parseInt(rowsInput.value) || 3;
+      const gap = parseInt(gapInput.value) || 4;
+      const colT = colTrack.value || '1fr';
+      const rowT = rowTrack.value || '1fr';
+      const autoPlace = autoPlaceCheck.checked ? 'auto' : 'none';
+
+      // build grid-template-areas
+      let areasStr = '';
+      for (let r=0; r<rows; r++) {
+        let rowStr = '';
+        for (let c=0; c<cols; c++) {
+          let name = gridData[r][c] || '.';
+          rowStr += ` ${name}`;
+        }
+        areasStr += `"${rowStr.trim()}"\n    `;
+      }
+
+      const css = `.grid-container {\n  display: grid;\n  grid-template-columns: repeat(${cols}, ${colT});\n  grid-template-rows: repeat(${rows}, ${rowT});\n  gap: ${gap}px;\n  grid-auto-flow: ${autoPlace};\n  grid-template-areas:\n    ${areasStr.trim()}\n}`;
+
+      let output = css;
+      if (exportSelect.value === 'tailwind') {
+        output = `/* Tailwind CSS (approximate) */\n.grid-container {\n  @apply grid;\n  grid-template-columns: repeat(${cols}, ${colT});\n  grid-template-rows: repeat(${rows}, ${rowT});\n  gap: ${gap}px;\n  grid-auto-flow: ${autoPlace};\n}`;
+      } else if (exportSelect.value === 'styled') {
+        output = `// styled-components\nconst GridContainer = styled.div\`\n  display: grid;\n  grid-template-columns: repeat(${cols}, ${colT});\n  grid-template-rows: repeat(${rows}, ${rowT});\n  gap: ${gap}px;\n  grid-auto-flow: ${autoPlace};\n  grid-template-areas:\n    ${areasStr.trim()}\n\`;`;
+      }
+      codeBlock.textContent = output;
+    }
+
+    // apply area name to selected cell
+    function applyAreaToSelected() {
+      if (!selectedCell) return;
+      const name = areaNameInput.value.trim() || 'area';
+      const { row, col } = selectedCell;
+      gridData[row][col] = name;
+      renderGrid();
+    }
+
+    function clearAreas() {
+      for (let r=0; r<gridData.length; r++) {
+        for (let c=0; c<gridData[0].length; c++) {
+          gridData[r][c] = '';
+        }
+      }
+      renderGrid();
+    }
+
+    function loadPreset(name) {
+      const p = presets[name];
+      if (!p) return;
+      colsInput.value = p.cols;
+      rowsInput.value = p.rows;
+      gapInput.value = p.gap;
+      colTrack.value = p.colT || '1fr';
+      rowTrack.value = p.rowT || '1fr';
+      gridData = p.areas.map(row => [...row]);
+      renderGrid();
+    }
+
+    // event listeners
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        loadPreset(this.dataset.preset);
+      });
+    });
+
+    colsInput.addEventListener('change', renderGrid);
+    rowsInput.addEventListener('change', renderGrid);
+    gapInput.addEventListener('change', renderGrid);
+    colTrack.addEventListener('change', renderGrid);
+    rowTrack.addEventListener('change', renderGrid);
+    autoPlaceCheck.addEventListener('change', generateCode);
+    document.getElementById('applyAreaBtn').addEventListener('click', applyAreaToSelected);
+    document.getElementById('clearAreasBtn').addEventListener('click', clearAreas);
+    exportSelect.addEventListener('change', generateCode);
+    copyBtn.addEventListener('click', function() {
+      navigator.clipboard.writeText(codeBlock.textContent).then(() => {
+        copyBtn.textContent = '✅ Copied';
+        setTimeout(() => copyBtn.textContent = '📋 Copy', 1800);
+      });
+    });
+
+    // init
+    renderGrid();
+    // set default selected
+    window.addEventListener('load', function() {
+      const firstCell = canvas.querySelector('.grid-cell');
+      if (firstCell) { firstCell.classList.add('active'); selectedCell = { row:0, col:0 }; }
+    });
+  })();
+</script>
+</body>
+</html>

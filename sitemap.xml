@@ -27,4 +27,10 @@
   <url><loc>https://krzen.com/tools/meta-tag-generator.html</loc></url>
   <url><loc>https://krzen.com/tools/page-speed-analyzer.html</loc></url>
   <url><loc>https://krzen.com/tools/responsive-breakpoint-tester.html</loc></url>
+  <url>
+    <loc>https://krzen.com/tools/css-grid-generator-visual-layout-builder</loc>
+    <lastmod>2026-06-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
 </urlset>
