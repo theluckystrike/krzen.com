@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+  <title>Image Optimization Calculator — Estimate Savings from</title>
+  <meta name="description" content="Interactive image optimization calculator: estimate file size, bandwidth & CDN cost savings by format (JPEG, PNG, WebP, AVIF, SVG). Lazy loading...">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://krzen.com/tools/image-optimization-calculator">
+  <!-- JSON-LD FAQ -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How much can I save by converting JPEG to WebP?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "JPEG to WebP typically saves about 30% file size, sometimes more depending on quality."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What is the best format for compression?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "AVIF offers the best compression (up to 50% over JPEG), followed by WebP. SVG is best for vector graphics."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Does lazy loading reduce bandwidth?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes, lazy loading can reduce initial page weight by 20–30% by deferring offscreen images."
+        }
+      }
+    ]
+  }
+  </script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.5;
+      padding: 1.5rem 1rem;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .container {
+      max-width: 1200px;
+      width: 100%;
+    }
+    header {
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+    }
+    .subhead {
+      color: #94a3b8;
+      font-size: 1.1rem;
+    }
+    .card {
+      background: #1e293b;
+      border-radius: 1.5rem;
+      padding: 1.8rem 1.5rem;
+      box-shadow: 0 20px 40px -12px rgba(0,0,0,0.6);
+      margin-bottom: 2rem;
+      border: 1px solid #334155;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.8rem;
+    }
+    .input-group {
+      margin-bottom: 1.4rem;
+    }
+    label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 0.4rem;
+      color: #cbd5e1;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+    .input-row {
+      display: flex;
+      gap: 0.8rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    input, select {
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #f1f5f9;
+      padding: 0.7rem 1rem;
+      border-radius: 0.75rem;
+      font-size: 1rem;
+      width: 100%;
+      transition: border 0.2s, box-shadow 0.2s;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
+    }
+    .input-small {
+      max-width: 120px;
+    }
+    .inline-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      white-space: nowrap;
+      color: #94a3b8;
+    }
+    .inline-label span {
+      min-width: 2rem;
+    }
+    .stat-block {
+      background: #0f172a;
+      border-radius: 1rem;
+      padding: 1.2rem;
+      margin-top: 0.5rem;
+      border: 1px solid #2d3a4e;
+    }
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #1e2a3a;
+    }
+    .stat-row:last-child {
+      border-bottom: none;
+    }
+    .stat-label {
+      color: #94a3b8;
+    }
+    .stat-value {
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+    .accent {
+      color: #38bdf8;
+    }
+    .savings {
+      color: #4ade80;
+    }
+    .table-wrap {
+      overflow-x: auto;
+      margin: 1.5rem 0 0.5rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    th {
+      text-align: left;
+      padding: 0.75rem 0.5rem;
+      background: #1e293b;
+      color: #94a3b8;
+      font-weight: 500;
+      border-bottom: 2px solid #334155;
+    }
+    td {
+      padding: 0.7rem 0.5rem;
+      border-bottom: 1px solid #1e2a3a;
+    }
+    .highlight-row {
+      background: #1a2744;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 2.5rem;
+      color: #475569;
+      font-size: 0.9rem;
+      border-top: 1px solid #1e293b;
+      padding-top: 2rem;
+    }
+    .footer a {
+      color: #38bdf8;
+      text-decoration: none;
+    }
+    .badge {
+      background: #1e293b;
+      border-radius: 999px;
+      padding: 0.2rem 0.8rem;
+      font-size: 0.75rem;
+      color: #38bdf8;
+      border: 1px solid #334155;
+    }
+    @media (max-width: 700px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+      h1 {
+        font-size: 1.8rem;
+      }
+      .card {
+        padding: 1.2rem;
+      }
+      .input-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .input-small {
+        max-width: 100%;
+      }
+    }
+    .flex-between {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .mt-2 {
+      margin-top: 1.2rem;
+    }
+    .mb-1 {
+      margin-bottom: 0.5rem;
+    }
+    .note {
+      color: #64748b;
+      font-size: 0.85rem;
+      margin-top: 0.3rem;
+    }
+  </style>
+
+    <meta property="og:title" content="Image Optimization Calculator — Estimate Savings from">
+    <meta property="og:description" content="Interactive image optimization calculator: estimate file size, bandwidth & CDN cost savings by format (JPEG, PNG, WebP, AVIF, SVG). Lazy loading...">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://krzen.com/tools/image-optimization-calculator">
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>📸 Image Optimization Calculator</h1>
+    <div class="subhead">Estimate real savings from compression, format conversion & lazy loading</div>
+  </header>
+
+  <div class="card">
+    <div class="grid-2">
+      <!-- left: inputs -->
+      <div>
+        <div class="input-group">
+          <label>Image dimensions (px)</label>
+          <div class="input-row">
+            <input type="number" id="width" value="1920" min="1" max="10000" class="input-small" placeholder="width">
+            <span style="color:#94a3b8;">×</span>
+            <input type="number" id="height" value="1080" min="1" max="10000" class="input-small" placeholder="height">
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label>Format</label>
+          <select id="format">
+            <option value="jpeg">JPEG</option>
+            <option value="png">PNG</option>
+            <option value="webp" selected>WebP</option>
+            <option value="avif">AVIF</option>
+            <option value="svg">SVG (vector)</option>
+          </select>
+        </div>
+
+        <div class="input-group">
+          <label>Quality level</label>
+          <select id="quality">
+            <option value="low">Low (smallest file)</option>
+            <option value="medium" selected>Medium (balanced)</option>
+            <option value="high">High (good quality)</option>
+            <option value="lossless">Lossless</option>
+          </select>
+        </div>
+
+        <div class="input-group">
+          <label>Number of images per page</label>
+          <input type="number" id="imageCount" value="12" min="1" max="500" step="1">
+        </div>
+
+        <div class="input-group">
+          <label>Monthly pageviews</label>
+          <input type="number" id="pageviews" value="150000" min="0" max="100000000" step="1000">
+        </div>
+
+        <div class="input-group">
+          <label>Lazy loading enabled</label>
+          <select id="lazy">
+            <option value="yes" selected>Yes (save ~25% bandwidth)</option>
+            <option value="no">No (load all images)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- right: results -->
+      <div>
+        <div class="stat-block">
+          <div class="stat-row">
+            <span class="stat-label">📦 Est. file size (per image)</span>
+            <span class="stat-value" id="perImageSize">—</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">🖼️ Total page weight (images)</span>
+            <span class="stat-value" id="totalPageWeight">—</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">⚡ Bandwidth / month</span>
+            <span class="stat-value" id="bandwidthMonth">—</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">💰 CDN cost savings (est.)</span>
+            <span class="stat-value savings" id="cdnSavings">—</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">🔄 Format conversion savings</span>
+            <span class="stat-value accent" id="conversionSavings">—</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">🛌 Lazy loading savings</span>
+            <span class="stat-value accent" id="lazySavings">—</span>
+          </div>
+        </div>
+        <div class="note mt-2">* CDN cost assumes $0.08/GB. Savings relative to original (JPEG/PNG).</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- comparison table -->
+  <div class="card">
+    <div class="flex-between mb-1">
+      <h2 style="font-size:1.3rem; font-weight:500;">📊 Format comparison (estimated)</h2>
+      <span class="badge">per image</span>
+    </div>
+    <div class="table-wrap">
+      <table id="comparisonTable">
+        <thead>
+          <tr><th>Format</th><th>Est. size</th><th>vs JPEG</th><th>vs PNG</th><th>Quality range</th></tr>
+        </thead>
+        <tbody id="comparisonBody">
+          <!-- filled by JS -->
+        </tbody>
+      </table>
+    </div>
+    <div class="note" style="margin-top:0.8rem;">* SVG size is highly variable; shown estimate for simple vector. Actual savings depend on content.</div>
+  </div>
+
+  <footer class="footer">
+    <p>© 2025 krzen.com — <a href="https://krzen.com/tools/image-optimization-calculator">Image Optimization Calculator</a></p>
+  </footer>
+</div>
+
+<script>
+  (function() {
+    // ----- helper: size formatting
+    function formatSize(bytes) {
+      if (bytes <= 0) return '0 B';
+      const units = ['B', 'KB', 'MB', 'GB'];
+      const k = 1024;
+      const i = Math.min(Math.floor(Math.log(bytes) / Math.log(k)), 3);
+      const val = bytes / Math.pow(k, i);
+      return val.toFixed(i === 0 ? 0 : 1) + ' ' + units[i];
+    }
+
+    function formatBandwidth(bytes) {
+      const gb = bytes / (1024*1024*1024);
+      if (gb >= 1) return gb.toFixed(2) + ' GB';
+      const mb = bytes / (1024*1024);
+      if (mb >= 1) return mb.toFixed(1) + ' MB';
+      const kb = bytes / 1024;
+      if (kb >= 1) return kb.toFixed(1) + ' KB';
+      return bytes + ' B';
+    }
+
+    // ----- base size estimation (per megapixel, rough)
+    function baseSizeBytes(format, quality, width, height) {
+      const mp = (width * height) / 1_000_000;
+      if (mp <= 0) return 0;
+      // base factors (rough real-world estimates)
+      const factors = {
+        jpeg: { low: 0.15, medium: 0.35, high: 0.7, lossless: 1.2 },
+        png: { low: 0.6, medium: 1.2, high: 2.0, lossless: 3.5 },
+        webp: { low: 0.1, medium: 0.25, high: 0.5, lossless: 0.9 },
+        avif: { low: 0.08, medium: 0.2, high: 0.4, lossless: 0.8 },
+        svg: { low: 0.02, medium: 0.05, high: 0.1, lossless: 0.2 }  // vector, but treat as tiny
+      };
+      const f = factors[format]?.[quality] || 0.3;
+      // base: 100KB per MP as reference (JPEG medium)
+      const base = 100 * 1024; // 100KB per MP
+      return base * mp * f;
+    }
+
+    // ----- conversion savings label
+    function getConversionSavings(format, compareFormat = 'jpeg') {
+      // returns percent saved relative to compareFormat
+      const savingsMap = {
+        'jpeg': { 'webp': 30, 'avif': 50, 'png': -40, 'svg': 10 },
+        'png': { 'webp': 50, 'avif': 60, 'jpeg': -30, 'svg': 20 }
+      };
+      if (format === 'jpeg') return { fromJpeg: '—', fromPng: '—' };
+      if (format === 'png') return { fromJpeg: '-40%', fromPng: '—' };
+      if (format === 'webp') return { fromJpeg: '~30%', fromPng: '~50%' };
+      if (format === 'avif') return { fromJpeg: '~50%', fromPng: '~60%' };
+      if (format === 'svg') return { fromJpeg: '~10% (varies)', fromPng: '~20% (varies)' };
+      return { fromJpeg: '—', fromPng: '—' };
+    }
+
+    // ----- main update
+    function updateCalculator() {
+      const width = Math.max(1, parseInt(document.getElementById('width').value) || 1);
+      const height = Math.max(1, parseInt(document.getElementById('height').value) || 1);
+      const format = document.getElementById('format').value;
+      const quality = document.getElementById('quality').value;
+      const imageCount = Math.max(1, parseInt(document.getElementById('imageCount').value) || 1);
+      const pageviews = Math.max(0, parseInt(document.getElementById('pageviews').value) || 0);
+      const lazyEnabled = document.getElementById('lazy').value === 'yes';
+
+      // compute base size for selected format
+      const sizeBytes = baseSizeBytes(format, quality, width, height);
+      const sizeKB = sizeBytes / 1024;
+
+      // total page weight (all images)
+      let totalWeightBytes = sizeBytes * imageCount;
+      // lazy loading reduction: 25% if enabled
+      let lazyReduction = 0;
+      if (lazyEnabled) {
+        lazyReduction = totalWeightBytes * 0.25;
+        totalWeightBytes = totalWeightBytes * 0.75; // only 75% loaded initially
+      }
+
+      const bandwidthMonthly = totalWeightBytes * pageviews;
+      // CDN cost $0.08/GB
+      const cdnCostMonthly = (bandwidthMonthly / (1024*1024*1024)) * 0.08;
+
+      // conversion savings: compare to JPEG baseline (original)
+      const originalJpegSize = baseSizeBytes('jpeg', 'medium', width, height);
+      const originalPngSize = baseSizeBytes('png', 'medium', width, height);
+      // we show savings relative to original format (if user selected webp/avif, compare to jpeg)
+      let conversionSavingsText = '';
+      let savingsPercent = 0;
+      if (format === 'webp') {
+        const saved = originalJpegSize - sizeBytes;
+        savingsPercent = (saved / originalJpegSize) * 100;
+        conversionSavingsText = `~${savingsPercent.toFixed(0)}% vs JPEG`;
+      } else if (format === 'avif') {
+        const saved = originalJpegSize - sizeBytes;
+        savingsPercent = (saved / originalJpegSize) * 100;
+        conversionSavingsText = `~${savingsPercent.toFixed(0)}% vs JPEG`;
+      } else if (format === 'png') {
+        conversionSavingsText = '~0% (lossless)';
+      } else if (format === 'svg') {
+        conversionSavingsText = 'varies (vector)';
+      } else {
+        conversionSavingsText = '— (baseline)';
+      }
+
+      // lazy savings text
+      let lazySavingsText = '—';
+      if (lazyEnabled) {
+        const lazyBytes = sizeBytes * imageCount * 0.25; // 25% of total
+        lazySavingsText = `~${formatSize(lazyBytes)} (25%)`;
+      } else {
+        lazySavingsText = 'disabled';
+      }
+
+      // update DOM
+      document.getElementById('perImageSize').textContent = formatSize(sizeBytes);
+      document.getElementById('totalPageWeight').textContent = formatSize(totalWeightBytes);
+      document.getElementById('bandwidthMonth').textContent = formatBandwidth(bandwidthMonthly);
+      document.getElementById('cdnSavings').textContent = `$${cdnCostMonthly.toFixed(2)}/month (if optimized)`;
+      document.getElementById('conversionSavings').textContent = conversionSavingsText;
+      document.getElementById('lazySavings').textContent = lazySavingsText;
+
+      // ----- comparison table
+      const formats = ['jpeg', 'png', 'webp', 'avif', 'svg'];
+      const qualityLevels = ['low', 'medium', 'high', 'lossless'];
+      const tbody = document.getElementById('comparisonBody');
+      tbody.innerHTML = '';
+      formats.forEach(fmt => {
+        const q = (fmt === 'svg') ? 'medium' : quality; // use same quality for fair comparison? use user quality
+        const sz = baseSizeBytes(fmt, quality, width, height);
+        const vsJpeg = (fmt === 'jpeg') ? '—' : ((sz === 0) ? '—' : {
+          'webp': '~30% smaller',
+          'avif': '~50% smaller',
+          'png': '~40% larger',
+          'svg': 'varies'
+        }[fmt] || '—');
+        const vsPng = (fmt === 'png') ? '—' : ((sz === 0) ? '—' : {
+          'webp': '~50% smaller',
+          'avif': '~60% smaller',
+          'jpeg': '~30% smaller',
+          'svg': 'varies'
+        }[fmt] || '—');
+        const qualityNote = (fmt === 'svg') ? 'scalable' : (quality.charAt(0).toUpperCase() + quality.slice(1));
+        const row = document.createElement('tr');
+        if (fmt === format) row.classList.add('highlight-row');
+        row.innerHTML = `<td><strong>${fmt.toUpperCase()}</strong></td>
+          <td>${formatSize(sz)}</td>
+          <td>${vsJpeg}</td>
+          <td>${vsPng}</td>
+          <td>${qualityNote}</td>`;
+        tbody.appendChild(row);
+      });
+    }
+
+    // attach events
+    const inputs = ['width', 'height', 'format', 'quality', 'imageCount', 'pageviews', 'lazy'];
+    inputs.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', updateCalculator);
+      if (el && (el.tagName === 'SELECT')) el.addEventListener('change', updateCalculator);
+    });
+
+    // initial
+    updateCalculator();
+  })();
+</script>
+</body>
+</html>
