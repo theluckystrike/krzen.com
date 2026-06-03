@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+  <title>Lazy Loading Threshold Calculator — Optimize Viewport Loading</title>
+  <meta name="description" content="Interactive tool to calculate lazy loading thresholds, rootMargin, and estimate bandwidth savings. Compare IntersectionObserver vs native loading=lazy.">
+  <meta name="keywords" content="lazy loading, threshold calculator, viewport, rootMargin, IntersectionObserver, web performance, image optimization">
+  <link rel="canonical" href="https://krzen.com/tools/lazy-loading-calculator">
+  <!-- JSON-LD FAQ -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is rootMargin in lazy loading?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "RootMargin expands or shrinks the viewport bounding box before triggering load. Positive values start loading earlier (preload), negative values delay loading."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How does IntersectionObserver compare to native loading=lazy?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "IntersectionObserver offers custom rootMargin and thresholds, while native loading=lazy is simpler but less flexible. Both defer offscreen resources."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What bandwidth savings can I expect?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Savings depend on viewport size, page height, and resource positions. Typically 30-70% of image weight can be deferred for bounce visitors."
+        }
+      }
+    ]
+  }
+  </script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.5;
+      padding: 1.5rem;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .container {
+      max-width: 1200px;
+      width: 100%;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+    }
+    .subhead {
+      color: #94a3b8;
+      font-size: 1.1rem;
+    }
+    .card {
+      background: #1e293b;
+      border-radius: 1.25rem;
+      padding: 1.8rem 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      border: 1px solid #334155;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.8rem;
+    }
+    @media (max-width: 700px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+      h1 { font-size: 1.8rem; }
+    }
+    .input-group {
+      margin-bottom: 1.2rem;
+    }
+    label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 0.3rem;
+      color: #cbd5e1;
+      font-size: 0.9rem;
+    }
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    input[type="number"], input[type="range"] {
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #f1f5f9;
+      padding: 0.6rem 0.8rem;
+      border-radius: 0.75rem;
+      font-size: 1rem;
+      width: 100%;
+      max-width: 160px;
+      transition: border 0.2s;
+    }
+    input[type="number"]:focus, input[type="range"]:focus {
+      outline: none;
+      border-color: #38bdf8;
+    }
+    input[type="range"] {
+      padding: 0;
+      max-width: 200px;
+      accent-color: #38bdf8;
+      height: 6px;
+    }
+    .btn {
+      background: #38bdf8;
+      border: none;
+      color: #0f172a;
+      font-weight: 600;
+      padding: 0.6rem 1.2rem;
+      border-radius: 2rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 2px 8px rgba(56,189,248,0.3);
+    }
+    .btn:hover {
+      background: #7dd3fc;
+      transform: scale(1.02);
+    }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid #38bdf8;
+      color: #38bdf8;
+      box-shadow: none;
+    }
+    .btn-outline:hover {
+      background: #1e293b;
+    }
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1rem;
+      margin: 1.5rem 0 0.5rem;
+    }
+    .stat-card {
+      background: #0f172a;
+      border-radius: 1rem;
+      padding: 1rem 0.8rem;
+      text-align: center;
+      border: 1px solid #2d3a52;
+    }
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #38bdf8;
+      line-height: 1.2;
+    }
+    .stat-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #94a3b8;
+    }
+    .scrollmap-container {
+      background: #0f172a;
+      border-radius: 1rem;
+      padding: 1rem;
+      margin: 1.5rem 0 0.5rem;
+      border: 1px solid #2d3a52;
+      position: relative;
+      overflow-x: auto;
+    }
+    .scrollmap {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-height: 180px;
+      position: relative;
+      background: #1e293b;
+      border-radius: 0.5rem;
+      padding: 0.5rem 0;
+    }
+    .scrollmap-row {
+      display: flex;
+      align-items: center;
+      height: 28px;
+      font-size: 0.7rem;
+      color: #cbd5e1;
+      border-bottom: 1px dashed #2a3a55;
+      padding: 0 0.5rem;
+    }
+    .load-trigger {
+      background: #38bdf8;
+      height: 100%;
+      border-radius: 4px;
+      opacity: 0.8;
+      min-width: 4px;
+      transition: width 0.2s;
+    }
+    .trigger-label {
+      margin-left: 8px;
+      white-space: nowrap;
+    }
+    .fold-line {
+      border-top: 2px solid #facc15;
+      width: 100%;
+      margin: 6px 0;
+    }
+    .footnote {
+      font-size: 0.8rem;
+      color: #64748b;
+      margin-top: 1rem;
+      text-align: center;
+    }
+    footer {
+      margin-top: 3rem;
+      text-align: center;
+      color: #475569;
+      font-size: 0.9rem;
+      border-top: 1px solid #1e293b;
+      padding-top: 1.5rem;
+      width: 100%;
+    }
+    .badge {
+      background: #1e293b;
+      border-radius: 1rem;
+      padding: 0.2rem 0.8rem;
+      font-size: 0.7rem;
+      color: #94a3b8;
+      border: 1px solid #334155;
+    }
+    .flex-between {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>⚡ Lazy Loading Threshold Calculator</h1>
+    <div class="subhead">Optimize viewport loading · IntersectionObserver vs native lazy</div>
+  </header>
+
+  <div class="card">
+    <div class="grid-2">
+      <!-- left: inputs -->
+      <div>
+        <div class="input-group">
+          <label>📐 Viewport height (px)</label>
+          <div class="input-row">
+            <input type="number" id="viewportHeight" value="800" min="200" max="4000" step="10">
+            <button class="btn btn-outline" id="detectViewportBtn">📱 Auto-detect</button>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>📄 Total page height (px)</label>
+          <input type="number" id="pageHeight" value="4500" min="600" max="20000" step="50">
+        </div>
+        <div class="input-group">
+          <label>🖼️ Number of images / iframes</label>
+          <input type="number" id="resourceCount" value="12" min="1" max="80">
+        </div>
+        <div class="input-group">
+          <label>📍 RootMargin (px before viewport, negative = delay)</label>
+          <input type="number" id="rootMargin" value="200" min="-800" max="1200" step="10">
+          <div style="display: flex; gap: 0.5rem; margin-top: 6px;">
+            <span class="badge">earlier</span>
+            <input type="range" id="rootMarginRange" min="-800" max="1200" value="200" step="10" style="flex:1;">
+            <span class="badge">later</span>
+          </div>
+        </div>
+        <div style="margin-top: 1rem; display: flex; gap: 0.8rem; flex-wrap: wrap;">
+          <button class="btn" id="recalcBtn">⟳ Recalculate</button>
+          <span style="font-size:0.8rem; align-self:center; color:#94a3b8;">resources below fold: <span id="belowFoldCount">0</span></span>
+        </div>
+        <div style="margin-top: 1.2rem; background: #0f172a; border-radius: 1rem; padding: 0.8rem 1rem;">
+          <div style="display: flex; justify-content: space-between; font-size:0.9rem;">
+            <span>⚡ native loading="lazy"</span>
+            <span style="color:#38bdf8;">vs</span>
+            <span>🧩 IntersectionObserver + rootMargin</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-top: 0.4rem; font-weight: 500;">
+            <span id="nativeDeferred" style="color:#facc15;">0% deferred</span>
+            <span id="ioDeferred" style="color:#38bdf8;">0% deferred</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- right: stats & scrollmap -->
+      <div>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-value" id="immediateLoad">0</div><div class="stat-label">Immediate load</div></div>
+          <div class="stat-card"><div class="stat-value" id="deferredCount">0</div><div class="stat-label">Deferred</div></div>
+          <div class="stat-card"><div class="stat-value" id="weightSavings">0%</div><div class="stat-label">Weight savings</div></div>
+          <div class="stat-card"><div class="stat-value" id="ttiImprovement">0%</div><div class="stat-label">TTI improvement</div></div>
+        </div>
+        <div class="stat-grid" style="grid-template-columns:1fr 1fr;">
+          <div class="stat-card"><div class="stat-value" id="bounceBandwidth">0 KB</div><div class="stat-label">Bounce bandwidth saved</div></div>
+          <div class="stat-card"><div class="stat-value" id="nativeBandwidth">0 KB</div><div class="stat-label">Native lazy (est.)</div></div>
+        </div>
+
+        <!-- scrollmap -->
+        <div class="scrollmap-container">
+          <div style="display:flex; justify-content:space-between; font-size:0.7rem; color:#94a3b8; padding:0 0.5rem 0.3rem;">
+            <span>⬆️ above fold</span>
+            <span>⬇️ below fold</span>
+          </div>
+          <div class="scrollmap" id="scrollmapContainer">
+            <!-- dynamically built -->
+          </div>
+          <div class="flex-between" style="margin-top:0.3rem;">
+            <span class="badge">🟦 load trigger (rootMargin)</span>
+            <span class="badge" style="background:#2d3a52;">⬜ deferred</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>© 2025 krzen.com</footer>
+</div>
+
+<script>
+  (function() {
+    // DOM refs
+    const viewportInput = document.getElementById('viewportHeight');
+    const pageHeightInput = document.getElementById('pageHeight');
+    const resourceCountInput = document.getElementById('resourceCount');
+    const rootMarginInput = document.getElementById('rootMargin');
+    const rootMarginRange = document.getElementById('rootMarginRange');
+    const detectBtn = document.getElementById('detectViewportBtn');
+    const recalcBtn = document.getElementById('recalcBtn');
+
+    const immediateLoadEl = document.getElementById('immediateLoad');
+    const deferredCountEl = document.getElementById('deferredCount');
+    const weightSavingsEl = document.getElementById('weightSavings');
+    const ttiImprovementEl = document.getElementById('ttiImprovement');
+    const bounceBandwidthEl = document.getElementById('bounceBandwidth');
+    const nativeBandwidthEl = document.getElementById('nativeBandwidth');
+    const belowFoldCountEl = document.getElementById('belowFoldCount');
+    const nativeDeferredEl = document.getElementById('nativeDeferred');
+    const ioDeferredEl = document.getElementById('ioDeferred');
+    const scrollmapContainer = document.getElementById('scrollmapContainer');
+
+    // sync range <-> number
+    rootMarginInput.addEventListener('input', function() {
+      rootMarginRange.value = this.value;
+      recalc();
+    });
+    rootMarginRange.addEventListener('input', function() {
+      rootMarginInput.value = this.value;
+      recalc();
+    });
+
+    detectBtn.addEventListener('click', function() {
+      const vh = window.innerHeight || document.documentElement.clientHeight;
+      viewportInput.value = Math.round(vh);
+      recalc();
+    });
+
+    // recalc on any change
+    [viewportInput, pageHeightInput, resourceCountInput].forEach(el => {
+      el.addEventListener('input', recalc);
+    });
+
+    recalcBtn.addEventListener('click', recalc);
+
+    // utility: generate resource positions (above/below fold)
+    function generateResources(count, viewport, pageHeight) {
+      const resources = [];
+      const usableHeight = Math.max(pageHeight, viewport + 200);
+      for (let i = 0; i < count; i++) {
+        // distribute across page, some above fold, most below
+        let distance;
+        if (i < 2) {
+          distance = Math.random() * viewport * 0.6; // above fold
+        } else {
+          distance = viewport * 0.8 + Math.random() * (usableHeight - viewport * 0.8);
+        }
+        // clamp
+        distance = Math.min(Math.max(distance, 0), usableHeight);
+        resources.push({ distanceFromTop: distance });
+      }
+      // sort by distance
+      resources.sort((a,b) => a.distanceFromTop - b.distanceFromTop);
+      return resources;
+    }
+
+    let cachedResources = [];
+
+    function recalc() {
+      const viewport = parseInt(viewportInput.value, 10) || 800;
+      const pageHeight = parseInt(pageHeightInput.value, 10) || 4500;
+      const resourceCount = parseInt(resourceCountInput.value, 10) || 12;
+      let rootMargin = parseInt(rootMarginInput.value, 10) || 200;
+
+      // clamp
+      if (pageHeight < viewport + 100) pageHeightInput.value = viewport + 200;
+
+      // generate resources (stable but random each call)
+      const resources = generateResources(resourceCount, viewport, pageHeight);
+      cachedResources = resources;
+
+      // effective viewport with rootMargin: load zone = viewport + rootMargin (if positive)
+      const loadZone = viewport + Math.max(0, rootMargin); // positive rootMargin extends viewport
+      // for negative rootMargin, load zone shrinks
+      const effectiveLoad = rootMargin >= 0 ? loadZone : viewport + rootMargin; // could be less than viewport
+
+      // count immediate (distance <= effectiveLoad) and deferred
+      let immediate = 0;
+      let deferred = 0;
+      let belowFold = 0;
+      const foldLine = viewport;
+
+      resources.forEach(r => {
+        const dist = r.distanceFromTop;
+        if (dist <= effectiveLoad) {
+          immediate++;
+        } else {
+          deferred++;
+        }
+        if (dist > foldLine) belowFold++;
+      });
+
+      // weight assumptions: each resource ~150KB (average image)
+      const avgWeightKB = 150;
+      const totalWeight = resourceCount * avgWeightKB;
+      const immediateWeight = immediate * avgWeightKB;
+      const deferredWeight = deferred * avgWeightKB;
+      const savingsPercent = totalWeight > 0 ? Math.round((deferredWeight / totalWeight) * 100) : 0;
+
+      // TTI improvement: rough estimate based on deferred resources (reduced contention)
+      const ttiImprovement = Math.min(90, Math.round((deferred / Math.max(resourceCount,1)) * 70 + 10));
+
+      // bounce bandwidth: if visitor leaves after viewport, only immediate resources load
+      const bounceSaved = deferredWeight; // KB
+      // native lazy: browser default ~ rootMargin=0 (viewport only) => immediate = resources within viewport
+      let nativeImmediate = 0;
+      resources.forEach(r => {
+        if (r.distanceFromTop <= viewport) nativeImmediate++;
+      });
+      const nativeDeferred = resourceCount - nativeImmediate;
+      const nativeWeightSaved = nativeDeferred * avgWeightKB;
+
+      // update DOM
+      immediateLoadEl.textContent = immediate;
+      deferredCountEl.textContent = deferred;
+      weightSavingsEl.textContent = savingsPercent + '%';
+      ttiImprovementEl.textContent = ttiImprovement + '%';
+      bounceBandwidthEl.textContent = bounceSaved + ' KB';
+      nativeBandwidthEl.textContent = nativeWeightSaved + ' KB';
+      belowFoldCountEl.textContent = belowFold;
+
+      // native vs IO comparison
+      const ioDeferredPercent = resourceCount > 0 ? Math.round((deferred / resourceCount) * 100) : 0;
+      const nativeDeferredPercent = resourceCount > 0 ? Math.round((nativeDeferred / resourceCount) * 100) : 0;
+      nativeDeferredEl.textContent = nativeDeferredPercent + '% deferred';
+      ioDeferredEl.textContent = ioDeferredPercent + '% deferred';
+
+      // build scrollmap
+      buildScrollmap(resources, viewport, effectiveLoad, rootMargin, pageHeight);
+    }
+
+    function buildScrollmap(resources, viewport, effectiveLoad, rootMargin, pageHeight) {
+      // clear
+      scrollmapContainer.innerHTML = '';
+      const maxHeight = Math.max(pageHeight, viewport + 400);
+      const rowCount = Math.min(28, Math.max(12, Math.ceil(resources.length * 1.2)));
+      const rowHeight = Math.max(20, Math.floor((maxHeight) / rowCount));
+
+      // create rows
+      for (let i = 0; i < rowCount; i++) {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'scrollmap-row';
+        const yStart = i * rowHeight;
+        const yEnd = (i+1) * rowHeight;
+
+        // find resources in this slice
+        let hasTrigger = false;
+        let triggerWidth = 0;
+        resources.forEach(r => {
+          if (r.distanceFromTop >= yStart && r.distanceFromTop < yEnd) {
+            const loadNow = r.distanceFromTop <= effectiveLoad;
+            if (loadNow) {
+              hasTrigger = true;
+              triggerWidth = Math.min(100, 30 + Math.floor(Math.random() * 40));
+            }
+          }
+        });
+
+        // check if fold line falls in this row
+        const foldInRow = (viewport >= yStart && viewport < yEnd);
+
+        if (hasTrigger) {
+          const loadBar = document.createElement('div');
+          loadBar.className = 'load-trigger';
+          loadBar.style.width = (triggerWidth || 20) + '%';
+          loadBar.style.background = '#38bdf8';
+          rowDiv.appendChild(loadBar);
+          const label = document.createElement('span');
+          label.className = 'trigger-label';
+          label.textContent = '⚡load';
+          rowDiv.appendChild(label);
+        } else {
+          // check if any resource in this row (deferred)
+          let hasDeferred = false;
+          resources.forEach(r => {
+            if (r.distanceFromTop >= yStart && r.distanceFromTop < yEnd && r.distanceFromTop > effectiveLoad) {
+              hasDeferred = true;
+            }
+          });
+          if (hasDeferred) {
+            const defBar = document.createElement('div');
+            defBar.style.width = '16px';
+            defBar.style.height = '100%';
+            defBar.style.background = '#475569';
+            defBar.style.borderRadius = '4px';
+            defBar.style.opacity = '0.6';
+            rowDiv.appendChild(defBar);
+            const label = document.createElement('span');
+            label.className = 'trigger-label';
+            label.textContent = '⬜ deferred';
+            rowDiv.appendChild(label);
+          } else {
+            // empty row
+            const empty = document.createElement('span');
+            empty.style.opacity = '0.3';
+            empty.textContent = '·';
+            rowDiv.appendChild(empty);
+          }
+        }
+
+        if (foldInRow) {
+          rowDiv.style.borderBottom = '2px solid #facc15';
+        }
+        scrollmapContainer.appendChild(rowDiv);
+      }
+
+      // add fold annotation
+      const foldNote = document.createElement('div');
+      foldNote.style.fontSize = '0.65rem';
+      foldNote.style.color = '#facc15';
+      foldNote.style.marginTop = '4px';
+      foldNote.textContent = '— yellow line: viewport fold';
+      scrollmapContainer.appendChild(foldNote);
+    }
+
+    // initial calculation
+    recalc();
+
+    // also recalc on window resize (debounced)
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        if (document.getElementById('viewportHeight')) {
+          // auto-detect only if user wants, but we just recalc with same values
+          recalc();
+        }
+      }, 300);
+    });
+  })();
+</script>
+</body>
+</html>

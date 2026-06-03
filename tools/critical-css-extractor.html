@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+  <title>Critical CSS Extractor — Above-the-Fold CSS Calculator | krzen.com</title>
+  <meta name="description" content="Extract critical above-the-fold CSS from your stylesheet. Paste CSS & HTML, get inline critical CSS, deferred loadCSS snippet, selector coverage, and render-blocking savings.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://krzen.com/tools/critical-css-extractor">
+  <!-- JSON-LD FAQ -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is critical CSS?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Critical CSS contains styles for above-the-fold content — elements visible without scrolling. Inlining it eliminates render-blocking requests."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How does the extractor identify above-the-fold selectors?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "It parses your CSS and matches selectors against common above‑the‑fold patterns: body, header, nav, h1, .hero, main first-child, and viewport‑visible elements."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What is the loadCSS pattern?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "loadCSS is a JavaScript snippet that asynchronously loads the full stylesheet after the initial paint, preventing render blocking."
+        }
+      }
+    ]
+  }
+  </script>
+  <style>
+    /* ----- reset & base (dark #0f172a) ----- */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.5;
+      padding: 1.5rem 1rem;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    /* header */
+    header {
+      margin-bottom: 2rem;
+      border-bottom: 1px solid #1e293b;
+      padding-bottom: 1rem;
+    }
+    header h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #f1f5f9;
+    }
+    header h1 span {
+      color: #38bdf8;
+    }
+    header p {
+      color: #94a3b8;
+      margin-top: 0.25rem;
+      font-size: 1.05rem;
+    }
+    /* grid */
+    .tool-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    @media (max-width: 720px) {
+      .tool-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    /* cards */
+    .card {
+      background: #1e293b;
+      border-radius: 1rem;
+      padding: 1.25rem 1.25rem 1.5rem;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+      border: 1px solid #334155;
+    }
+    .card h2 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .card h2 i {
+      color: #38bdf8;
+      font-style: normal;
+    }
+    textarea, input {
+      width: 100%;
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #e2e8f0;
+      border-radius: 0.6rem;
+      padding: 0.7rem 0.9rem;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.9rem;
+      transition: border 0.2s;
+    }
+    textarea:focus, input:focus {
+      outline: none;
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+    }
+    textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+    .input-group {
+      margin-bottom: 1rem;
+    }
+    .input-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #94a3b8;
+      margin-bottom: 0.3rem;
+    }
+    .flex-row {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .btn {
+      background: #38bdf8;
+      color: #0f172a;
+      border: none;
+      font-weight: 600;
+      padding: 0.7rem 1.8rem;
+      border-radius: 2rem;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      box-shadow: 0 4px 10px rgba(56,189,248,0.2);
+      letter-spacing: 0.3px;
+    }
+    .btn:hover {
+      background: #7dd3fc;
+    }
+    .btn:active {
+      transform: scale(0.96);
+    }
+    .btn-secondary {
+      background: #334155;
+      color: #e2e8f0;
+      box-shadow: none;
+    }
+    .btn-secondary:hover {
+      background: #475569;
+    }
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem 1.8rem;
+      background: #0f172a;
+      padding: 0.8rem 1rem;
+      border-radius: 1rem;
+      margin: 1rem 0 0.8rem;
+      border: 1px solid #1e293b;
+    }
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+    }
+    .stat-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #64748b;
+    }
+    .stat-value {
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: #f1f5f9;
+    }
+    .stat-value.accent {
+      color: #38bdf8;
+    }
+    .stat-value.green {
+      color: #4ade80;
+    }
+    .output-section {
+      margin-top: 1.5rem;
+    }
+    .output-section h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #94a3b8;
+      margin: 1rem 0 0.3rem;
+      border-bottom: 1px solid #1e293b;
+      padding-bottom: 0.2rem;
+    }
+    .code-block {
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 0.7rem;
+      padding: 0.8rem 1rem;
+      font-family: 'SF Mono', monospace;
+      font-size: 0.8rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 200px;
+      overflow-y: auto;
+      color: #cbd5e1;
+    }
+    .code-block.large {
+      max-height: 300px;
+    }
+    .coverage-list {
+      list-style: none;
+      margin-top: 0.5rem;
+    }
+    .coverage-list li {
+      background: #0f172a;
+      padding: 0.3rem 0.6rem;
+      border-radius: 0.4rem;
+      margin-bottom: 0.25rem;
+      font-size: 0.8rem;
+      display: flex;
+      justify-content: space-between;
+      border-left: 3px solid #38bdf8;
+    }
+    .coverage-list li span {
+      color: #94a3b8;
+    }
+    footer {
+      margin-top: 3rem;
+      text-align: center;
+      color: #475569;
+      font-size: 0.9rem;
+      border-top: 1px solid #1e293b;
+      padding-top: 1.5rem;
+    }
+    .note {
+      color: #94a3b8;
+      font-size: 0.8rem;
+      margin-top: 0.3rem;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>⚡ <span>Critical CSS</span> Extractor</h1>
+    <p>Above‑the‑fold CSS calculator — inline critical styles, defer the rest.</p>
+  </header>
+
+  <div class="tool-grid">
+    <!-- left: inputs -->
+    <div class="card">
+      <h2><i>📄</i> Paste stylesheet & HTML</h2>
+      <div class="input-group">
+        <label for="cssInput">Full CSS stylesheet</label>
+        <textarea id="cssInput" placeholder="body { margin:0; } .hero { ... }" rows="6">body { margin:0; font-family:sans-serif; background:#fff; } header { background:#333; color:white; padding:1rem; } nav { display:flex; } .hero { min-height:80vh; background:url(hero.jpg); } h1 { font-size:2.5rem; } .footer { color:#666; } .unused { opacity:0; } .card { border:1px solid #ddd; }</textarea>
+      </div>
+      <div class="input-group">
+        <label for="htmlInput">HTML content (or viewport context)</label>
+        <textarea id="htmlInput" placeholder="<body><header><nav>...</nav></header><section class='hero'><h1>Title</h1></section></body>" rows="4"><body><header><nav>Home</nav></header><section class="hero"><h1>Above the fold</h1><p>first child</p></section><main><p>main first child</p></main></body></textarea>
+      </div>
+      <div class="flex-row" style="margin-top:0.5rem;">
+        <button class="btn" id="analyzeBtn">🔍 Analyze</button>
+        <button class="btn btn-secondary" id="resetBtn">Reset</button>
+      </div>
+      <div class="note">Parses selectors & matches above‑the‑fold patterns: body, header, nav, h1, .hero, main first‑child, etc.</div>
+    </div>
+
+    <!-- right: results & stats -->
+    <div class="card">
+      <h2><i>📊</i> Analysis results</h2>
+      <div id="statsContainer">
+        <div class="stats">
+          <div class="stat-item"><span class="stat-label">Full CSS size</span><span class="stat-value" id="fullSize">0.8 KB</span></div>
+          <div class="stat-item"><span class="stat-label">Critical CSS size</span><span class="stat-value accent" id="criticalSize">0.5 KB</span></div>
+          <div class="stat-item"><span class="stat-label">Potential savings</span><span class="stat-value green" id="savings">37%</span></div>
+          <div class="stat-item"><span class="stat-label">Render‑blocking</span><span class="stat-value" id="blockingTime">~180ms → ~90ms</span></div>
+        </div>
+      </div>
+      <div class="output-section">
+        <h3>✅ Extracted critical CSS (inline ready)</h3>
+        <div class="code-block" id="criticalCssBlock">body { margin:0; font-family:sans-serif; } header { background:#333; color:white; } ...</div>
+        
+        <h3>⏳ Deferred CSS (loadCSS pattern)</h3>
+        <div class="code-block" id="deferredBlock">// loadCSS snippet will appear here</div>
+
+        <h3>📋 Selector coverage (above‑the‑fold)</h3>
+        <ul class="coverage-list" id="coverageList">
+          <li><span>body</span> <span>✅ critical</span></li>
+          <li><span>header</span> <span>✅ critical</span></li>
+          <li><span>.hero</span> <span>✅ critical</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <footer>© 2025 krzen.com</footer>
+</div>
+
+<script>
+  (function() {
+    const cssInput = document.getElementById('cssInput');
+    const htmlInput = document.getElementById('htmlInput');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    const fullSizeEl = document.getElementById('fullSize');
+    const criticalSizeEl = document.getElementById('criticalSize');
+    const savingsEl = document.getElementById('savings');
+    const blockingEl = document.getElementById('blockingTime');
+    const criticalCssBlock = document.getElementById('criticalCssBlock');
+    const deferredBlock = document.getElementById('deferredBlock');
+    const coverageList = document.getElementById('coverageList');
+
+    // ----- core logic -----
+    function extractCritical(css, html) {
+      // parse selectors from CSS (naive but functional)
+      const selectorRegex = /([^\{\}]+?)\s*\{/g;
+      const selectors = [];
+      let match;
+      while ((match = selectorRegex.exec(css)) !== null) {
+        let sel = match[1].trim();
+        if (sel.length > 0 && !sel.startsWith('@') && !sel.startsWith('/*')) {
+          // split multi selectors (e.g., "body, h1" )
+          const parts = sel.split(',').map(s => s.trim()).filter(s => s.length > 0);
+          parts.forEach(p => {
+            if (!selectors.includes(p)) selectors.push(p);
+          });
+        }
+      }
+
+      // above-the-fold patterns (viewport / first screen)
+      const aboveFoldPatterns = [
+        'body', 'header', 'nav', 'h1', 'h2', '.hero', '.banner', '.above-fold',
+        'main', 'section', 'article', '.logo', '.navbar', '.header', '.top',
+        '[class*="hero"]', '[id*="hero"]', '.cta', '.btn-primary'
+      ];
+      // also match first-child of main, body, etc.
+      const firstChildSelectors = [];
+
+      // determine critical selectors: match pattern or exist in html as tag/class/id
+      const criticalSelectors = [];
+      const otherSelectors = [];
+
+      selectors.forEach(sel => {
+        // clean selector for matching
+        const simple = sel.replace(/[#.]/g, '').split(/[\s>+~:]/)[0].toLowerCase();
+        // check if matches above-fold patterns
+        let isCritical = false;
+        for (let pattern of aboveFoldPatterns) {
+          const pClean = pattern.replace(/[#.]/g, '').toLowerCase();
+          if (simple === pClean || sel.includes(pattern)) {
+            isCritical = true;
+            break;
+          }
+        }
+        // additional: if selector contains 'main' or 'first-child' or 'first'
+        if (sel.includes('main') || sel.includes('first-child') || sel.includes(':first')) {
+          isCritical = true;
+        }
+        // if selector appears in html (naive but practical)
+        const htmlLower = html.toLowerCase();
+        const selTag = sel.replace(/[#.]/g, '').split(/[\s>+~:]/)[0].toLowerCase();
+        if (htmlLower.includes(selTag) && (selTag === 'body' || selTag === 'header' || selTag === 'nav' || selTag === 'h1' || selTag === 'main' || selTag === 'section' || selTag === 'article' || selTag === 'hero' || selTag.includes('hero'))) {
+          isCritical = true;
+        }
+
+        if (isCritical) {
+          criticalSelectors.push(sel);
+        } else {
+          otherSelectors.push(sel);
+        }
+      });
+
+      // build critical CSS (naive: extract rules for critical selectors)
+      let criticalCss = '';
+      const ruleRegex = /([^{]+)\{([^}]*)\}/g;
+      let ruleMatch;
+      const usedSelectors = [];
+      while ((ruleMatch = ruleRegex.exec(css)) !== null) {
+        let ruleSel = ruleMatch[1].trim();
+        let ruleBody = ruleMatch[2].trim();
+        // check if any critical selector is part of this rule
+        const selParts = ruleSel.split(',').map(s => s.trim());
+        let isCrit = false;
+        selParts.forEach(sp => {
+          if (criticalSelectors.includes(sp) || criticalSelectors.some(cs => sp.includes(cs) || cs.includes(sp))) {
+            isCrit = true;
+          }
+        });
+        if (isCrit) {
+          criticalCss += ruleSel + ' { ' + ruleBody + ' }\n';
+          selParts.forEach(sp => { if (!usedSelectors.includes(sp)) usedSelectors.push(sp); });
+        }
+      }
+
+      // deferred CSS: everything else
+      let deferredCss = '';
+      ruleRegex.lastIndex = 0;
+      while ((ruleMatch = ruleRegex.exec(css)) !== null) {
+        let ruleSel = ruleMatch[1].trim();
+        let ruleBody = ruleMatch[2].trim();
+        const selParts = ruleSel.split(',').map(s => s.trim());
+        let isCrit = false;
+        selParts.forEach(sp => {
+          if (criticalSelectors.includes(sp) || criticalSelectors.some(cs => sp.includes(cs) || cs.includes(sp))) {
+            isCrit = true;
+          }
+        });
+        if (!isCrit) {
+          deferredCss += ruleSel + ' { ' + ruleBody + ' }\n';
+        }
+      }
+
+      // fallback if nothing extracted
+      if (!criticalCss) criticalCss = '/* No critical selectors found — check your HTML */';
+      if (!deferredCss) deferredCss = '/* All CSS marked critical or empty */';
+
+      // sizes
+      const fullSize = new Blob([css]).size;
+      const critSize = new Blob([criticalCss]).size;
+      const savings = fullSize > 0 ? Math.round((1 - critSize / fullSize) * 100) : 0;
+
+      // render-blocking estimate (naive: ~50ms per 10KB)
+      const fullBlock = Math.round(fullSize / 1024 * 50);
+      const critBlock = Math.round(critSize / 1024 * 50);
+      const blockingStr = `~${fullBlock}ms → ~${critBlock}ms`;
+
+      // coverage list
+      const coverageItems = [];
+      const allSelectors = [...new Set(selectors)];
+      allSelectors.forEach(sel => {
+        const isCrit = criticalSelectors.includes(sel) || usedSelectors.includes(sel);
+        coverageItems.push({ selector: sel, critical: isCrit });
+      });
+
+      // loadCSS snippet
+      const loadCSS = `<!-- loadCSS: deferred full stylesheet -->
+<script>
+function loadCSS(href) {
+  var link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = href;
+  document.head.appendChild(link);
+}
+window.addEventListener('load', function() {
+  loadCSS('styles.css'); // replace with your full CSS path
+});
+<\/script>`;
+
+      return {
+        criticalCss,
+        deferredCss,
+        fullSize,
+        critSize,
+        savings,
+        blockingStr,
+        coverageItems,
+        loadCSS
+      };
+    }
+
+    function updateUI(result) {
+      fullSizeEl.textContent = (result.fullSize / 1024).toFixed(1) + ' KB';
+      criticalSizeEl.textContent = (result.critSize / 1024).toFixed(1) + ' KB';
+      savingsEl.textContent = result.savings + '%';
+      blockingEl.textContent = result.blockingStr;
+
+      criticalCssBlock.textContent = result.criticalCss || '/* no critical css */';
+      deferredBlock.textContent = result.loadCSS + '\n\n/* deferred CSS (full) */\n' + result.deferredCss.slice(0, 500) + '...';
+
+      // coverage list
+      let html = '';
+      const items = result.coverageItems.slice(0, 20); // limit
+      items.forEach(item => {
+        const status = item.critical ? '✅ critical' : '⏳ deferred';
+        html += `<li><span>${item.selector}</span> <span>${status}</span></li>`;
+      });
+      if (result.coverageItems.length > 20) html += `<li>… +${result.coverageItems.length - 20} more</li>`;
+      coverageList.innerHTML = html || '<li>No selectors parsed</li>';
+    }
+
+    function analyze() {
+      const css = cssInput.value.trim();
+      const html = htmlInput.value.trim();
+      if (!css) {
+        alert('Please paste your CSS stylesheet.');
+        return;
+      }
+      const result = extractCritical(css, html || '<body><header><nav></nav><h1>Hero</h1><main><p>first</p></main></body>');
+      updateUI(result);
+    }
+
+    function reset() {
+      cssInput.value = 'body { margin:0; font-family:sans-serif; background:#fff; } header { background:#333; color:white; padding:1rem; } nav { display:flex; } .hero { min-height:80vh; background:url(hero.jpg); } h1 { font-size:2.5rem; } .footer { color:#666; } .unused { opacity:0; } .card { border:1px solid #ddd; }';
+      htmlInput.value = '<body><header><nav>Home</nav></header><section class="hero"><h1>Above the fold</h1><p>first child</p></section><main><p>main first child</p></main></body>';
+      analyze();
+    }
+
+    // initial run
+    reset();
+
+    // events
+    analyzeBtn.addEventListener('click', analyze);
+    resetBtn.addEventListener('click', reset);
+  })();
+</script>
+</body>
+</html>

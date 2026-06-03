@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+  <title>CDN Latency Estimator — Compare Edge Network Performance | krzen.com</title>
+  <meta name="description" content="Interactive CDN latency calculator: estimate TTFB, page load savings, edge POP proximity vs. direct origin. Compare CDN edge counts & cache hit impact.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://krzen.com/tools/cdn-latency-estimator">
+  <!-- JSON-LD FAQ -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How does CDN reduce latency?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "CDN caches content at edge servers closer to users, reducing round-trip distance and improving TTFB."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What is a good cache hit ratio?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Typical cache hit ratios range from 60% to 90% for static assets; higher ratios reduce origin load and latency."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How is latency estimated without CDN?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Based on great-circle distance between origin and user regions, assuming ~1ms per 100km plus 50ms processing overhead."
+        }
+      }
+    ]
+  }
+  </script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    }
+    body {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 1.5rem 1rem;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .container {
+      max-width: 1300px;
+      width: 100%;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 600;
+      background: linear-gradient(135deg, #38bdf8, #7c3aed);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.02em;
+    }
+    .subhead {
+      color: #94a3b8;
+      margin-top: 0.3rem;
+      font-size: 1rem;
+    }
+    .grid-2col {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 2rem;
+      margin: 2rem 0;
+    }
+    .card {
+      background: #1e293b;
+      border-radius: 24px;
+      padding: 1.8rem 1.5rem;
+      box-shadow: 0 20px 30px -10px rgba(0,0,0,0.6);
+      border: 1px solid #334155;
+    }
+    .card h2 {
+      font-size: 1.3rem;
+      font-weight: 500;
+      margin-bottom: 1.5rem;
+      color: #f1f5f9;
+      border-left: 4px solid #38bdf8;
+      padding-left: 0.8rem;
+    }
+    .form-group {
+      margin-bottom: 1.4rem;
+    }
+    label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #cbd5e1;
+      margin-bottom: 0.4rem;
+    }
+    select, input[type="range"], input[type="number"] {
+      width: 100%;
+      padding: 0.6rem 0.8rem;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 14px;
+      color: #e2e8f0;
+      font-size: 0.95rem;
+      transition: 0.2s;
+    }
+    select:focus, input:focus {
+      outline: 2px solid #38bdf8;
+      border-color: transparent;
+    }
+    .multi-select {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.3rem;
+    }
+    .multi-select label {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      background: #1e293b;
+      padding: 0.3rem 0.9rem;
+      border-radius: 40px;
+      border: 1px solid #334155;
+      font-weight: 400;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+    .multi-select input[type="checkbox"] {
+      accent-color: #38bdf8;
+      width: 16px;
+      height: 16px;
+    }
+    .multi-select label:has(input:checked) {
+      background: #1e3a5f;
+      border-color: #38bdf8;
+    }
+    .range-wrap {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .range-wrap input {
+      flex: 1;
+    }
+    .range-value {
+      min-width: 3.5rem;
+      background: #0f172a;
+      padding: 0.2rem 0.6rem;
+      border-radius: 30px;
+      text-align: center;
+      font-weight: 500;
+      color: #38bdf8;
+    }
+    .toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .toggle {
+      position: relative;
+      width: 52px;
+      height: 28px;
+      background: #334155;
+      border-radius: 40px;
+      cursor: pointer;
+      transition: 0.2s;
+      flex-shrink: 0;
+    }
+    .toggle.active {
+      background: #38bdf8;
+    }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 22px;
+      height: 22px;
+      background: #e2e8f0;
+      border-radius: 50%;
+      transition: 0.25s;
+    }
+    .toggle.active::after {
+      left: 27px;
+    }
+    .toggle-label {
+      font-weight: 500;
+    }
+    .results-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+    .metric {
+      background: #0f172a;
+      border-radius: 18px;
+      padding: 1rem 0.8rem;
+      text-align: center;
+      border: 1px solid #2d3a50;
+    }
+    .metric .value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #38bdf8;
+      line-height: 1.2;
+    }
+    .metric .label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: #94a3b8;
+    }
+    .metric .sub {
+      font-size: 0.8rem;
+      color: #94a3b8;
+    }
+    .world-map {
+      width: 100%;
+      aspect-ratio: 2 / 1;
+      background: #0f172a;
+      border-radius: 24px;
+      margin: 1.2rem 0;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #2a3a55;
+    }
+    .map-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .edge-stats {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      background: #0f172a;
+      padding: 0.8rem 1rem;
+      border-radius: 40px;
+      margin: 1rem 0;
+      border: 1px solid #2a3a55;
+    }
+    .edge-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.8rem;
+    }
+    .edge-count {
+      font-weight: 700;
+      color: #38bdf8;
+    }
+    .cache-slider {
+      margin: 1.2rem 0;
+    }
+    .footnote {
+      text-align: center;
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #1e293b;
+      color: #64748b;
+      font-size: 0.9rem;
+    }
+    @media (max-width: 800px) {
+      .grid-2col {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+      h1 { font-size: 1.8rem; }
+      .results-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 480px) {
+      .results-grid { grid-template-columns: 1fr; }
+      .edge-stats { flex-direction: column; align-items: start; }
+    }
+    .badge {
+      background: #1e3a5f;
+      padding: 0.2rem 0.8rem;
+      border-radius: 40px;
+      font-size: 0.7rem;
+      color: #b1d4fc;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>⚡ CDN Latency Estimator</h1>
+    <div class="subhead">Compare edge network performance · TTFB · page load savings</div>
+  </header>
+
+  <div class="grid-2col">
+    <!-- Controls -->
+    <div class="card">
+      <h2>📡 Configuration</h2>
+      <div class="form-group">
+        <label for="origin">Origin server region</label>
+        <select id="origin">
+          <option value="us-east" data-lat="37" data-lon="-78">US-East (Virginia)</option>
+          <option value="us-west" data-lat="37" data-lon="-122">US-West (California)</option>
+          <option value="eu-west" data-lat="51" data-lon="-0.1">EU-West (London)</option>
+          <option value="eu-central" data-lat="50" data-lon="8.6">EU-Central (Frankfurt)</option>
+          <option value="asia-pacific" data-lat="-33" data-lon="151">Asia-Pacific (Sydney)</option>
+          <option value="ap-south" data-lat="19" data-lon="72">Asia (Mumbai)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Target audience regions (multi-select)</label>
+        <div class="multi-select" id="targetRegions">
+          <label><input type="checkbox" value="us-east" checked> US-East</label>
+          <label><input type="checkbox" value="us-west"> US-West</label>
+          <label><input type="checkbox" value="eu-west" checked> EU-West</label>
+          <label><input type="checkbox" value="eu-central"> EU-Central</label>
+          <label><input type="checkbox" value="asia-pacific"> Asia-Pacific</label>
+          <label><input type="checkbox" value="ap-south"> S. Asia</label>
+          <label><input type="checkbox" value="sa-east"> S. America</label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="resourceSize">Average resource size (KB)</label>
+        <div class="range-wrap">
+          <input type="range" id="resourceSize" min="10" max="5000" value="350" step="10">
+          <span class="range-value" id="sizeDisplay">350 KB</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>CDN enabled</label>
+        <div class="toggle-wrap">
+          <div class="toggle active" id="cdnToggle"></div>
+          <span class="toggle-label" id="cdnStatus">On</span>
+        </div>
+      </div>
+
+      <div class="cache-slider">
+        <label for="cacheHit">Cache hit ratio (%)</label>
+        <div class="range-wrap">
+          <input type="range" id="cacheHit" min="0" max="100" value="75" step="1">
+          <span class="range-value" id="cacheDisplay">75%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results + Map -->
+    <div class="card">
+      <h2>📊 Performance estimate</h2>
+      <div class="results-grid" id="metricsGrid">
+        <div class="metric"><div class="value" id="latNoCDN">185</div><div class="label">Latency w/o CDN</div><div class="sub">ms</div></div>
+        <div class="metric"><div class="value" id="latWithCDN">42</div><div class="label">Latency with CDN</div><div class="sub">ms</div></div>
+        <div class="metric"><div class="value" id="ttfbImprove">77%</div><div class="label">TTFB improvement</div><div class="sub"></div></div>
+        <div class="metric"><div class="value" id="loadSave">1.24</div><div class="label">Page load saving</div><div class="sub">sec</div></div>
+      </div>
+
+      <!-- simplified world map (CSS-drawn) -->
+      <div class="world-map">
+        <svg class="map-svg" viewBox="0 0 200 100" preserveAspectRatio="xMidYMid meet">
+          <rect x="0" y="0" width="200" height="100" fill="#0f172a" />
+          <!-- simplified continent shapes -->
+          <path d="M20,30 L40,20 L55,25 L60,35 L50,45 L30,45 L20,35 Z" fill="#1e3a5f" opacity="0.9" />
+          <path d="M70,25 L95,20 L115,25 L120,35 L110,45 L90,48 L75,40 Z" fill="#1e3a5f" opacity="0.9" />
+          <path d="M130,30 L150,20 L170,25 L175,35 L165,45 L145,48 L130,40 Z" fill="#1e3a5f" opacity="0.9" />
+          <path d="M40,55 L60,50 L80,55 L85,65 L70,75 L50,72 L35,65 Z" fill="#1e3a5f" opacity="0.9" />
+          <path d="M110,55 L130,50 L150,55 L155,65 L140,75 L120,72 L105,65 Z" fill="#1e3a5f" opacity="0.9" />
+          <circle cx="45" cy="30" r="3" fill="#38bdf8" opacity="0.7" />
+          <circle cx="95" cy="30" r="3" fill="#38bdf8" opacity="0.7" />
+          <circle cx="145" cy="30" r="3" fill="#38bdf8" opacity="0.7" />
+          <!-- heatmap dots (latency indicators) -->
+          <circle cx="35" cy="25" r="4" fill="#f97316" opacity="0.6" />
+          <circle cx="80" cy="28" r="4" fill="#facc15" opacity="0.6" />
+          <circle cx="120" cy="35" r="4" fill="#22c55e" opacity="0.6" />
+          <circle cx="155" cy="40" r="4" fill="#3b82f6" opacity="0.6" />
+        </svg>
+      </div>
+
+      <!-- edge counts -->
+      <div class="edge-stats">
+        <span class="edge-item"><span>🌐 Cloudflare</span> <span class="edge-count">330</span></span>
+        <span class="edge-item"><span>⚡ Akamai</span> <span class="edge-count">310</span></span>
+        <span class="edge-item"><span>🚀 Fastly</span> <span class="edge-count">150</span></span>
+        <span class="edge-item"><span>📡 AWS CloudFront</span> <span class="edge-count">218</span></span>
+      </div>
+      <div style="font-size:0.75rem; color:#64748b; text-align:right;">Edge POP counts (approximate)</div>
+    </div>
+  </div>
+
+  <!-- footer -->
+  <div class="footnote">
+    © 2025 krzen.com · CDN Latency Estimator · Latency modeled with geographic distance + processing
+  </div>
+</div>
+
+<script>
+  (function() {
+    // region coordinates (lat, lon)
+    const regionCoords = {
+      'us-east': { lat: 37, lon: -78 },
+      'us-west': { lat: 37, lon: -122 },
+      'eu-west': { lat: 51, lon: -0.1 },
+      'eu-central': { lat: 50, lon: 8.6 },
+      'asia-pacific': { lat: -33, lon: 151 },
+      'ap-south': { lat: 19, lon: 72 },
+      'sa-east': { lat: -23, lon: -47 }
+    };
+
+    // approximate edge pop proximity latency (ms) per region when CDN on (realistic)
+    const edgeLatency = {
+      'us-east': 8,
+      'us-west': 12,
+      'eu-west': 10,
+      'eu-central': 9,
+      'asia-pacific': 25,
+      'ap-south': 22,
+      'sa-east': 35
+    };
+
+    const originSelect = document.getElementById('origin');
+    const targetDiv = document.getElementById('targetRegions');
+    const resourceSlider = document.getElementById('resourceSize');
+    const sizeDisplay = document.getElementById('sizeDisplay');
+    const cdnToggle = document.getElementById('cdnToggle');
+    const cdnStatus = document.getElementById('cdnStatus');
+    const cacheSlider = document.getElementById('cacheHit');
+    const cacheDisplay = document.getElementById('cacheDisplay');
+
+    const latNoCDN = document.getElementById('latNoCDN');
+    const latWithCDN = document.getElementById('latWithCDN');
+    const ttfbImprove = document.getElementById('ttfbImprove');
+    const loadSave = document.getElementById('loadSave');
+
+    // helper: get selected target regions
+    function getSelectedTargets() {
+      const checks = targetDiv.querySelectorAll('input[type="checkbox"]:checked');
+      return Array.from(checks).map(cb => cb.value);
+    }
+
+    // compute great-circle distance (km) using Haversine
+    function haversineKm(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
+    }
+
+    // estimate latency without CDN: distance/100 * 1ms + 50ms processing
+    function estimateLatencyNoCDN(originVal, targets) {
+      const origin = regionCoords[originVal];
+      if (!origin || targets.length === 0) return 0;
+      let total = 0;
+      for (const t of targets) {
+        const tCoord = regionCoords[t];
+        if (!tCoord) continue;
+        const dist = haversineKm(origin.lat, origin.lon, tCoord.lat, tCoord.lon);
+        const lat = dist / 100 * 1 + 50; // ms
+        total += lat;
+      }
+      return total / targets.length; // average
+    }
+
+    // latency with CDN: use edge pop proximity + cache hit
+    function estimateLatencyWithCDN(targets, cacheHitRatio) {
+      if (targets.length === 0) return 0;
+      let total = 0;
+      for (const t of targets) {
+        let base = edgeLatency[t] || 30;
+        // cache hit reduces effective latency (origin fetch only on miss)
+        const miss = (100 - cacheHitRatio) / 100;
+        // assume miss adds ~150ms origin fetch
+        const effective = base + miss * 150;
+        total += effective;
+      }
+      return total / targets.length;
+    }
+
+    // TTFB improvement percent
+    function computeTTFB(latNo, latWith) {
+      if (latNo === 0) return 0;
+      return ((latNo - latWith) / latNo) * 100;
+    }
+
+    // page load saving: assume resource size * 8 / (latency difference) in sec? more realistic: (latNo - latWith)/1000 * (1 + KB/200)
+    function computeLoadSave(latNo, latWith, sizeKB) {
+      const diffSec = (latNo - latWith) / 1000;
+      // additional transfer time: sizeKB * 8 / 1000 (Mbps) ~ rough
+      const transferSec = (sizeKB * 8) / 5000; // assume 5 Mbps avg
+      return Math.max(0, diffSec + transferSec * 0.6);
+    }
+
+    function updateAll() {
+      const originVal = originSelect.value;
+      const targets = getSelectedTargets();
+      const sizeKB = parseInt(resourceSlider.value, 10);
+      const cdnOn = cdnToggle.classList.contains('active');
+      const cacheHit = parseInt(cacheSlider.value, 10);
+
+      sizeDisplay.textContent = sizeKB + ' KB';
+      cacheDisplay.textContent = cacheHit + '%';
+
+      let avgNoCDN = estimateLatencyNoCDN(originVal, targets);
+      let avgWithCDN = cdnOn ? estimateLatencyWithCDN(targets, cacheHit) : avgNoCDN;
+
+      // if no CDN, set withCDN = noCDN
+      if (!cdnOn) avgWithCDN = avgNoCDN;
+
+      // round
+      const noCDNms = Math.round(avgNoCDN);
+      const withCDNms = Math.round(avgWithCDN);
+      const ttfb = Math.round(computeTTFB(avgNoCDN, avgWithCDN));
+      const loadSec = computeLoadSave(avgNoCDN, avgWithCDN, sizeKB);
+
+      latNoCDN.textContent = noCDNms;
+      latWithCDN.textContent = withCDNms;
+      ttfbImprove.textContent = ttfb + '%';
+      loadSave.textContent = loadSec.toFixed(2);
+
+      // update map hint (simple)
+      const mapDots = document.querySelectorAll('.world-map circle[opacity]');
+      if (mapDots.length) {
+        // just visual feedback
+      }
+    }
+
+    // event listeners
+    originSelect.addEventListener('change', updateAll);
+    targetDiv.addEventListener('change', updateAll);
+    resourceSlider.addEventListener('input', updateAll);
+    cacheSlider.addEventListener('input', updateAll);
+
+    cdnToggle.addEventListener('click', function() {
+      this.classList.toggle('active');
+      cdnStatus.textContent = this.classList.contains('active') ? 'On' : 'Off';
+      updateAll();
+    });
+
+    // initial update
+    updateAll();
+
+    // extra: ensure checkboxes toggle
+    document.querySelectorAll('.multi-select input[type="checkbox"]').forEach(cb => {
+      cb.addEventListener('change', updateAll);
+    });
+  })();
+</script>
+</body>
+</html>

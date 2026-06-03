@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+  <title>Resource Hints Generator — Preload, Prefetch & Preconnect Builder | krzen.com</title>
+  <meta name="description" content="Generate optimal resource hints (preload, prefetch, preconnect, dns-prefetch, modulepreload) for your web performance. Interactive waterfall diagram, best practices, and copy-to-clipboard.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://krzen.com/tools/resource-hints-generator">
+  <!-- JSON-LD FAQ -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {"@type":"Question","name":"What is preload?","acceptedAnswer":{"@type":"Answer","text":"Preload tells the browser to fetch a resource as soon as possible, typically for critical path assets (scripts, styles, fonts)."}},
+      {"@type":"Question","name":"When to use prefetch?","acceptedAnswer":{"@type":"Answer","text":"Prefetch is used for resources needed on the next navigation, improving future page loads."}},
+      {"@type":"Question","name":"Why preconnect?","acceptedAnswer":{"@type":"Answer","text":"Preconnect establishes early connections to third-party origins (APIs, CDNs) to reduce latency."}},
+      {"@type":"Question","name":"What is dns-prefetch?","acceptedAnswer":{"@type":"Answer","text":"DNS-prefetch resolves domain names early, useful for many third-party origins."}},
+      {"@type":"Question","name":"modulepreload vs preload?","acceptedAnswer":{"@type":"Answer","text":"modulepreload is for ES modules, ensuring they are fetched and parsed early."}}
+    ]
+  }
+  </script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.5;
+      padding: 1.5rem 1rem;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .container { max-width: 1200px; margin: 0 auto; width: 100%; flex: 1; }
+    h1, h2, h3 { color: #f1f5f9; font-weight: 500; letter-spacing: -0.02em; }
+    h1 { font-size: 2.2rem; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    h1 small { font-size: 1rem; font-weight: 400; color: #94a3b8; }
+    .subhead { color: #94a3b8; margin-bottom: 2rem; border-left: 3px solid #38bdf8; padding-left: 1rem; }
+    .card {
+      background: #1e293b;
+      border-radius: 20px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+      border: 1px solid #2d3a52;
+    }
+    .flex-row { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    @media (max-width: 700px) { .grid-2 { grid-template-columns: 1fr; } }
+    label { display: block; font-size: 0.85rem; font-weight: 500; color: #cbd5e1; margin-bottom: 0.3rem; }
+    input, select, button {
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #e2e8f0;
+      padding: 0.6rem 1rem;
+      border-radius: 40px;
+      font-size: 0.95rem;
+      width: 100%;
+      transition: 0.2s;
+    }
+    input:focus, select:focus { outline: none; border-color: #38bdf8; box-shadow: 0 0 0 3px rgba(56,189,248,0.25); }
+    button {
+      background: #38bdf8;
+      color: #0f172a;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      width: auto;
+      padding: 0.6rem 1.8rem;
+      border-radius: 40px;
+      transition: 0.2s;
+      white-space: nowrap;
+    }
+    button:hover { background: #7dd3fc; transform: scale(0.97); }
+    button.secondary { background: #334155; color: #e2e8f0; }
+    button.secondary:hover { background: #475569; }
+    .hint-badge {
+      display: inline-block;
+      background: #0f172a;
+      padding: 0.2rem 0.8rem;
+      border-radius: 30px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #38bdf8;
+      border: 1px solid #38bdf8;
+      letter-spacing: 0.3px;
+    }
+    .resource-item {
+      background: #0f172a;
+      border-radius: 60px;
+      padding: 0.8rem 1.2rem;
+      margin-bottom: 0.6rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.8rem 1.5rem;
+      border-left: 4px solid #38bdf8;
+    }
+    .resource-item .url { flex: 2 1 200px; word-break: break-all; color: #e2e8f0; }
+    .resource-item .meta { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+    .tag { background: #1e293b; padding: 0.2rem 0.8rem; border-radius: 30px; font-size: 0.75rem; color: #94a3b8; }
+    .code-block {
+      background: #0f172a;
+      padding: 1.2rem;
+      border-radius: 16px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 0.85rem;
+      border: 1px solid #2d3a52;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .waterfall { margin: 1.5rem 0; }
+    .bar-group { display: flex; align-items: center; gap: 0.5rem; margin: 0.5rem 0; }
+    .bar-label { width: 100px; font-size: 0.8rem; color: #94a3b8; }
+    .bar-track { flex: 1; height: 24px; background: #1e293b; border-radius: 30px; overflow: hidden; display: flex; }
+    .bar-fill { height: 100%; border-radius: 30px; transition: width 0.3s; }
+    .bar-fill.no-hint { background: #475569; width: 90%; }
+    .bar-fill.with-hint { background: #38bdf8; width: 40%; }
+    .legend { display: flex; gap: 2rem; margin: 0.5rem 0 1rem; font-size: 0.8rem; }
+    .legend span::before { content: ''; display: inline-block; width: 12px; height: 12px; border-radius: 4px; margin-right: 6px; vertical-align: middle; }
+    .legend .no-hint::before { background: #475569; }
+    .legend .with-hint::before { background: #38bdf8; }
+    .explain-box { background: #0f172a; border-radius: 16px; padding: 1rem; margin-top: 1rem; border-left: 3px solid #38bdf8; }
+    .explain-box p { margin: 0.2rem 0; font-size: 0.9rem; color: #cbd5e1; }
+    footer { margin-top: 3rem; text-align: center; color: #475569; font-size: 0.9rem; border-top: 1px solid #1e293b; padding-top: 2rem; }
+    .copy-btn { background: transparent; border: 1px solid #38bdf8; color: #38bdf8; padding: 0.4rem 1.2rem; border-radius: 40px; font-size: 0.8rem; }
+    .copy-btn:hover { background: #38bdf8; color: #0f172a; }
+    .inline-flex { display: inline-flex; align-items: center; gap: 0.5rem; }
+    .mt-2 { margin-top: 1rem; }
+    .mb-1 { margin-bottom: 0.5rem; }
+    .gap-1 { gap: 0.5rem; }
+    .text-sm { font-size: 0.85rem; color: #94a3b8; }
+    .flex-wrap { flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>⛓️ Resource Hints Generator <small>preload · prefetch · preconnect</small></h1>
+    <div class="subhead">Build optimal <code>&lt;link&gt;</code> hints for faster loading · auto-suggest · waterfall comparison</div>
+  </header>
+
+  <!-- Input form -->
+  <div class="card">
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+      <h2 style="font-size: 1.3rem;">➕ Add resource</h2>
+      <span class="hint-badge">auto‑hint</span>
+    </div>
+    <div class="grid-2">
+      <div>
+        <label for="resUrl">URL (absolute or relative)</label>
+        <input type="url" id="resUrl" placeholder="https://fonts.googleapis.com/css2" value="https://fonts.googleapis.com/css2">
+      </div>
+      <div class="flex-row" style="align-items: end; gap: 0.5rem;">
+        <div style="flex:1;">
+          <label for="resType">Type</label>
+          <select id="resType">
+            <option value="script">Script</option>
+            <option value="style">Style</option>
+            <option value="font" selected>Font</option>
+            <option value="image">Image</option>
+            <option value="fetch">Fetch (XHR/fetch)</option>
+          </select>
+        </div>
+        <div style="flex:1;">
+          <label for="resPriority">Priority</label>
+          <select id="resPriority">
+            <option value="high">High</option>
+            <option value="medium" selected>Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+        <button id="addResourceBtn" style="margin-bottom: 0;">+ Add</button>
+      </div>
+    </div>
+    <div class="explain-box" id="suggestionBox">
+      <p>💡 <strong>Suggested hint:</strong> <span id="suggestedHint">preload</span> — <span id="suggestReason">Critical font, use preload with crossorigin</span></p>
+    </div>
+  </div>
+
+  <!-- Resource list -->
+  <div class="card">
+    <div style="display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center;">
+      <h2 style="font-size: 1.3rem;">📦 Resources (<span id="resourceCount">0</span>)</h2>
+      <div>
+        <button class="secondary" id="clearAllBtn" style="margin-right: 0.5rem;">Clear all</button>
+        <button id="generateBtn">Generate hints</button>
+      </div>
+    </div>
+    <div id="resourceList" style="margin-top: 1rem; min-height: 60px;">
+      <p class="text-sm" style="padding: 0.5rem;">No resources added yet. Use the form above.</p>
+    </div>
+  </div>
+
+  <!-- Output: link tags + copy -->
+  <div class="card" id="outputCard">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+      <h2 style="font-size: 1.3rem;">🧾 Generated <code>&lt;link&gt;</code> tags</h2>
+      <button class="copy-btn" id="copyBtn">📋 Copy to clipboard</button>
+    </div>
+    <div class="code-block" id="linkOutput">&lt;!-- add resources to see hints --&gt;</div>
+  </div>
+
+  <!-- Waterfall diagram -->
+  <div class="card">
+    <h2 style="font-size: 1.3rem; margin-bottom: 0.5rem;">🌊 Loading waterfall · no hints vs with hints</h2>
+    <div class="legend">
+      <span class="no-hint">Without hints (estimated)</span>
+      <span class="with-hint">With hints (optimized)</span>
+    </div>
+    <div class="waterfall" id="waterfallContainer">
+      <div class="bar-group"><span class="bar-label">Scripts</span><div class="bar-track"><div class="bar-fill no-hint" style="width: 85%;"></div></div><span class="bar-label" style="width:40px;">85%</span></div>
+      <div class="bar-group"><span class="bar-label">Styles</span><div class="bar-track"><div class="bar-fill no-hint" style="width: 70%;"></div></div><span>70%</span></div>
+      <div class="bar-group"><span class="bar-label">Fonts</span><div class="bar-track"><div class="bar-fill no-hint" style="width: 95%;"></div></div><span>95%</span></div>
+      <div class="bar-group"><span class="bar-label">Images</span><div class="bar-track"><div class="bar-fill no-hint" style="width: 60%;"></div></div><span>60%</span></div>
+      <div class="bar-group"><span class="bar-label">Fetch/API</span><div class="bar-track"><div class="bar-fill no-hint" style="width: 80%;"></div></div><span>80%</span></div>
+    </div>
+    <p class="text-sm">* simulated improvement: hints reduce latency by ~40-60% for preloaded resources</p>
+  </div>
+
+  <!-- Best practices -->
+  <div class="card">
+    <h2 style="font-size: 1.3rem;">✅ Best practices</h2>
+    <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
+      <li>• <strong>Don't over-preload</strong> — only critical resources (above‑the‑fold).</li>
+      <li>• <strong>Font preload</strong> always include <code>crossorigin</code> (anonymous).</li>
+      <li>• <strong>Preconnect</strong> for third‑party origins (APIs, CDN) to cut handshake latency.</li>
+      <li>• Use <strong>modulepreload</strong> for ES modules (type="module").</li>
+      <li>• <strong>dns-prefetch</strong> for many domains; lightweight but limited.</li>
+    </ul>
+  </div>
+
+  <footer>© 2025 krzen.com — Resource hints generator</footer>
+</div>
+
+<script>
+  (function() {
+    // ----- state -----
+    let resources = [];
+
+    // DOM refs
+    const resUrl = document.getElementById('resUrl');
+    const resType = document.getElementById('resType');
+    const resPriority = document.getElementById('resPriority');
+    const addBtn = document.getElementById('addResourceBtn');
+    const resourceList = document.getElementById('resourceList');
+    const resourceCount = document.getElementById('resourceCount');
+    const linkOutput = document.getElementById('linkOutput');
+    const copyBtn = document.getElementById('copyBtn');
+    const clearAllBtn = document.getElementById('clearAllBtn');
+    const generateBtn = document.getElementById('generateBtn');
+    const suggestedHintSpan = document.getElementById('suggestedHint');
+    const suggestReasonSpan = document.getElementById('suggestReason');
+    const waterfallContainer = document.getElementById('waterfallContainer');
+
+    // ----- helper: auto suggest hint + explanation -----
+    function getHintForType(type, priority, url) {
+      const urlLower = (url || '').toLowerCase();
+      const isThirdParty = urlLower.includes('//') && !urlLower.includes(window.location.hostname);
+      const isFont = type === 'font';
+      const isModule = type === 'script' && (urlLower.includes('module') || urlLower.endsWith('.mjs'));
+
+      if (isFont) return { hint: 'preload', reason: 'Font preload with crossorigin="anonymous" (critical)' };
+      if (isModule) return { hint: 'modulepreload', reason: 'ES module — use modulepreload for early fetch & parse' };
+      if (type === 'script' && priority === 'high') return { hint: 'preload', reason: 'High-priority script, preload for critical path' };
+      if (type === 'style' && priority === 'high') return { hint: 'preload', reason: 'Critical CSS — preload for render blocking' };
+      if (type === 'image' && priority === 'high') return { hint: 'preload', reason: 'Above‑the‑fold image, preload for LCP' };
+      if (type === 'fetch' && priority === 'high') return { hint: 'preconnect', reason: 'API fetch: preconnect to origin reduces latency' };
+      if (type === 'fetch') return { hint: 'preconnect', reason: 'Preconnect for fetch/API endpoints' };
+      if (type === 'script' && priority === 'medium') return { hint: 'prefetch', reason: 'Script for next navigation — prefetch' };
+      if (type === 'style' && priority === 'medium') return { hint: 'prefetch', reason: 'Style for subsequent pages — prefetch' };
+      if (type === 'image' && priority === 'medium') return { hint: 'prefetch', reason: 'Image likely needed later — prefetch' };
+      if (type === 'script' && priority === 'low') return { hint: 'dns-prefetch', reason: 'Low priority: dns-prefetch is lightweight' };
+      if (isThirdParty && (type === 'fetch' || type === 'script')) return { hint: 'preconnect', reason: 'Third‑party origin — preconnect' };
+      // fallback
+      if (priority === 'high') return { hint: 'preload', reason: 'High priority resource — preload' };
+      if (priority === 'medium') return { hint: 'prefetch', reason: 'Medium priority — prefetch for future navigation' };
+      return { hint: 'dns-prefetch', reason: 'Low priority or unknown — dns-prefetch' };
+    }
+
+    // update suggestion on type/priority change
+    function updateSuggestion() {
+      const type = resType.value;
+      const priority = resPriority.value;
+      const url = resUrl.value;
+      const { hint, reason } = getHintForType(type, priority, url);
+      suggestedHintSpan.textContent = hint;
+      suggestReasonSpan.textContent = reason;
+    }
+    resType.addEventListener('change', updateSuggestion);
+    resPriority.addEventListener('change', updateSuggestion);
+    resUrl.addEventListener('input', updateSuggestion);
+    updateSuggestion();
+
+    // ----- render resources -----
+    function renderResources() {
+      if (resources.length === 0) {
+        resourceList.innerHTML = `<p class="text-sm" style="padding: 0.5rem;">No resources added yet. Use the form above.</p>`;
+        resourceCount.textContent = '0';
+        return;
+      }
+      let html = '';
+      resources.forEach((r, idx) => {
+        const { hint } = getHintForType(r.type, r.priority, r.url);
+        html += `<div class="resource-item">
+          <span class="url">${escapeHtml(r.url)}</span>
+          <div class="meta">
+            <span class="tag">${r.type}</span>
+            <span class="tag">${r.priority}</span>
+            <span class="hint-badge" style="font-size:0.7rem;">→ ${hint}</span>
+            <button class="secondary" style="padding:0.2rem 0.8rem; font-size:0.7rem; width:auto;" data-index="${idx}">✕</button>
+          </div>
+        </div>`;
+      });
+      resourceList.innerHTML = html;
+      resourceCount.textContent = resources.length;
+      // attach delete events
+      resourceList.querySelectorAll('button[data-index]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = parseInt(e.target.dataset.index, 10);
+          resources.splice(idx, 1);
+          renderResources();
+          generateLinkTags();
+          updateWaterfall();
+        });
+      });
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // ----- generate link tags -----
+    function generateLinkTags() {
+      if (resources.length === 0) {
+        linkOutput.textContent = '<!-- add resources to see hints -->';
+        return;
+      }
+      const lines = [];
+      resources.forEach(r => {
+        const { hint } = getHintForType(r.type, r.priority, r.url);
+        let link = `<link rel="${hint}" href="${escapeHtml(r.url)}"`;
+        if (hint === 'preload' || hint === 'prefetch') {
+          let as = '';
+          if (r.type === 'script') as = 'script';
+          else if (r.type === 'style') as = 'style';
+          else if (r.type === 'font') as = 'font';
+          else if (r.type === 'image') as = 'image';
+          else if (r.type === 'fetch') as = 'fetch';
+          if (as) link += ` as="${as}"`;
+          if (r.type === 'font') link += ` crossorigin="anonymous"`;
+        }
+        if (hint === 'preconnect' || hint === 'dns-prefetch') {
+          // no as
+        }
+        if (hint === 'modulepreload') {
+          link += ` crossorigin="anonymous"`; // best practice
+        }
+        link += '>';
+        lines.push(link);
+      });
+      linkOutput.textContent = lines.join('\n');
+    }
+
+    // ----- update waterfall (simulated) -----
+    function updateWaterfall() {
+      const count = resources.length;
+      let hintFactor = Math.min(count * 0.08, 0.45); // max 45% improvement
+      if (count === 0) hintFactor = 0;
+      const bars = waterfallContainer.querySelectorAll('.bar-group');
+      const baseWidths = [85, 70, 95, 60, 80];
+      const labels = ['Scripts', 'Styles', 'Fonts', 'Images', 'Fetch/API'];
+      bars.forEach((bar, i) => {
+        const fills = bar.querySelectorAll('.bar-fill');
+        const labelSpan = bar.querySelector('.bar-label');
+        if (fills.length >= 2) {
+          const noHintWidth = baseWidths[i % baseWidths.length];
+          const withHintWidth = Math.max(10, Math.round(noHintWidth * (1 - hintFactor)));
+          fills[0].style.width = noHintWidth + '%';
+          fills[1].style.width = withHintWidth + '%';
+          // update percentage text
+          const spans = bar.querySelectorAll('span:not(.bar-label)');
+          if (spans.length >= 2) {
+            spans[0].textContent = noHintWidth + '%';
+            spans[1].textContent = withHintWidth + '%';
+          } else {
+            // fallback
+          }
+        }
+      });
+    }
+
+    // ----- add resource -----
+    function addResource() {
+      const url = resUrl.value.trim();
+      if (!url) { alert('Please enter a URL'); return; }
+      const type = resType.value;
+      const priority = resPriority.value;
+      resources.push({ url, type, priority });
+      renderResources();
+      generateLinkTags();
+      updateWaterfall();
+      // clear input but keep placeholder
+      resUrl.value = '';
+      updateSuggestion();
+    }
+
+    addBtn.addEventListener('click', addResource);
+    clearAllBtn.addEventListener('click', () => {
+      resources = [];
+      renderResources();
+      generateLinkTags();
+      updateWaterfall();
+    });
+    generateBtn.addEventListener('click', () => {
+      generateLinkTags();
+      updateWaterfall();
+    });
+
+    // copy
+    copyBtn.addEventListener('click', async () => {
+      const text = linkOutput.textContent;
+      if (!text || text.includes('add resources')) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        copyBtn.textContent = '✅ Copied!';
+        setTimeout(() => { copyBtn.textContent = '📋 Copy to clipboard'; }, 2000);
+      } catch {
+        alert('Copy failed, select text manually.');
+      }
+    });
+
+    // initial sample resources
+    resources = [
+      { url: 'https://fonts.googleapis.com/css2?family=Inter', type: 'font', priority: 'high' },
+      { url: 'https://api.example.com/data', type: 'fetch', priority: 'medium' },
+      { url: '/js/app.js', type: 'script', priority: 'high' },
+      { url: '/css/theme.css', type: 'style', priority: 'medium' }
+    ];
+    renderResources();
+    generateLinkTags();
+    updateWaterfall();
+
+    // extra: update waterfall on resource change
+    window.addEventListener('load', () => updateWaterfall());
+  })();
+</script>
+</body>
+</html>
