@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Service Worker Cache Builder</title>
+  <meta name="description" content="Generate service worker code with cache-first, network-first, and stale-while-revalidate strategies.">
+  <link rel="canonical" href="https://krzen.com/tools/service-worker-cache-builder">
+  <meta property="og:title" content="Service Worker Cache Builder">
+  <meta property="og:description" content="Generate service worker code with cache-first, network-first, and stale-while-revalidate strategies.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://krzen.com/tools/service-worker-cache-builder">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Service Worker Cache Builder",
+    "description": "Generate service worker configurations with different caching strategies",
+    "url": "https://krzen.com/tools/service-worker-cache-builder",
+    "applicationCategory": "UtilityApplication",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  }
+  </script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #0a0a0a;
+      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      color: #ffffff;
+    }
+
+    .subtitle {
+      color: #b0b0b0;
+      font-size: 1.1em;
+    }
+
+    .presets {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 40px;
+    }
+
+    @media (max-width: 768px) {
+      .presets {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .preset-btn {
+      background: #141414;
+      border: 1px solid #2a2a2a;
+      color: #ffffff;
+      padding: 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-weight: 600;
+    }
+
+    .preset-btn:hover {
+      border-color: #f59e0b;
+      background: #1a1a1a;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+
+    @media (max-width: 1024px) {
+      .content {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .config-section {
+      background: #141414;
+      border-radius: 12px;
+      padding: 30px;
+      border: 1px solid #2a2a2a;
+    }
+
+    h2 {
+      color: #f59e0b;
+      margin-bottom: 20px;
+    }
+
+    .route-item {
+      background: #1a1a1a;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 6px;
+      border: 1px solid #2a2a2a;
+    }
+
+    .route-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .route-pattern {
+      font-weight: 600;
+      color: #f59e0b;
+    }
+
+    .remove-route {
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85em;
+    }
+
+    .route-options {
+      display: grid;
+      gap: 10px;
+      font-size: 0.9em;
+    }
+
+    label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #e0e0e0;
+    }
+
+    input[type="text"], input[type="number"], select {
+      width: 100%;
+      padding: 10px;
+      background: #0a0a0a;
+      border: 1px solid #2a2a2a;
+      color: #ffffff;
+      border-radius: 4px;
+      font-size: 0.9em;
+      margin-top: 5px;
+    }
+
+    input[type="text"]:focus, select:focus {
+      outline: none;
+      border-color: #f59e0b;
+    }
+
+    input[type="checkbox"] {
+      cursor: pointer;
+    }
+
+    .add-route-form {
+      background: #1a1a1a;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+
+    .form-row {
+      margin-bottom: 10px;
+    }
+
+    button {
+      background-color: #f59e0b;
+      color: #0a0a0a;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.9em;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #f3a028;
+    }
+
+    .code-output {
+      background: #141414;
+      border-radius: 12px;
+      padding: 30px;
+      border: 1px solid #2a2a2a;
+    }
+
+    pre {
+      background: #0a0a0a;
+      padding: 20px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 0.85em;
+      line-height: 1.4;
+      color: #a0d468;
+      border: 1px solid #2a2a2a;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .copy-btn {
+      background: #3b82f6;
+      margin-top: 15px;
+      width: 100%;
+      padding: 12px;
+    }
+
+    .copy-btn:hover {
+      background: #2563eb;
+    }
+
+    .metrics {
+      background: #141414;
+      border-radius: 12px;
+      padding: 30px;
+      border: 1px solid #2a2a2a;
+      margin-bottom: 40px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .metrics {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .metric-box {
+      background: #1a1a1a;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #2a2a2a;
+    }
+
+    .metric-label {
+      color: #9ca3af;
+      font-size: 0.9em;
+      margin-bottom: 5px;
+    }
+
+    .metric-value {
+      font-size: 1.8em;
+      font-weight: bold;
+      color: #f59e0b;
+    }
+
+    .cache-simulation {
+      background: #141414;
+      border-radius: 12px;
+      padding: 30px;
+      border: 1px solid #2a2a2a;
+      margin-bottom: 40px;
+    }
+
+    .simulation-item {
+      background: #1a1a1a;
+      padding: 15px;
+      margin-bottom: 12px;
+      border-radius: 6px;
+      border-left: 3px solid #f59e0b;
+    }
+
+    .simulation-title {
+      font-weight: 600;
+      color: #f59e0b;
+      margin-bottom: 8px;
+    }
+
+    .simulation-desc {
+      color: #9ca3af;
+      font-size: 0.9em;
+      line-height: 1.4;
+    }
+
+    footer {
+      text-align: center;
+      padding: 40px 20px;
+      color: #666666;
+      border-top: 1px solid #2a2a2a;
+      margin-top: 60px;
+    }
+
+    .toggle-options {
+      background: #1a1a1a;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+
+    .toggle-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .toggle-option:last-child {
+      margin-bottom: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Service Worker Cache Builder</h1>
+      <p class="subtitle">Generate optimized caching strategies for offline-first PWAs</p>
+    </header>
+
+    <div class="presets">
+      <button class="preset-btn" onclick="loadPreset('static')">Static Site</button>
+      <button class="preset-btn" onclick="loadPreset('spa')">SPA</button>
+      <button class="preset-btn" onclick="loadPreset('ecommerce')">E-Commerce</button>
+      <button class="preset-btn" onclick="loadPreset('blog')">Blog</button>
+    </div>
+
+    <div class="content">
+      <div class="config-section">
+        <h2>Cache Configuration</h2>
+
+        <div class="toggle-options">
+          <div class="toggle-option">
+            <input type="checkbox" id="offlineFallback" checked>
+            <label for="offlineFallback">Enable Offline Fallback Page</label>
+          </div>
+          <div class="toggle-option">
+            <input type="checkbox" id="precacheAssets" checked>
+            <label for="precacheAssets">Precache Critical Assets</label>
+          </div>
+        </div>
+
+        <div class="add-route-form">
+          <h3 style="margin-bottom: 15px; color: #e0e0e0;">Add New Route</h3>
+          <div class="form-row">
+            <label>Route Pattern (e.g., /api/*, /images/*)</label>
+            <input type="text" id="newRoutePattern" placeholder="/api/*">
+          </div>
+          <div class="form-row">
+            <label>Caching Strategy</label>
+            <select id="newRouteStrategy">
+              <option value="cache-first">Cache First</option>
+              <option value="network-first">Network First</option>
+              <option value="stale-while-revalidate">Stale While Revalidate</option>
+              <option value="network-only">Network Only</option>
+              <option value="cache-only">Cache Only</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>Max Cache Age (hours)</label>
+            <input type="number" id="newRouteAge" value="24" min="1">
+          </div>
+          <div class="form-row">
+            <label>Max Cache Entries</label>
+            <input type="number" id="newRouteEntries" value="50" min="1">
+          </div>
+          <button onclick="addRoute()">Add Route</button>
+        </div>
+
+        <div id="routesList"></div>
+      </div>
+
+      <div class="code-output">
+        <h2>Generated Service Worker</h2>
+        <pre id="codePreview">// Service Worker code will appear here</pre>
+        <button class="copy-btn" onclick="copyToClipboard()">Copy Service Worker Code</button>
+      </div>
+    </div>
+
+    <div class="metrics">
+      <div class="metric-box">
+        <div class="metric-label">Estimated Cache Size</div>
+        <div class="metric-value" id="cacheSize">0 MB</div>
+      </div>
+      <div class="metric-box">
+        <div class="metric-label">Total Routes Configured</div>
+        <div class="metric-value" id="routeCount">0</div>
+      </div>
+      <div class="metric-box">
+        <div class="metric-label">Offline Coverage</div>
+        <div class="metric-value" id="offlineCoverage">0%</div>
+      </div>
+      <div class="metric-box">
+        <div class="metric-label">Network Requests Saved</div>
+        <div class="metric-value" id="requestsSaved">0</div>
+      </div>
+    </div>
+
+    <div class="cache-simulation">
+      <h2>Cache Behavior Simulation</h2>
+      <div id="simulationResults"></div>
+    </div>
+  </div>
+
+  <footer>
+    © 2026 krzen.com
+  </footer>
+
+  <script>
+    let routes = [];
+
+    const presets = {
+      static: [
+        { pattern: '/index.html', strategy: 'cache-first', age: 24, entries: 10 },
+        { pattern: '/css/*', strategy: 'cache-first', age: 720, entries: 50 },
+        { pattern: '/js/*', strategy: 'cache-first', age: 720, entries: 50 },
+        { pattern: '/images/*', strategy: 'cache-first', age: 2160, entries: 100 }
+      ],
+      spa: [
+        { pattern: '/index.html', strategy: 'network-first', age: 1, entries: 5 },
+        { pattern: '/api/*', strategy: 'network-first', age: 0.5, entries: 30 },
+        { pattern: '/js/*', strategy: 'stale-while-revalidate', age: 168, entries: 50 },
+        { pattern: '/css/*', strategy: 'cache-first', age: 720, entries: 50 }
+      ],
+      ecommerce: [
+        { pattern: '/product/*', strategy: 'network-first', age: 6, entries: 100 },
+        { pattern: '/images/*', strategy: 'cache-first', age: 720, entries: 200 },
+        { pattern: '/api/cart', strategy: 'network-first', age: 0.1, entries: 5 },
+        { pattern: '/checkout', strategy: 'network-only', age: 0, entries: 0 }
+      ],
+      blog: [
+        { pattern: '/posts/*', strategy: 'cache-first', age: 168, entries: 100 },
+        { pattern: '/api/comments', strategy: 'network-first', age: 1, entries: 50 },
+        { pattern: '/images/*', strategy: 'cache-first', age: 2160, entries: 150 },
+        { pattern: '/js/*', strategy: 'cache-first', age: 720, entries: 50 }
+      ]
+    };
+
+    function loadPreset(presetName) {
+      routes = JSON.parse(JSON.stringify(presets[presetName]));
+      updateUI();
+    }
+
+    function addRoute() {
+      const pattern = document.getElementById('newRoutePattern').value.trim();
+      const strategy = document.getElementById('newRouteStrategy').value;
+      const age = parseInt(document.getElementById('newRouteAge').value);
+      const entries = parseInt(document.getElementById('newRouteEntries').value);
+
+      if (!pattern) {
+        alert('Please enter a route pattern');
+        return;
+      }
+
+      routes.push({ pattern, strategy, age, entries });
+      document.getElementById('newRoutePattern').value = '';
+      updateUI();
+    }
+
+    function removeRoute(index) {
+      routes.splice(index, 1);
+      updateUI();
+    }
+
+    function updateUI() {
+      renderRoutes();
+      generateServiceWorkerCode();
+      updateMetrics();
+      simulateCacheBehavior();
+    }
+
+    function renderRoutes() {
+      const list = document.getElementById('routesList');
+      list.innerHTML = routes.map((route, idx) => `
+        <div class="route-item">
+          <div class="route-header">
+            <div class="route-pattern">${route.pattern}</div>
+            <button class="remove-route" onclick="removeRoute(${idx})">Remove</button>
+          </div>
+          <div class="route-options">
+            <div><strong>Strategy:</strong> ${route.strategy}</div>
+            <div><strong>Max Age:</strong> ${route.age} hours</div>
+            <div><strong>Max Entries:</strong> ${route.entries}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function generateServiceWorkerCode() {
+      const offlineFallback = document.getElementById('offlineFallback').checked;
+      const precacheAssets = document.getElementById('precacheAssets').checked;
+
+      let code = `const CACHE_VERSION = 'v1';
+const RUNTIME_CACHE = 'runtime-v1';
+
+const precacheList = [
+  '/',
+  '/index.html'${precacheAssets ? `,
+  '/css/style.css',
+  '/js/app.js'` : ''}
+];
+
+// Install event - precache assets
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_VERSION).then(cache => {
+      return cache.addAll(precacheList);
+    })
+  );
+});
+
+// Activate event - cleanup old caches
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheName !== CACHE_VERSION && cacheName !== RUNTIME_CACHE) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+});
+
+// Fetch event - apply caching strategies
+self.addEventListener('fetch', event => {
+  const { request } = event;
+  const url = new URL(request.url);
+
+  ${routes.map(route => {
+    const pattern = route.pattern.replace(/\*/g, '.*');
+    return `
+  // Route: ${route.pattern}
+  if (url.pathname.match(/^${pattern}$/)) {
+    return event.respondWith(${getStrategyFunction(route)});
+  }`;
+  }).join('\n')}
+
+  // Default strategy
+  event.respondWith(fetch(request).catch(() => {
+    return caches.match(request) || ${offlineFallback ? `createOfflineResponse()` : `new Response('Offline', { status: 503 })`};
+  }));
+});
+
+${getStrategyFunctions(routes, offlineFallback)}`;
+
+      document.getElementById('codePreview').textContent = code;
+    }
+
+    function getStrategyFunction(route) {
+      const maxAge = route.age * 3600 * 1000; // Convert hours to ms
+
+      switch (route.strategy) {
+        case 'cache-first':
+          return `cacheFirst('${route.strategy}', ${maxAge}, ${route.entries})`;
+        case 'network-first':
+          return `networkFirst('${route.strategy}', ${maxAge}, ${route.entries})`;
+        case 'stale-while-revalidate':
+          return `staleWhileRevalidate('${route.strategy}', ${maxAge}, ${route.entries})`;
+        case 'network-only':
+          return `fetch(request)`;
+        case 'cache-only':
+          return `caches.match(request)`;
+        default:
+          return `fetch(request)`;
+      }
+    }
+
+    function getStrategyFunctions(routesList, offlineFallback) {
+      return `
+// Caching Strategy: Cache First
+async function cacheFirst(cacheName, maxAge, maxEntries) {
+  return async (request) => {
+    const cache = await caches.open(cacheName);
+    const cached = await cache.match(request);
+
+    if (cached) {
+      return cached;
+    }
+
+    try {
+      const response = await fetch(request);
+      const clone = response.clone();
+      cache.put(request, clone);
+      return response;
+    } catch (error) {
+      return ${offlineFallback ? `createOfflineResponse()` : `new Response('Offline', { status: 503 })`};
+    }
+  };
+}
+
+// Caching Strategy: Network First
+async function networkFirst(cacheName, maxAge, maxEntries) {
+  return async (request) => {
+    try {
+      const response = await fetch(request);
+      const cache = await caches.open(cacheName);
+      cache.put(request, response.clone());
+      return response;
+    } catch (error) {
+      const cached = await caches.match(request);
+      return cached || ${offlineFallback ? `createOfflineResponse()` : `new Response('Offline', { status: 503 })`};
+    }
+  };
+}
+
+// Caching Strategy: Stale While Revalidate
+async function staleWhileRevalidate(cacheName, maxAge, maxEntries) {
+  return async (request) => {
+    const cache = await caches.open(cacheName);
+    const cached = await cache.match(request);
+
+    const fetchPromise = fetch(request).then(response => {
+      const clone = response.clone();
+      cache.put(request, clone);
+      return response;
+    });
+
+    return cached || fetchPromise;
+  };
+}
+
+${offlineFallback ? `function createOfflineResponse() {
+  return new Response(
+    '<html><body><h1>Offline</h1><p>You are currently offline. Please check your connection.</p></body></html>',
+    { headers: { 'Content-Type': 'text/html' } }
+  );
+}` : ''}`;
+    }
+
+    function updateMetrics() {
+      const estimatedSize = routes.reduce((sum, r) => sum + (r.entries * 0.5), 5); // 0.5 MB per 100 entries
+      const coverage = routes.length > 0 ? Math.min(100, routes.length * 25) : 0;
+      const saved = routes.reduce((sum, r) => sum + (r.strategy.includes('first') ? r.entries : 0), 0);
+
+      document.getElementById('cacheSize').textContent = estimatedSize.toFixed(1) + ' MB';
+      document.getElementById('routeCount').textContent = routes.length;
+      document.getElementById('offlineCoverage').textContent = coverage + '%';
+      document.getElementById('requestsSaved').textContent = saved;
+    }
+
+    function simulateCacheBehavior() {
+      const simulations = routes.map(route => {
+        let behavior = '';
+        switch (route.strategy) {
+          case 'cache-first':
+            behavior = 'Serves from cache if available, falls back to network. Ideal for static assets.';
+            break;
+          case 'network-first':
+            behavior = 'Tries network first, falls back to cache if offline. Best for dynamic content.';
+            break;
+          case 'stale-while-revalidate':
+            behavior = 'Returns cached version immediately while fetching fresh data in background.';
+            break;
+          case 'network-only':
+            behavior = 'Always fetches from network. Cache is not used.';
+            break;
+          case 'cache-only':
+            behavior = 'Uses only cached content. No network requests.';
+            break;
+        }
+        return `
+          <div class="simulation-item">
+            <div class="simulation-title">${route.pattern}</div>
+            <div class="simulation-desc">Strategy: <strong>${route.strategy}</strong><br/>${behavior}</div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('simulationResults').innerHTML = simulations || '<div style="color: #9ca3af;">No routes configured yet.</div>';
+    }
+
+    function copyToClipboard() {
+      const code = document.getElementById('codePreview').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        alert('Service Worker code copied to clipboard!');
+      });
+    }
+
+    // Initialize with a default preset
+    loadPreset('static');
+  </script>
+</body>
+</html>

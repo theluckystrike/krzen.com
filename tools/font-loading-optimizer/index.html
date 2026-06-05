@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Font Loading Strategy Optimizer</title>
+  <meta name="description" content="Optimize FOUT/FOIT with font-display strategies, preload recommendations, and CLS impact analysis.">
+  <link rel="canonical" href="https://krzen.com/tools/font-loading-optimizer">
+  <meta property="og:title" content="Font Loading Strategy Optimizer">
+  <meta property="og:description" content="Optimize FOUT/FOIT with font-display strategies, preload recommendations, and CLS impact analysis.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://krzen.com/tools/font-loading-optimizer">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Font Loading Strategy Optimizer",
+    "description": "Optimize font loading with FOUT/FOIT calculations and font-display recommendations",
+    "url": "https://krzen.com/tools/font-loading-optimizer",
+    "applicationCategory": "UtilityApplication",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  }
+  </script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #0a0a0a;
+      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      color: #ffffff;
+    }
+
+    .subtitle {
+      color: #b0b0b0;
+      font-size: 1.1em;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+
+    @media (max-width: 1024px) {
+      .content {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .input-section {
+      background: #141414;
+      border-radius: 12px;
+      padding: 30px;
+      border: 1px solid #2a2a2a;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #e0e0e0;
+      font-size: 0.95em;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      background: #0a0a0a;
+      border: 1px solid #2a2a2a;
+      color: #ffffff;
+      border-radius: 6px;
+      font-size: 1em;
+      transition: border-color 0.3s;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #f59e0b;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    input[type="checkbox"] {
+      cursor: pointer;
+      width: auto;
+    }
+
+    .font-item {
+      background: #1a1a1a;
+      padding: 15px;
+      margin-bottom: 12px;
+      border-radius: 6px;
+      border: 1px solid #2a2a2a;
+    }
+
+    .font-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .font-name {
+      font-weight: 600;
+      color: #f59e0b;
+    }
+
+    .remove-font {
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85em;
+    }
+
+    .font-details {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      font-size: 0.9em;
+      color: #9ca3af;
+    }
+
+    .metrics-panel {
+      background: #141414;
+      border-radius: 12px;
+      padding: 30px;
+      border: 1px solid #2a2a2a;
+    }
+
+    .metric-card {
+      background: #1a1a1a;
+      padding: 20px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: 1px solid #2a2a2a;
+    }
+
+    .metric-label {
+      color: #9ca3af;
+      font-size: 0.9em;
+      margin-bottom: 5px;
+    }
+
+    .metric-value {
+      font-size: 1.8em;
+      font-weight: bold;
+      color: #f59e0b;
+    }
+
+    .metric-subtext {
+      color: #666666;
+      font-size: 0.85em;
+      margin-top: 5px;
+    }
+
+    button {
+      background-color: #f59e0b;
+      color: #0a0a0a;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 1em;
+      transition: background-color 0.3s;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #f3a028;
+    }
+
+    .add-font-form {
+      background: #1a1a1a;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 6px;
+      border: 1px solid #2a2a2a;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .form-row-full {
+      grid-column: 1 / -1;
+    }
+
+    h2 {
+      color: #f59e0b;
+      margin-bottom: 20px;
+      font-size: 1.3em;
+    }
+
+    h3 {
+      color: #e0e0e0;
+      margin-top: 20px;
+      margin-bottom: 15px;
+      font-size: 1.1em;
+    }
+
+    .timeline {
+      background: #141414;
+      border-radius: 12px;
+      padding: 30px;
+      border: 1px solid #2a2a2a;
+      margin-bottom: 40px;
+    }
+
+    canvas {
+      width: 100%;
+      height: 250px;
+      margin-top: 15px;
+    }
+
+    .strategy-table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+    }
+
+    .strategy-table th, .strategy-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #2a2a2a;
+      font-size: 0.9em;
+    }
+
+    .strategy-table th {
+      background: #1a1a1a;
+      font-weight: 600;
+      color: #f59e0b;
+    }
+
+    .strategy-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .recommendation {
+      background: #1a1a1a;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      border-left: 3px solid #f59e0b;
+    }
+
+    .recommendation-title {
+      font-weight: 600;
+      color: #f59e0b;
+      margin-bottom: 5px;
+    }
+
+    .recommendation-desc {
+      color: #9ca3af;
+      font-size: 0.9em;
+    }
+
+    .code-block {
+      background: #0a0a0a;
+      padding: 15px;
+      border-radius: 6px;
+      border: 1px solid #2a2a2a;
+      margin-top: 15px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85em;
+      color: #a0d468;
+      overflow-x: auto;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    footer {
+      text-align: center;
+      padding: 40px 20px;
+      color: #666666;
+      border-top: 1px solid #2a2a2a;
+      margin-top: 60px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Font Loading Optimizer</h1>
+      <p class="subtitle">Optimize FOUT/FOIT with smart font-display strategies</p>
+    </header>
+
+    <div class="content">
+      <div class="input-section">
+        <h2>Font Configuration</h2>
+
+        <div class="form-group">
+          <label>Connection Speed</label>
+          <select id="connectionSpeed">
+            <option value="slow">Slow 3G (400 kbps)</option>
+            <option value="fast">Fast 3G (1.6 mbps)</option>
+            <option value="4g">4G (4 mbps)</option>
+            <option value="wifi">WiFi (10+ mbps)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <div class="checkbox-group">
+            <input type="checkbox" id="subsetting" checked>
+            <label for="subsetting" style="margin: 0;">Enable Font Subsetting (20% size reduction)</label>
+          </div>
+          <div class="checkbox-group">
+            <input type="checkbox" id="preload" checked>
+            <label for="preload" style="margin: 0;">Use Preload Links</label>
+          </div>
+          <div class="checkbox-group">
+            <input type="checkbox" id="preconnect" checked>
+            <label for="preconnect" style="margin: 0;">Use Preconnect</label>
+          </div>
+        </div>
+
+        <div class="add-font-form">
+          <h3>Add Font File</h3>
+          <div class="form-row">
+            <div>
+              <label>Font Name</label>
+              <input type="text" id="newFontName" placeholder="Inter">
+            </div>
+            <div>
+              <label>File Size (KB)</label>
+              <input type="number" id="newFontSize" value="50" min="1">
+            </div>
+          </div>
+          <div class="form-row">
+            <div>
+              <label>Format</label>
+              <select id="newFontFormat">
+                <option value="woff2">WOFF2 (best)</option>
+                <option value="woff">WOFF</option>
+                <option value="ttf">TTF</option>
+                <option value="otf">OTF</option>
+              </select>
+            </div>
+            <div>
+              <label>Font-Display</label>
+              <select id="newFontDisplay">
+                <option value="swap">Swap (recommended)</option>
+                <option value="fallback">Fallback</option>
+                <option value="block">Block</option>
+                <option value="optional">Optional</option>
+                <option value="auto">Auto</option>
+              </select>
+            </div>
+          </div>
+          <button onclick="addFont()">Add Font</button>
+        </div>
+
+        <div id="fontsList"></div>
+      </div>
+
+      <div class="metrics-panel">
+        <h2>Performance Metrics</h2>
+
+        <div class="metric-card">
+          <div class="metric-label">Total Font Size</div>
+          <div class="metric-value" id="totalSize">0 KB</div>
+          <div class="metric-subtext" id="totalSizeOptimized">Optimized: 0 KB</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-label">Font Load Time</div>
+          <div class="metric-value" id="loadTime">0 ms</div>
+          <div class="metric-subtext">Average across all fonts</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-label">FOUT Duration</div>
+          <div class="metric-value" id="foutDuration">0 ms</div>
+          <div class="metric-subtext">Time until font renders</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-label">Cumulative Layout Shift</div>
+          <div class="metric-value" id="clsImpact">0</div>
+          <div class="metric-subtext">Layout instability score</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-label">Recommended Strategy</div>
+          <div class="metric-value" id="recommendedStrategy">Swap</div>
+          <div class="metric-subtext">Best for your configuration</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline">
+      <h2>Font Loading Timeline</h2>
+      <canvas id="timelineChart"></canvas>
+      <div style="margin-top: 15px; color: #9ca3af; font-size: 0.9em;">
+        <strong style="color: #f59e0b;">Legend:</strong> Green = FOIT block, Yellow = Render with fallback, Blue = Font loaded
+      </div>
+    </div>
+
+    <div class="timeline">
+      <h2>Font-Display Strategy Comparison</h2>
+      <table class="strategy-table">
+        <thead>
+          <tr>
+            <th>Strategy</th>
+            <th>FOIT (ms)</th>
+            <th>FOUT (ms)</th>
+            <th>CLS Impact</th>
+            <th>Best For</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Swap</strong></td>
+            <td>0</td>
+            <td>~100</td>
+            <td>Low</td>
+            <td>Most use cases</td>
+          </tr>
+          <tr>
+            <td><strong>Block</strong></td>
+            <td id="blockFoit">3000</td>
+            <td>0</td>
+            <td>None</td>
+            <td>Brand-critical fonts</td>
+          </tr>
+          <tr>
+            <td><strong>Fallback</strong></td>
+            <td>100</td>
+            <td id="fallbackFout">100</td>
+            <td>Medium</td>
+            <td>Balance approach</td>
+          </tr>
+          <tr>
+            <td><strong>Optional</strong></td>
+            <td>0</td>
+            <td id="optionalFout">0</td>
+            <td>None</td>
+            <td>Low priority fonts</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="timeline">
+      <h2>Generated HTML/CSS</h2>
+      <h3>Preload Links (place in &lt;head&gt;)</h3>
+      <div class="code-block" id="preloadCode"></div>
+
+      <h3>@font-face Declaration</h3>
+      <div class="code-block" id="fontFaceCode"></div>
+
+      <h3>Usage CSS</h3>
+      <div class="code-block" id="usageCode"></div>
+    </div>
+
+    <div class="timeline">
+      <h2>Recommendations</h2>
+      <div id="recommendationsList"></div>
+    </div>
+  </div>
+
+  <footer>
+    © 2026 krzen.com
+  </footer>
+
+  <script>
+    let fonts = [];
+
+    const speeds = {
+      slow: 0.4,     // mbps
+      fast: 1.6,
+      '4g': 4,
+      wifi: 10
+    };
+
+    const formatSizeMultipliers = {
+      woff2: 1.0,
+      woff: 1.3,
+      ttf: 1.5,
+      otf: 1.4
+    };
+
+    function addFont() {
+      const name = document.getElementById('newFontName').value.trim();
+      const size = parseInt(document.getElementById('newFontSize').value);
+      const format = document.getElementById('newFontFormat').value;
+      const display = document.getElementById('newFontDisplay').value;
+
+      if (!name) {
+        alert('Please enter a font name');
+        return;
+      }
+
+      fonts.push({ name, size, format, display });
+      document.getElementById('newFontName').value = '';
+      document.getElementById('newFontSize').value = '50';
+      updateUI();
+    }
+
+    function removeFont(index) {
+      fonts.splice(index, 1);
+      updateUI();
+    }
+
+    function updateUI() {
+      renderFonts();
+      calculateMetrics();
+      generateCode();
+      drawTimeline();
+      generateRecommendations();
+    }
+
+    function renderFonts() {
+      const list = document.getElementById('fontsList');
+      list.innerHTML = fonts.map((font, idx) => `
+        <div class="font-item">
+          <div class="font-item-header">
+            <div class="font-name">${font.name}</div>
+            <button class="remove-font" onclick="removeFont(${idx})">Remove</button>
+          </div>
+          <div class="font-details">
+            <div>Size: ${font.size} KB</div>
+            <div>Format: ${font.format.toUpperCase()}</div>
+            <div>Display: ${font.display}</div>
+            <div>Est. Load: ${calculateFontLoadTime(font)}ms</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function calculateFontLoadTime(font) {
+      const connectionSpeed = document.getElementById('connectionSpeed').value;
+      const subsetting = document.getElementById('subsetting').checked;
+      const speed = speeds[connectionSpeed];
+      let size = font.size * formatSizeMultipliers[font.format];
+      if (subsetting) size *= 0.8;
+      return Math.round((size / speed) * 8);
+    }
+
+    function calculateMetrics() {
+      const connectionSpeed = document.getElementById('connectionSpeed').value;
+      const subsetting = document.getElementById('subsetting').checked;
+      const preload = document.getElementById('preload').checked;
+      const speed = speeds[connectionSpeed];
+
+      // Calculate total size
+      let totalSize = 0;
+      fonts.forEach(font => {
+        let size = font.size * formatSizeMultipliers[font.format];
+        if (subsetting) size *= 0.8;
+        totalSize += size;
+      });
+
+      const totalSizeOptimized = subsetting ? Math.round(totalSize * 0.8) : totalSize;
+
+      // Calculate average load time
+      const avgLoadTime = fonts.length > 0
+        ? Math.round(fonts.reduce((sum, f) => sum + calculateFontLoadTime(f), 0) / fonts.length)
+        : 0;
+
+      // FOUT duration (flash of unstyled text)
+      const foutDuration = Math.max(100, avgLoadTime * 0.3);
+
+      // CLS impact
+      const clsImpact = fonts.length * 0.05 * (subsetting ? 0.7 : 1);
+
+      // Recommended strategy
+      let recommended = 'swap';
+      if (avgLoadTime > 2000) recommended = 'fallback';
+      if (totalSizeOptimized < 30) recommended = 'block';
+
+      document.getElementById('totalSize').textContent = Math.round(totalSize) + ' KB';
+      document.getElementById('totalSizeOptimized').textContent = `Optimized: ${totalSizeOptimized} KB`;
+      document.getElementById('loadTime').textContent = avgLoadTime;
+      document.getElementById('foutDuration').textContent = Math.round(foutDuration);
+      document.getElementById('clsImpact').textContent = clsImpact.toFixed(3);
+      document.getElementById('recommendedStrategy').textContent = recommended.charAt(0).toUpperCase() + recommended.slice(1);
+
+      // Update strategy comparison table
+      document.getElementById('blockFoit').textContent = Math.round(avgLoadTime * 0.8);
+      document.getElementById('fallbackFout').textContent = Math.round(foutDuration * 0.8);
+      document.getElementById('optionalFout').textContent = fonts.length > 0 ? Math.round(avgLoadTime * 0.5) : 0;
+    }
+
+    function generateCode() {
+      const preload = document.getElementById('preload').checked;
+      const preconnect = document.getElementById('preconnect').checked;
+
+      // Preload code
+      let preloadCode = '';
+      if (preconnect) {
+        preloadCode += '<link rel="preconnect" href="https://fonts.googleapis.com">\n';
+        preloadCode += '<link rel="dns-prefetch" href="https://fonts.googleapis.com">\n\n';
+      }
+      if (preload) {
+        fonts.forEach(font => {
+          preloadCode += `<link rel="preload" href="/fonts/${font.name.toLowerCase()}.${font.format}" as="font" type="font/${font.format}" crossorigin>\n`;
+        });
+      }
+      document.getElementById('preloadCode').textContent = preloadCode || '<!-- No preload configured -->';
+
+      // Font-face code
+      let fontFaceCode = '';
+      fonts.forEach(font => {
+        fontFaceCode += `@font-face {
+  font-family: '${font.name}';
+  src: url('/fonts/${font.name.toLowerCase()}.${font.format}') format('${getFontFormat(font.format)}');
+  font-display: ${font.display};
+  font-weight: normal;
+  font-style: normal;
+}\n\n`;
+      });
+      document.getElementById('fontFaceCode').textContent = fontFaceCode || '/* No fonts configured */';
+
+      // Usage code
+      const usageCode = `body {
+  font-family: ${fonts.map(f => `'${f.name}'`).join(', ') || "'Arial'"};
+}`;
+      document.getElementById('usageCode').textContent = usageCode;
+    }
+
+    function getFontFormat(format) {
+      const formats = {
+        woff2: 'woff2',
+        woff: 'woff',
+        ttf: 'truetype',
+        otf: 'opentype'
+      };
+      return formats[format] || format;
+    }
+
+    function drawTimeline() {
+      const canvas = document.getElementById('timelineChart');
+      const ctx = canvas.getContext('2d');
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+
+      ctx.fillStyle = '#0a0a0a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      if (fonts.length === 0) {
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = '14px sans-serif';
+        ctx.fillText('No fonts configured', 20, canvas.height / 2);
+        return;
+      }
+
+      const maxTime = Math.max(...fonts.map(f => calculateFontLoadTime(f))) * 1.2;
+      const barHeight = 30;
+      const barSpacing = 50;
+      const startY = 30;
+      const scale = (canvas.width - 80) / maxTime;
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '12px sans-serif';
+      ctx.fillText('0ms', 60, 20);
+      ctx.fillText(Math.round(maxTime) + 'ms', canvas.width - 50, 20);
+
+      fonts.forEach((font, idx) => {
+        const loadTime = calculateFontLoadTime(font);
+        const y = startY + idx * barSpacing;
+
+        // FOIT block (gray)
+        ctx.fillStyle = '#3b82f6';
+        ctx.fillRect(80, y, Math.min(100, loadTime * scale), barHeight);
+
+        // Load bar (orange)
+        ctx.fillStyle = '#f59e0b';
+        ctx.fillRect(80 + Math.min(100, loadTime * scale), y, (loadTime - Math.min(100, loadTime)) * scale, barHeight);
+
+        // Label
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.fillText(font.name, 10, y + 20);
+
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = '11px sans-serif';
+        ctx.fillText(loadTime + 'ms', 80 + loadTime * scale + 10, y + 20);
+      });
+    }
+
+    function generateRecommendations() {
+      const avgLoadTime = fonts.length > 0
+        ? fonts.reduce((sum, f) => sum + calculateFontLoadTime(f), 0) / fonts.length
+        : 0;
+      const subsetting = document.getElementById('subsetting').checked;
+      const preload = document.getElementById('preload').checked;
+      const connectionSpeed = document.getElementById('connectionSpeed').value;
+
+      const recommendations = [];
+
+      if (!subsetting) {
+        recommendations.push({
+          title: 'Enable Font Subsetting',
+          description: 'Reduce font file size by 20% by including only necessary characters'
+        });
+      }
+
+      if (!preload && avgLoadTime > 1000) {
+        recommendations.push({
+          title: 'Use Preload Links',
+          description: 'Prioritize font loading to reduce FOUT duration'
+        });
+      }
+
+      if (avgLoadTime > 2000) {
+        recommendations.push({
+          title: 'Switch to Slower Font-Display',
+          description: 'Consider "fallback" strategy to show text faster on slow connections'
+        });
+      }
+
+      if (fonts.length > 3) {
+        recommendations.push({
+          title: 'Reduce Font Files',
+          description: 'Limit to essential font files (e.g., only 2 weights per family)'
+        });
+      }
+
+      if (connectionSpeed === 'slow') {
+        recommendations.push({
+          title: 'Use Variable Fonts',
+          description: 'Replace multiple font files with a single variable font'
+        });
+      }
+
+      const recList = document.getElementById('recommendationsList');
+      recList.innerHTML = recommendations.map(rec => `
+        <div class="recommendation">
+          <div class="recommendation-title">${rec.title}</div>
+          <div class="recommendation-desc">${rec.description}</div>
+        </div>
+      `).join('');
+    }
+
+    // Initialize with default fonts
+    fonts = [
+      { name: 'Inter', size: 45, format: 'woff2', display: 'swap' },
+      { name: 'JetBrains Mono', size: 55, format: 'woff2', display: 'fallback' }
+    ];
+    updateUI();
+  </script>
+</body>
+</html>

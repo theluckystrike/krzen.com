@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HTTP/2 vs HTTP/3 Comparator</title>
+  <meta name="description" content="Compare HTTP/1.1, HTTP/2, and HTTP/3 performance. Calculate page load times and protocol overhead.">
+  <link rel="canonical" href="https://krzen.com/tools/http2-vs-http3-comparator">
+  <meta property="og:title" content="HTTP/2 vs HTTP/3 Comparator">
+  <meta property="og:description" content="Compare HTTP/1.1, HTTP/2, and HTTP/3 performance. Calculate page load times and protocol overhead.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://krzen.com/tools/http2-vs-http3-comparator">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "HTTP/2 vs HTTP/3 Comparator",
+    "description": "Compare HTTP/1.1, HTTP/2, and HTTP/3 performance metrics",
+    "url": "https://krzen.com/tools/http2-vs-http3-comparator",
+    "applicationCategory": "UtilityApplication",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  }
+  </script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #0a0a0a;
+      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      color: #ffffff;
+    }
+
+    .subtitle {
+      color: #b0b0b0;
+      font-size: 1.1em;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+
+    @media (max-width: 1024px) {
+      .content {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+
+      h2 {
+        font-size: 1.3em;
+      }
+    }
+
+    .input-section {
+      background: #141414;
+      border-radius: 12px;
+      padding: 30px;
+      border: 1px solid #2a2a2a;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #e0e0e0;
+      font-size: 0.95em;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      background: #0a0a0a;
+      border: 1px solid #2a2a2a;
+      color: #ffffff;
+      border-radius: 6px;
+      font-size: 1em;
+      transition: border-color 0.3s;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #f59e0b;
+    }
+
+    button {
+      background-color: #f59e0b;
+      color: #0a0a0a;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 1em;
+      transition: background-color 0.3s;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #f3a028;
+    }
+
+    .comparison-table {
+      background: #141414;
+      border-radius: 12px;
+      padding: 30px;
+      border: 1px solid #2a2a2a;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 15px;
+      text-align: left;
+      border-bottom: 1px solid #2a2a2a;
+    }
+
+    th {
+      background: #1a1a1a;
+      font-weight: 600;
+      color: #f59e0b;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    td {
+      color: #e0e0e0;
+    }
+
+    .metric-label {
+      color: #9ca3af;
+      font-weight: 500;
+    }
+
+    .metric-value {
+      font-weight: 600;
+      color: #f59e0b;
+    }
+
+    .protocol-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .protocol-columns {
+        grid-template-columns: 1fr;
+      }
+
+      table {
+        font-size: 0.9em;
+      }
+
+      th, td {
+        padding: 10px;
+      }
+    }
+
+    .protocol-card {
+      background: #1a1a1a;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #2a2a2a;
+      text-align: center;
+    }
+
+    .protocol-name {
+      font-size: 1.2em;
+      font-weight: 600;
+      color: #f59e0b;
+      margin-bottom: 15px;
+    }
+
+    .protocol-metric {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #2a2a2a;
+    }
+
+    .protocol-metric:last-child {
+      border-bottom: none;
+    }
+
+    .protocol-metric label {
+      color: #9ca3af;
+      font-size: 0.9em;
+      margin: 0;
+    }
+
+    .protocol-metric value {
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .visualization {
+      background: #141414;
+      border-radius: 12px;
+      padding: 30px;
+      border: 1px solid #2a2a2a;
+      margin-top: 40px;
+    }
+
+    canvas {
+      width: 100%;
+      height: 300px;
+      margin-top: 20px;
+    }
+
+    .chart-legend {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .chart-legend {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .legend-color {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+    }
+
+    .advantages {
+      background: #141414;
+      border-radius: 12px;
+      padding: 30px;
+      border: 1px solid #2a2a2a;
+      margin-top: 40px;
+    }
+
+    .advantages h3 {
+      color: #f59e0b;
+      margin-bottom: 20px;
+    }
+
+    .advantage-item {
+      background: #1a1a1a;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      border-left: 3px solid #f59e0b;
+    }
+
+    footer {
+      text-align: center;
+      padding: 40px 20px;
+      color: #666666;
+      border-top: 1px solid #2a2a2a;
+      margin-top: 60px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>HTTP/2 vs HTTP/3 Comparator</h1>
+      <p class="subtitle">Calculate protocol performance differences</p>
+    </header>
+
+    <div class="content">
+      <div class="input-section">
+        <h2>Network Configuration</h2>
+
+        <div class="form-group">
+          <label>Number of Concurrent Requests</label>
+          <input type="number" id="concurrentRequests" min="1" max="100" value="20">
+        </div>
+
+        <div class="form-group">
+          <label>Average Resource Size (KB)</label>
+          <input type="number" id="resourceSize" min="1" max="10000" value="50">
+        </div>
+
+        <div class="form-group">
+          <label>Network Latency RTT (ms)</label>
+          <input type="number" id="latency" min="1" max="500" value="30">
+        </div>
+
+        <div class="form-group">
+          <label>Packet Loss Rate (%)</label>
+          <input type="number" id="packetLoss" min="0" max="10" value="0" step="0.1">
+        </div>
+
+        <div class="form-group">
+          <label>Number of Domains/Origins</label>
+          <input type="number" id="domains" min="1" max="10" value="3">
+        </div>
+
+        <div class="form-group">
+          <label>Connection Type</label>
+          <select id="connectionType">
+            <option value="mobile">Mobile 4G</option>
+            <option value="desktop">Desktop WiFi</option>
+            <option value="slow">Slow 3G</option>
+          </select>
+        </div>
+
+        <button onclick="compareProtocols()">Compare Protocols</button>
+      </div>
+
+      <div class="comparison-table">
+        <h2>Comparison Results</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th>HTTP/1.1</th>
+              <th>HTTP/2</th>
+              <th>HTTP/3</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="metric-label">Total Load Time</td>
+              <td><span class="metric-value" id="http1-load">0</span>ms</td>
+              <td><span class="metric-value" id="http2-load">0</span>ms</td>
+              <td><span class="metric-value" id="http3-load">0</span>ms</td>
+            </tr>
+            <tr>
+              <td class="metric-label">Connection Setup</td>
+              <td><span class="metric-value" id="http1-setup">0</span>ms</td>
+              <td><span class="metric-value" id="http2-setup">0</span>ms</td>
+              <td><span class="metric-value" id="http3-setup">0</span>ms</td>
+            </tr>
+            <tr>
+              <td class="metric-label">Head-of-Line Blocking</td>
+              <td><span class="metric-value" id="http1-holb">0</span>ms</td>
+              <td><span class="metric-value" id="http2-holb">0</span>ms</td>
+              <td><span class="metric-value" id="http3-holb">0</span>ms</td>
+            </tr>
+            <tr>
+              <td class="metric-label">Header Overhead</td>
+              <td><span class="metric-value" id="http1-header">0</span>KB</td>
+              <td><span class="metric-value" id="http2-header">0</span>KB</td>
+              <td><span class="metric-value" id="http3-header">0</span>KB</td>
+            </tr>
+            <tr>
+              <td class="metric-label">0-RTT (Resumption)</td>
+              <td><span class="metric-value">N/A</span></td>
+              <td><span class="metric-value">No</span></td>
+              <td><span class="metric-value" id="http3-0rtt">Yes</span></td>
+            </tr>
+            <tr>
+              <td class="metric-label">Connection Coalescing</td>
+              <td><span class="metric-value">No</span></td>
+              <td><span class="metric-value">Yes</span></td>
+              <td><span class="metric-value">Yes</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="protocol-columns">
+          <div class="protocol-card">
+            <div class="protocol-name">HTTP/1.1</div>
+            <div class="protocol-metric">
+              <label>Multiplexing:</label>
+              <value>No</value>
+            </div>
+            <div class="protocol-metric">
+              <label>QUIC:</label>
+              <value>No</value>
+            </div>
+            <div class="protocol-metric">
+              <label>Compression:</label>
+              <value>Basic</value>
+            </div>
+          </div>
+
+          <div class="protocol-card">
+            <div class="protocol-name">HTTP/2</div>
+            <div class="protocol-metric">
+              <label>Multiplexing:</label>
+              <value>Yes</value>
+            </div>
+            <div class="protocol-metric">
+              <label>QUIC:</label>
+              <value>No</value>
+            </div>
+            <div class="protocol-metric">
+              <label>Compression:</label>
+              <value>HPACK</value>
+            </div>
+          </div>
+
+          <div class="protocol-card">
+            <div class="protocol-name">HTTP/3</div>
+            <div class="protocol-metric">
+              <label>Multiplexing:</label>
+              <value>Yes</value>
+            </div>
+            <div class="protocol-metric">
+              <label>QUIC:</label>
+              <value>Yes</value>
+            </div>
+            <div class="protocol-metric">
+              <label>Compression:</label>
+              <value>QPACK</value>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="visualization">
+      <h2>Load Time Waterfall</h2>
+      <canvas id="waterfallChart"></canvas>
+      <div class="chart-legend">
+        <div class="legend-item">
+          <div class="legend-color" style="background: #3b82f6;"></div>
+          <span>Connection Setup</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: #f59e0b;"></div>
+          <span>Request/Response</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: #ef4444;"></div>
+          <span>Blocking/Overhead</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="advantages">
+      <h3>When HTTP/3 Provides the Biggest Advantage</h3>
+      <div id="advantagesList"></div>
+    </div>
+  </div>
+
+  <footer>
+    © 2026 krzen.com
+  </footer>
+
+  <script>
+    function compareProtocols() {
+      const concurrentRequests = parseInt(document.getElementById('concurrentRequests').value);
+      const resourceSize = parseInt(document.getElementById('resourceSize').value);
+      const latency = parseInt(document.getElementById('latency').value);
+      const packetLoss = parseFloat(document.getElementById('packetLoss').value);
+      const domains = parseInt(document.getElementById('domains').value);
+      const connectionType = document.getElementById('connectionType').value;
+
+      // Speed multipliers
+      const speedMultipliers = {
+        'mobile': 4,
+        'desktop': 1,
+        'slow': 8
+      };
+      const speedMult = speedMultipliers[connectionType];
+
+      // HTTP/1.1: 6 connections per domain, serialized requests
+      const http1Connections = Math.ceil(concurrentRequests / 6);
+      const http1RequestTime = concurrentRequests * latency * 2; // Round-trip per request
+      const http1HOLBlocking = concurrentRequests * 5; // Head-of-line blocking
+      const http1Setup = http1Connections * latency * 2 * speedMult; // TCP + TLS
+      const http1HeaderOverhead = (concurrentRequests * 2) * 0.5; // KB
+      const http1TotalTime = Math.round(http1Setup + http1RequestTime + http1HOLBlocking * 0.5);
+
+      // HTTP/2: Multiplexed on single connection
+      const http2RequestTime = (concurrentRequests / 30) * latency * 2; // Multiplexing gain
+      const http2HOLBlocking = latency * 2; // Only one stream blocked
+      const http2Setup = latency * 2 * speedMult; // TCP + TLS
+      const http2HeaderOverhead = concurrentRequests * 0.2; // HPACK compression
+      const http2TotalTime = Math.round(http2Setup + http2RequestTime + http2HOLBlocking);
+
+      // HTTP/3: QUIC, 0-RTT, connection coalescing
+      const http3RequestTime = (concurrentRequests / 50) * latency * 1.5; // Better parallelization
+      const http3HOLBlocking = 0; // No stream-level blocking in QUIC
+      const http3Setup = latency * speedMult; // QUIC 0-RTT, no extra TCP handshake
+      const http3HeaderOverhead = concurrentRequests * 0.15; // QPACK compression
+      const http3PacketLossPenalty = (packetLoss / 100) * latency * 20;
+      const http3TotalTime = Math.round(http3Setup + http3RequestTime + http3HOLBlocking + http3PacketLossPenalty * 0.5);
+
+      // Update table
+      document.getElementById('http1-load').textContent = http1TotalTime;
+      document.getElementById('http2-load').textContent = Math.round(http2TotalTime);
+      document.getElementById('http3-load').textContent = http3TotalTime;
+
+      document.getElementById('http1-setup').textContent = Math.round(http1Setup);
+      document.getElementById('http2-setup').textContent = Math.round(http2Setup);
+      document.getElementById('http3-setup').textContent = Math.round(http3Setup);
+
+      document.getElementById('http1-holb').textContent = Math.round(http1HOLBlocking * 0.5);
+      document.getElementById('http2-holb').textContent = Math.round(http2HOLBlocking);
+      document.getElementById('http3-holb').textContent = Math.round(http3HOLBlocking);
+
+      document.getElementById('http1-header').textContent = Math.round(http1HeaderOverhead);
+      document.getElementById('http2-header').textContent = Math.round(http2HeaderOverhead);
+      document.getElementById('http3-header').textContent = Math.round(http3HeaderOverhead);
+
+      // Draw waterfall
+      drawWaterfall(http1TotalTime, Math.round(http2TotalTime), http3TotalTime, http1Setup, http2Setup, http3Setup);
+
+      // Advantages
+      const advantages = [];
+      if (latency > 50) {
+        advantages.push('High latency environments - 0-RTT resumption saves critical time');
+      }
+      if (packetLoss > 1) {
+        advantages.push('Networks with packet loss - QUIC per-stream retransmission is more efficient');
+      }
+      if (domains > 2) {
+        advantages.push('Multiple origins - Connection coalescing reduces total connections');
+      }
+      if (concurrentRequests > 30) {
+        advantages.push('High request volume - Better stream multiplexing efficiency');
+      }
+      if (connectionType === 'mobile') {
+        advantages.push('Mobile networks - Faster connection establishment, no TCP slow start');
+      }
+
+      const advantagesList = document.getElementById('advantagesList');
+      advantagesList.innerHTML = advantages.length > 0
+        ? advantages.map(a => `<div class="advantage-item">${a}</div>`).join('')
+        : '<div class="advantage-item">HTTP/3 provides consistent improvement across most scenarios.</div>';
+    }
+
+    function drawWaterfall(http1Total, http2Total, http3Total, http1Setup, http2Setup, http3Setup) {
+      const canvas = document.getElementById('waterfallChart');
+      const ctx = canvas.getContext('2d');
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+
+      const maxTime = Math.max(http1Total, http2Total, http3Total) * 1.1;
+      const barHeight = 40;
+      const barSpacing = 80;
+      const startY = 40;
+      const scale = (canvas.width - 80) / maxTime;
+
+      // Title
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '12px sans-serif';
+      ctx.fillText('Load Time (ms)', 10, 25);
+
+      // HTTP/1.1
+      ctx.fillStyle = '#3b82f6';
+      let x = 80;
+      ctx.fillRect(x, startY, http1Setup * scale, barHeight);
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillRect(x + http1Setup * scale, startY, (http1Total - http1Setup) * scale, barHeight);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.fillText('HTTP/1.1', 10, startY + 25);
+      ctx.font = '11px sans-serif';
+      ctx.fillText(http1Total + 'ms', x + (http1Total * scale) + 10, startY + 25);
+
+      // HTTP/2
+      ctx.fillStyle = '#3b82f6';
+      ctx.fillRect(x, startY + barSpacing, http2Setup * scale, barHeight);
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillRect(x + http2Setup * scale, startY + barSpacing, (http2Total - http2Setup) * scale, barHeight);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.fillText('HTTP/2', 10, startY + barSpacing + 25);
+      ctx.font = '11px sans-serif';
+      ctx.fillText(http2Total + 'ms', x + (http2Total * scale) + 10, startY + barSpacing + 25);
+
+      // HTTP/3
+      ctx.fillStyle = '#3b82f6';
+      ctx.fillRect(x, startY + barSpacing * 2, http3Setup * scale, barHeight);
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillRect(x + http3Setup * scale, startY + barSpacing * 2, (http3Total - http3Setup) * scale, barHeight);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.fillText('HTTP/3', 10, startY + barSpacing * 2 + 25);
+      ctx.font = '11px sans-serif';
+      ctx.fillText(http3Total + 'ms', x + (http3Total * scale) + 10, startY + barSpacing * 2 + 25);
+    }
+
+    // Initial calculation
+    compareProtocols();
+  </script>
+</body>
+</html>

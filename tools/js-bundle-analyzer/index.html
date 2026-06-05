@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JavaScript Bundle Analyzer</title>
+  <meta name="description" content="Estimate bundle size, parse time, and download times. Find lighter alternatives to heavy dependencies.">
+  <link rel="canonical" href="https://krzen.com/tools/js-bundle-analyzer">
+  <meta property="og:title" content="JavaScript Bundle Analyzer">
+  <meta property="og:description" content="Estimate bundle size, parse time, and download times. Find lighter alternatives to heavy dependencies.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://krzen.com/tools/js-bundle-analyzer">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "JavaScript Bundle Analyzer",
+    "description": "Analyze JavaScript bundle sizes, parse times, and optimization opportunities",
+    "url": "https://krzen.com/tools/js-bundle-analyzer",
+    "applicationCategory": "UtilityApplication",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  }
+  </script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #0a0a0a;
+      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      color: #ffffff;
+    }
+
+    .subtitle {
+      color: #b0b0b0;
+      font-size: 1.1em;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+
+    @media (max-width: 1024px) {
+      .content {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .input-section {
+      background: #141414;
+      border-radius: 12px;
+      padding: 30px;
+      border: 1px solid #2a2a2a;
+    }
+
+    h2 {
+      color: #f59e0b;
+      margin-bottom: 20px;
+      font-size: 1.3em;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #e0e0e0;
+      font-size: 0.95em;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      background: #0a0a0a;
+      border: 1px solid #2a2a2a;
+      color: #ffffff;
+      border-radius: 6px;
+      font-size: 1em;
+      transition: border-color 0.3s;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #f59e0b;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    input[type="checkbox"] {
+      cursor: pointer;
+      width: auto;
+    }
+
+    .package-selector {
+      background: #1a1a1a;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 6px;
+      border: 1px solid #2a2a2a;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .package-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px;
+      margin-bottom: 5px;
+    }
+
+    .package-option input[type="checkbox"] {
+      cursor: pointer;
+    }
+
+    .package-info {
+      flex: 1;
+    }
+
+    .package-name {
+      font-weight: 600;
+      color: #e0e0e0;
+    }
+
+    .package-size {
+      font-size: 0.85em;
+      color: #9ca3af;
+    }
+
+    .package-item {
+      background: #1a1a1a;
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      border: 1px solid #2a2a2a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .package-item-name {
+      font-weight: 600;
+      color: #f59e0b;
+    }
+
+    .package-item-size {
+      color: #9ca3af;
+    }
+
+    .remove-package {
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8em;
+    }
+
+    .metrics-panel {
+      background: #141414;
+      border-radius: 12px;
+      padding: 30px;
+      border: 1px solid #2a2a2a;
+    }
+
+    .metric-card {
+      background: #1a1a1a;
+      padding: 20px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: 1px solid #2a2a2a;
+    }
+
+    .metric-label {
+      color: #9ca3af;
+      font-size: 0.9em;
+      margin-bottom: 8px;
+    }
+
+    .metric-value {
+      font-size: 1.8em;
+      font-weight: bold;
+      color: #f59e0b;
+    }
+
+    .metric-subtext {
+      color: #666666;
+      font-size: 0.85em;
+      margin-top: 8px;
+    }
+
+    button {
+      background-color: #f59e0b;
+      color: #0a0a0a;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 1em;
+      transition: background-color 0.3s;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #f3a028;
+    }
+
+    .visualization {
+      background: #141414;
+      border-radius: 12px;
+      padding: 30px;
+      border: 1px solid #2a2a2a;
+      margin-bottom: 40px;
+    }
+
+    canvas {
+      width: 100%;
+      height: 300px;
+      margin-top: 15px;
+    }
+
+    .chart-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 40px;
+    }
+
+    @media (max-width: 768px) {
+      .chart-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    .comparison-table th, .comparison-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #2a2a2a;
+      font-size: 0.9em;
+    }
+
+    .comparison-table th {
+      background: #1a1a1a;
+      font-weight: 600;
+      color: #f59e0b;
+    }
+
+    .comparison-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .alternative {
+      background: #1a1a1a;
+      padding: 15px;
+      margin-bottom: 12px;
+      border-radius: 6px;
+      border-left: 3px solid #10b981;
+    }
+
+    .alternative-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .alternative-title {
+      font-weight: 600;
+      color: #10b981;
+    }
+
+    .alternative-saving {
+      color: #f59e0b;
+      font-weight: 600;
+    }
+
+    .alternative-desc {
+      color: #9ca3af;
+      font-size: 0.9em;
+    }
+
+    footer {
+      text-align: center;
+      padding: 40px 20px;
+      color: #666666;
+      border-top: 1px solid #2a2a2a;
+      margin-top: 60px;
+    }
+
+    .compression-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .compression-stats {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .stat-box {
+      background: #1a1a1a;
+      padding: 15px;
+      border-radius: 6px;
+      border: 1px solid #2a2a2a;
+      text-align: center;
+    }
+
+    .stat-label {
+      color: #9ca3af;
+      font-size: 0.85em;
+      margin-bottom: 5px;
+    }
+
+    .stat-value {
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #f59e0b;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>JavaScript Bundle Analyzer</h1>
+      <p class="subtitle">Analyze bundle size and find optimization opportunities</p>
+    </header>
+
+    <div class="content">
+      <div class="input-section">
+        <h2>Configure Bundle</h2>
+
+        <div class="form-group">
+          <label>Popular Packages</label>
+          <div class="package-selector" id="packageSelector"></div>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <strong style="color: #f59e0b;">Selected Packages:</strong>
+          <div id="selectedList" style="margin-top: 10px;"></div>
+        </div>
+
+        <div class="form-group">
+          <label>Bundler</label>
+          <select id="bundler">
+            <option value="webpack">Webpack</option>
+            <option value="rollup">Rollup</option>
+            <option value="esbuild">esbuild</option>
+            <option value="vite">Vite</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <div class="checkbox-group">
+            <input type="checkbox" id="treeShaking" checked>
+            <label for="treeShaking" style="margin: 0;">Tree-shaking enabled</label>
+          </div>
+          <div class="checkbox-group">
+            <input type="checkbox" id="minification" checked>
+            <label for="minification" style="margin: 0;">Minification enabled</label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Compression</label>
+          <select id="compression">
+            <option value="none">None</option>
+            <option value="gzip" selected>Gzip</option>
+            <option value="brotli">Brotli</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Connection Speed</label>
+          <select id="connectionSpeed">
+            <option value="slow">Slow 3G (400 kbps)</option>
+            <option value="fast">Fast 3G (1.6 mbps)</option>
+            <option value="4g">4G (4 mbps)</option>
+            <option value="wifi">WiFi (10+ mbps)</option>
+          </select>
+        </div>
+
+        <button onclick="analyzeBundle()">Analyze Bundle</button>
+      </div>
+
+      <div class="metrics-panel">
+        <h2>Size Analysis</h2>
+
+        <div class="metric-card">
+          <div class="metric-label">Raw Bundle Size</div>
+          <div class="metric-value" id="rawSize">0 KB</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-label">Minified Size</div>
+          <div class="metric-value" id="minifiedSize">0 KB</div>
+          <div class="metric-subtext">~60% of raw</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-label">Compressed Size</div>
+          <div class="metric-value" id="compressedSize">0 KB</div>
+          <div class="metric-subtext" id="compressionMethod">Gzip: ~30% of minified</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-label">Download Time</div>
+          <div class="metric-value" id="downloadTime">0 ms</div>
+          <div class="metric-subtext" id="speedLabel">On 4G connection</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-label">Parse Time (Mobile)</div>
+          <div class="metric-value" id="parseTime">0 ms</div>
+          <div class="metric-subtext">150ms per 1MB</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-label">LCP Impact</div>
+          <div class="metric-value" id="lcpImpact">0 ms</div>
+          <div class="metric-subtext">Addition to LCP</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-row">
+      <div class="visualization">
+        <h3 style="margin-bottom: 15px;">Bundle Composition (Treemap)</h3>
+        <canvas id="treemapChart"></canvas>
+      </div>
+
+      <div class="visualization">
+        <h3 style="margin-bottom: 15px;">Size Breakdown</h3>
+        <canvas id="pieChart"></canvas>
+      </div>
+    </div>
+
+    <div class="visualization">
+      <h3 style="margin-bottom: 15px;">Compression Effectiveness</h3>
+      <div class="compression-stats">
+        <div class="stat-box">
+          <div class="stat-label">Raw Size</div>
+          <div class="stat-value" id="statsRaw">0 KB</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Minified</div>
+          <div class="stat-value" id="statsMin">0 KB</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Compressed</div>
+          <div class="stat-value" id="statsComp">0 KB</div>
+        </div>
+      </div>
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Size (KB)</th>
+            <th>Reduction</th>
+            <th>Time on 4G</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Raw</strong></td>
+            <td id="tableRaw">0</td>
+            <td>-</td>
+            <td id="tableRawTime">0ms</td>
+          </tr>
+          <tr>
+            <td><strong>Minified</strong></td>
+            <td id="tableMin">0</td>
+            <td id="tableMinReduction">0%</td>
+            <td id="tableMinTime">0ms</td>
+          </tr>
+          <tr>
+            <td><strong>Gzip</strong></td>
+            <td id="tableGzip">0</td>
+            <td id="tableGzipReduction">0%</td>
+            <td id="tableGzipTime">0ms</td>
+          </tr>
+          <tr>
+            <td><strong>Brotli</strong></td>
+            <td id="tableBrotli">0</td>
+            <td id="tableBrotliReduction">0%</td>
+            <td id="tableBrotliTime">0ms</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="visualization">
+      <h2>Lighter Alternatives</h2>
+      <div id="alternativesList"></div>
+    </div>
+  </div>
+
+  <footer>
+    © 2026 krzen.com
+  </footer>
+
+  <script>
+    const packages = {
+      'react': { size: 42, alt: 'preact (3 KB)' },
+      'vue': { size: 32, alt: 'petite-vue (5 KB)' },
+      'angular': { size: 128, alt: 'stencil (20 KB)' },
+      'lodash': { size: 71, alt: 'lodash-es (24 KB)' },
+      'moment': { size: 67, alt: 'date-fns (13 KB)' },
+      'axios': { size: 13, alt: 'fetch API (0 KB)' },
+      'underscore': { size: 16, alt: 'lodash-es (24 KB)' },
+      'd3': { size: 246, alt: 'plotly (45 KB)' },
+      'jquery': { size: 86, alt: 'vanilla JS (0 KB)' },
+      'bootstrap': { size: 187, alt: 'tailwindcss (50 KB)' },
+      'material-ui': { size: 155, alt: 'headlessui (8 KB)' },
+      'express': { size: 50, alt: 'fastify (28 KB)' },
+      'next': { size: 65, alt: 'nuxt (45 KB)' },
+      'webpack': { size: 58, alt: 'esbuild (7 MB binary)' },
+      'babel': { size: 45, alt: 'swc (8 MB binary)' },
+      'gatsby': { size: 148, alt: 'astro (25 KB)' },
+      'styled-components': { size: 16, alt: 'tailwindcss (50 KB)' },
+      'redux': { size: 5, alt: 'zustand (2 KB)' },
+      'graphql': { size: 38, alt: 'graphql-request (15 KB)' },
+      'tailwindcss': { size: 48, alt: 'pico (10 KB)' },
+      'typescript': { size: 89, alt: 'esbuild (7 MB binary)' },
+      'eslint': { size: 45, alt: 'rome (25 KB)' },
+      'webpack-cli': { size: 32, alt: 'esbuild (7 MB binary)' },
+      'request': { size: 27, alt: 'axios (13 KB)' },
+      'ramda': { size: 45, alt: 'lodash-es (24 KB)' }
+    };
+
+    let selectedPackages = ['react', 'moment', 'lodash', 'axios'];
+
+    function initPackageSelector() {
+      const selector = document.getElementById('packageSelector');
+      selector.innerHTML = Object.entries(packages).map(([name, data]) => `
+        <div class="package-option">
+          <input type="checkbox" id="pkg-${name}" ${selectedPackages.includes(name) ? 'checked' : ''} onchange="togglePackage('${name}')">
+          <div class="package-info">
+            <div class="package-name">${name}</div>
+            <div class="package-size">${data.size} KB</div>
+          </div>
+        </div>
+      `).join('');
+      updateSelectedList();
+    }
+
+    function togglePackage(name) {
+      const idx = selectedPackages.indexOf(name);
+      if (idx > -1) {
+        selectedPackages.splice(idx, 1);
+      } else {
+        selectedPackages.push(name);
+      }
+      updateSelectedList();
+      analyzeBundle();
+    }
+
+    function updateSelectedList() {
+      const list = document.getElementById('selectedList');
+      list.innerHTML = selectedPackages.map(name => `
+        <div class="package-item">
+          <span class="package-item-name">${name}</span>
+          <span class="package-item-size">${packages[name].size} KB</span>
+          <button class="remove-package" onclick="togglePackage('${name}')">Remove</button>
+        </div>
+      `).join('');
+    }
+
+    function analyzeBundle() {
+      const treeShaking = document.getElementById('treeShaking').checked;
+      const minification = document.getElementById('minification').checked;
+      const compression = document.getElementById('compression').value;
+      const connectionSpeed = document.getElementById('connectionSpeed').value;
+
+      // Calculate sizes
+      let rawSize = selectedPackages.reduce((sum, name) => sum + packages[name].size, 0);
+      const treeShakingReduction = treeShaking ? 0.25 : 0;
+      rawSize *= (1 - treeShakingReduction);
+
+      const minifiedSize = minification ? Math.round(rawSize * 0.6) : rawSize;
+
+      let compressedSize = minifiedSize;
+      let compressionLabel = 'None';
+      if (compression === 'gzip') {
+        compressedSize = Math.round(minifiedSize * 0.3);
+        compressionLabel = 'Gzip: ~30% of minified';
+      } else if (compression === 'brotli') {
+        compressedSize = Math.round(minifiedSize * 0.25);
+        compressionLabel = 'Brotli: ~25% of minified';
+      }
+
+      // Download times
+      const speeds = { slow: 0.4, fast: 1.6, '4g': 4, wifi: 10 };
+      const speedLabel = { slow: 'Slow 3G', fast: 'Fast 3G', '4g': '4G', wifi: 'WiFi' };
+      const speed = speeds[connectionSpeed];
+      const downloadTime = Math.round((compressedSize / speed) * 8);
+      const parseTime = Math.round((minifiedSize / 1024) * 150); // 150ms per 1MB
+
+      document.getElementById('rawSize').textContent = Math.round(rawSize) + ' KB';
+      document.getElementById('minifiedSize').textContent = minifiedSize + ' KB';
+      document.getElementById('compressedSize').textContent = compressedSize + ' KB';
+      document.getElementById('compressionMethod').textContent = compressionLabel;
+      document.getElementById('downloadTime').textContent = downloadTime + ' ms';
+      document.getElementById('speedLabel').textContent = 'On ' + speedLabel[connectionSpeed] + ' connection';
+      document.getElementById('parseTime').textContent = parseTime + ' ms';
+      document.getElementById('lcpImpact').textContent = (downloadTime + parseTime) + ' ms';
+
+      // Stats
+      document.getElementById('statsRaw').textContent = Math.round(rawSize);
+      document.getElementById('statsMin').textContent = minifiedSize;
+      document.getElementById('statsComp').textContent = compressedSize;
+
+      // Table
+      const gzipSize = Math.round(minifiedSize * 0.3);
+      const brotliSize = Math.round(minifiedSize * 0.25);
+
+      document.getElementById('tableRaw').textContent = Math.round(rawSize);
+      document.getElementById('tableRawTime').textContent = Math.round((rawSize / speed) * 8) + 'ms';
+
+      document.getElementById('tableMin').textContent = minifiedSize;
+      document.getElementById('tableMinReduction').textContent = ((1 - minifiedSize / rawSize) * 100).toFixed(0) + '%';
+      document.getElementById('tableMinTime').textContent = Math.round((minifiedSize / speed) * 8) + 'ms';
+
+      document.getElementById('tableGzip').textContent = gzipSize;
+      document.getElementById('tableGzipReduction').textContent = ((1 - gzipSize / rawSize) * 100).toFixed(0) + '%';
+      document.getElementById('tableGzipTime').textContent = Math.round((gzipSize / speed) * 8) + 'ms';
+
+      document.getElementById('tableBrotli').textContent = brotliSize;
+      document.getElementById('tableBrotliReduction').textContent = ((1 - brotliSize / rawSize) * 100).toFixed(0) + '%';
+      document.getElementById('tableBrotliTime').textContent = Math.round((brotliSize / speed) * 8) + 'ms';
+
+      drawCharts(rawSize, minifiedSize);
+      generateAlternatives();
+    }
+
+    function drawCharts(rawSize, minifiedSize) {
+      // Treemap
+      const treemapCanvas = document.getElementById('treemapChart');
+      const ctx = treemapCanvas.getContext('2d');
+      const rect = treemapCanvas.getBoundingClientRect();
+      treemapCanvas.width = rect.width;
+      treemapCanvas.height = rect.height;
+
+      ctx.fillStyle = '#0a0a0a';
+      ctx.fillRect(0, 0, treemapCanvas.width, treemapCanvas.height);
+
+      const totalSize = selectedPackages.reduce((sum, name) => sum + packages[name].size, 0);
+      const colors = ['#3b82f6', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#ec4899'];
+      let x = 10, y = 10;
+
+      selectedPackages.forEach((name, idx) => {
+        const size = packages[name].size;
+        const width = (size / totalSize) * (treemapCanvas.width - 20);
+        const color = colors[idx % colors.length];
+
+        ctx.fillStyle = color;
+        ctx.fillRect(x, y, width, 60);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText(name, x + 5, y + 25);
+        ctx.font = '11px sans-serif';
+        ctx.fillText(size + ' KB', x + 5, y + 45);
+
+        x += width + 5;
+      });
+
+      // Pie chart
+      const pieCanvas = document.getElementById('pieChart');
+      const pieCtx = pieCanvas.getContext('2d');
+      const pieRect = pieCanvas.getBoundingClientRect();
+      pieCanvas.width = pieRect.width;
+      pieCanvas.height = pieRect.height;
+
+      pieCtx.fillStyle = '#0a0a0a';
+      pieCtx.fillRect(0, 0, pieCanvas.width, pieCanvas.height);
+
+      const centerX = pieCanvas.width / 2;
+      const centerY = pieCanvas.height / 2;
+      const radius = Math.min(centerX, centerY) - 20;
+      let currentAngle = 0;
+
+      selectedPackages.forEach((name, idx) => {
+        const size = packages[name].size;
+        const sliceAngle = (size / totalSize) * 2 * Math.PI;
+        const color = colors[idx % colors.length];
+
+        pieCtx.fillStyle = color;
+        pieCtx.beginPath();
+        pieCtx.moveTo(centerX, centerY);
+        pieCtx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+        pieCtx.closePath();
+        pieCtx.fill();
+
+        currentAngle += sliceAngle;
+      });
+    }
+
+    function generateAlternatives() {
+      const alts = selectedPackages
+        .filter(name => packages[name].alt)
+        .map(name => ({
+          name,
+          current: packages[name].size,
+          alt: packages[name].alt
+        }))
+        .sort((a, b) => b.current - a.current)
+        .slice(0, 5);
+
+      const altsList = document.getElementById('alternativesList');
+      altsList.innerHTML = alts.map(alt => {
+        const altSize = parseInt(alt.alt.match(/\d+/)[0]);
+        const saving = alt.current - altSize;
+        return `
+          <div class="alternative">
+            <div class="alternative-header">
+              <span class="alternative-title">${alt.name} → ${alt.alt}</span>
+              <span class="alternative-saving">Save ${saving} KB</span>
+            </div>
+            <div class="alternative-desc">Current: ${alt.current} KB | Alternative: ${altSize} KB</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Initialize
+    initPackageSelector();
+    analyzeBundle();
+  </script>
+</body>
+</html>
