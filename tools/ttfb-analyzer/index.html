@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TTFB Analyzer — Free Performance Tool</title>
+    <meta name="description" content="Analyze Time to First Byte. Input server metrics, calculate TTFB breakdown, and compare to industry benchmarks.">
+    <meta name="theme-color" content="#0a0e27">
+    <link rel="canonical" href="https://krzen.com/tools/ttfb-analyzer">
+    <meta property="og:title" content="TTFB Analyzer — Free Performance Tool">
+    <meta property="og:description" content="Analyze Time to First Byte. Input server metrics, calculate TTFB breakdown, and compare to industry benchmarks.">
+    <meta property="og:url" content="https://krzen.com/tools/ttfb-analyzer">
+    <meta property="og:type" content="website">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "TTFB Analyzer",
+      "description": "Analyze Time to First Byte with detailed breakdown and benchmarks",
+      "url": "https://krzen.com/tools/ttfb-analyzer",
+      "applicationCategory": "UtilityApplication",
+      "operatingSystem": "Web"
+    }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0a0e27;
+            color: #e0e6ed;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            flex: 1;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-top: 20px;
+        }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: #00d4aa;
+        }
+        .subtitle {
+            font-size: 14px;
+            color: #a0afc0;
+        }
+        .calculator {
+            background: #1a1f3a;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid #2a3554;
+        }
+        .input-group {
+            margin-bottom: 25px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #00d4aa;
+        }
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #2a3554;
+            border-radius: 6px;
+            background: #0a0e27;
+            color: #e0e6ed;
+            font-size: 14px;
+        }
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #00d4aa;
+            box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.2);
+        }
+        .input-hint {
+            font-size: 12px;
+            color: #708090;
+            margin-top: 4px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #00d4aa;
+            color: #0a0e27;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #00c094;
+        }
+        .results {
+            display: none;
+        }
+        .results.show {
+            display: block;
+        }
+        .ttfb-display {
+            background: #1a1f3a;
+            border-radius: 12px;
+            padding: 30px;
+            border: 1px solid #2a3554;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .ttfb-value {
+            font-size: 48px;
+            font-weight: 900;
+            color: #00d4aa;
+            margin: 10px 0;
+        }
+        .ttfb-label {
+            font-size: 12px;
+            color: #a0afc0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .performance-rating {
+            margin-top: 15px;
+            font-size: 16px;
+            font-weight: 700;
+        }
+        .rating-good { color: #4ade80; }
+        .rating-fair { color: #fbbf24; }
+        .rating-poor { color: #f87171; }
+        .breakdown-bar {
+            background: #0a0e27;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 1px solid #2a3554;
+        }
+        .breakdown-bar h3 {
+            font-size: 14px;
+            margin-bottom: 15px;
+            color: #00d4aa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .breakdown-visualization {
+            display: flex;
+            height: 40px;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            gap: 2px;
+        }
+        .segment {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: #0a0e27;
+        }
+        .segment-dns { background: #3b82f6; }
+        .segment-tcp { background: #8b5cf6; }
+        .segment-tls { background: #ec4899; }
+        .segment-server { background: #f59e0b; }
+        .segment-ttfb { background: #00d4aa; }
+        .breakdown-legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+        }
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            margin-right: 8px;
+        }
+        .breakdown-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .metric-card {
+            background: #1a1f3a;
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid #2a3554;
+        }
+        .metric-card h4 {
+            font-size: 12px;
+            color: #a0afc0;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .metric-card .value {
+            font-size: 24px;
+            font-weight: 900;
+            color: #00d4aa;
+        }
+        .metric-card .sublabel {
+            font-size: 11px;
+            color: #708090;
+            margin-top: 4px;
+        }
+        .benchmarks {
+            background: #1a1f3a;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #2a3554;
+            margin-bottom: 30px;
+        }
+        .benchmarks h3 {
+            font-size: 14px;
+            margin-bottom: 15px;
+            color: #00d4aa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .benchmark-item {
+            display: grid;
+            grid-template-columns: 150px 1fr 80px;
+            gap: 15px;
+            padding: 10px 0;
+            border-bottom: 1px solid #2a3554;
+            align-items: center;
+            font-size: 13px;
+        }
+        .benchmark-item:last-child {
+            border-bottom: none;
+        }
+        .benchmark-label {
+            color: #a0afc0;
+        }
+        .benchmark-bar {
+            background: #0a0e27;
+            height: 20px;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+        .benchmark-fill {
+            height: 100%;
+            background: #00d4aa;
+            border-radius: 4px;
+        }
+        .benchmark-value {
+            color: #00d4aa;
+            font-weight: 700;
+            text-align: right;
+        }
+        .recommendations {
+            background: #1a1f3a;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #2a3554;
+        }
+        .recommendations h3 {
+            font-size: 14px;
+            margin-bottom: 15px;
+            color: #00d4aa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .rec-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #2a3554;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .rec-item:last-child {
+            border-bottom: none;
+        }
+        .rec-priority {
+            display: inline-block;
+            background: #00d4aa;
+            color: #0a0e27;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 700;
+            margin-right: 8px;
+        }
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #708090;
+            font-size: 13px;
+            border-top: 1px solid #2a3554;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            h1 {
+                font-size: 22px;
+            }
+            .ttfb-value {
+                font-size: 36px;
+            }
+            .breakdown-metrics {
+                grid-template-columns: 1fr;
+            }
+            .benchmark-item {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2241192243363112" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>TTFB Analyzer</h1>
+            <p class="subtitle">Analyze Time to First Byte with detailed breakdown</p>
+        </header>
+
+        <div class="calculator">
+            <div class="input-group">
+                <label>DNS Lookup Time (ms)</label>
+                <input type="number" id="dns" min="10" max="500" value="50">
+                <div class="input-hint">Typical: 20-120ms depending on DNS provider</div>
+            </div>
+
+            <div class="input-group">
+                <label>TCP Connection Time (ms)</label>
+                <input type="number" id="tcp" min="10" max="500" value="40">
+                <div class="input-hint">Typical: 20-100ms depending on network conditions</div>
+            </div>
+
+            <div class="input-group">
+                <label>TLS Handshake Time (ms)</label>
+                <input type="number" id="tls" min="0" max="500" value="80">
+                <div class="input-hint">Typical: 50-200ms for HTTPS (0 for HTTP)</div>
+            </div>
+
+            <div class="input-group">
+                <label>Server Processing Time (ms)</label>
+                <input type="number" id="server" min="10" max="2000" value="200">
+                <div class="input-hint">Time for server to process and generate response</div>
+            </div>
+
+            <div class="input-group">
+                <label>Connection Type</label>
+                <select id="connectionType" onchange="autoFill()">
+                    <option value="custom">Custom (Manual Entry)</option>
+                    <option value="4g">4G / LTE</option>
+                    <option value="5g">5G</option>
+                    <option value="fiber">Fiber / Broadband</option>
+                    <option value="mobile3g">3G</option>
+                </select>
+            </div>
+
+            <button onclick="analyzeTTFB()">Analyze TTFB</button>
+        </div>
+
+        <div class="results" id="results">
+            <div class="ttfb-display">
+                <div class="ttfb-label">Time to First Byte</div>
+                <div class="ttfb-value" id="ttfbValue">0</div>
+                <div class="ttfb-label">ms</div>
+                <div class="performance-rating" id="performanceRating"></div>
+            </div>
+
+            <div class="breakdown-bar">
+                <h3>TTFB Breakdown</h3>
+                <div class="breakdown-visualization" id="visualization"></div>
+                <div class="breakdown-legend">
+                    <div class="legend-item">
+                        <div class="legend-color segment-dns"></div>
+                        <span>DNS</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color segment-tcp"></div>
+                        <span>TCP</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color segment-tls"></div>
+                        <span>TLS</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color segment-server"></div>
+                        <span>Server</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="breakdown-metrics">
+                <div class="metric-card">
+                    <h4>DNS Lookup</h4>
+                    <div class="value" id="dnsValue">0</div>
+                    <div class="sublabel">ms</div>
+                </div>
+                <div class="metric-card">
+                    <h4>TCP Connection</h4>
+                    <div class="value" id="tcpValue">0</div>
+                    <div class="sublabel">ms</div>
+                </div>
+                <div class="metric-card">
+                    <h4>TLS Handshake</h4>
+                    <div class="value" id="tlsValue">0</div>
+                    <div class="sublabel">ms</div>
+                </div>
+                <div class="metric-card">
+                    <h4>Server Processing</h4>
+                    <div class="value" id="serverValue">0</div>
+                    <div class="sublabel">ms</div>
+                </div>
+            </div>
+
+            <div class="benchmarks">
+                <h3>Industry Benchmarks</h3>
+                <div class="benchmark-item">
+                    <div class="benchmark-label">Good (0-200ms)</div>
+                    <div class="benchmark-bar">
+                        <div class="benchmark-fill" style="width: 100%; background: #4ade80;"></div>
+                    </div>
+                    <div class="benchmark-value">200ms</div>
+                </div>
+                <div class="benchmark-item">
+                    <div class="benchmark-label">Fair (200-500ms)</div>
+                    <div class="benchmark-bar">
+                        <div class="benchmark-fill" style="width: 75%; background: #fbbf24;"></div>
+                    </div>
+                    <div class="benchmark-value">500ms</div>
+                </div>
+                <div class="benchmark-item">
+                    <div class="benchmark-label">Poor (&gt;500ms)</div>
+                    <div class="benchmark-bar">
+                        <div class="benchmark-fill" style="width: 50%; background: #f87171;"></div>
+                    </div>
+                    <div class="benchmark-value">&gt;500ms</div>
+                </div>
+                <div class="benchmark-item">
+                    <div class="benchmark-label">Your TTFB</div>
+                    <div class="benchmark-bar">
+                        <div class="benchmark-fill" id="yourTtfbBar"></div>
+                    </div>
+                    <div class="benchmark-value" id="yourTtfbLabel">0ms</div>
+                </div>
+            </div>
+
+            <div class="recommendations">
+                <h3>Optimization Recommendations</h3>
+                <div id="recommendationsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 krzen.com. All rights reserved.</p>
+    </footer>
+
+    <script>
+        function autoFill() {
+            const type = document.getElementById('connectionType').value;
+            const presets = {
+                '4g': { dns: 80, tcp: 60, tls: 120, server: 150 },
+                '5g': { dns: 40, tcp: 30, tls: 60, server: 120 },
+                'fiber': { dns: 30, tcp: 20, tls: 40, server: 100 },
+                'mobile3g': { dns: 150, tcp: 120, tls: 180, server: 300 }
+            };
+
+            if (presets[type]) {
+                document.getElementById('dns').value = presets[type].dns;
+                document.getElementById('tcp').value = presets[type].tcp;
+                document.getElementById('tls').value = presets[type].tls;
+                document.getElementById('server').value = presets[type].server;
+            }
+        }
+
+        function analyzeTTFB() {
+            const dns = parseInt(document.getElementById('dns').value);
+            const tcp = parseInt(document.getElementById('tcp').value);
+            const tls = parseInt(document.getElementById('tls').value);
+            const server = parseInt(document.getElementById('server').value);
+
+            const ttfb = dns + tcp + tls + server;
+
+            // Update values
+            document.getElementById('ttfbValue').textContent = ttfb;
+            document.getElementById('dnsValue').textContent = dns;
+            document.getElementById('tcpValue').textContent = tcp;
+            document.getElementById('tlsValue').textContent = tls;
+            document.getElementById('serverValue').textContent = server;
+
+            // Performance rating
+            let rating = '';
+            let ratingClass = '';
+            if (ttfb <= 200) {
+                rating = 'Good';
+                ratingClass = 'rating-good';
+            } else if (ttfb <= 500) {
+                rating = 'Fair';
+                ratingClass = 'rating-fair';
+            } else {
+                rating = 'Poor';
+                ratingClass = 'rating-poor';
+            }
+
+            const ratingDiv = document.getElementById('performanceRating');
+            ratingDiv.textContent = rating;
+            ratingDiv.className = 'performance-rating ' + ratingClass;
+
+            // Visualization
+            const total = ttfb || 1;
+            const visualization = document.getElementById('visualization');
+            visualization.innerHTML = `
+                <div class="segment segment-dns" style="flex: ${dns};">DNS ${dns}ms</div>
+                <div class="segment segment-tcp" style="flex: ${tcp};">TCP ${tcp}ms</div>
+                <div class="segment segment-tls" style="flex: ${tls};">TLS ${tls}ms</div>
+                <div class="segment segment-server" style="flex: ${server};">Server ${server}ms</div>
+            `;
+
+            // Your TTFB benchmark bar
+            const percentage = Math.min(100, (ttfb / 800) * 100);
+            const color = ttfb <= 200 ? '#4ade80' : ttfb <= 500 ? '#fbbf24' : '#f87171';
+            document.getElementById('yourTtfbBar').style.width = percentage + '%';
+            document.getElementById('yourTtfbBar').style.background = color;
+            document.getElementById('yourTtfbLabel').textContent = ttfb + 'ms';
+
+            // Recommendations
+            const recs = [];
+            if (dns > 100) recs.push({ priority: 'High', text: 'DNS lookup is slow. Consider using a faster DNS provider (CloudFlare: 1.1.1.1, Google: 8.8.8.8)' });
+            if (tcp > 80) recs.push({ priority: 'High', text: 'TCP connection slow. Use a CDN to serve content from locations closer to users' });
+            if (tls > 150) recs.push({ priority: 'High', text: 'TLS handshake is slow. Enable TLS 1.3, OCSP stapling, and session resumption' });
+            if (server > 300) recs.push({ priority: 'Critical', text: 'Server processing time is excessive. Optimize server-side code and database queries' });
+            if (server > 200) recs.push({ priority: 'High', text: 'Server response time could be improved. Consider caching, lazy loading, and async processing' });
+            if (ttfb > 500) recs.push({ priority: 'Critical', text: 'Overall TTFB is poor. Implement aggressive caching strategies and server optimizations' });
+            if (recs.length === 0) recs.push({ priority: 'Good', text: 'Your TTFB is well-optimized. Continue monitoring performance metrics.' });
+
+            const recsList = document.getElementById('recommendationsList');
+            recsList.innerHTML = recs.map(r =>
+                `<div class="rec-item"><span class="rec-priority">${r.priority}</span>${r.text}</div>`
+            ).join('');
+
+            document.getElementById('results').classList.add('show');
+        }
+    </script>
+<div style="margin:20px auto;max-width:728px;text-align:center">
+<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2241192243363112" data-ad-slot="auto" data-ad-format="auto" data-full-width-responsive="true"></ins>
+<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div>
+<div style="margin:30px auto;max-width:728px;text-align:center;padding:18px 24px;background:linear-gradient(135deg,#0f172a,#1e293b);border:1px solid #334155;border-radius:10px">
+<p style="margin:0 0 6px;color:#94a3b8;font-size:0.85rem">Recommended by our team</p>
+<a href="https://www.belikenative.com?ref=satellite" target="_blank" rel="noopener" style="color:#38bdf8;font-weight:600;font-size:1.05rem;text-decoration:none">BeLikeNative.com</a>
+<p style="margin:6px 0 0;color:#cbd5e1;font-size:0.9rem">The #1 AI writing tool for freelancers — perfect grammar in any language, instantly.</p>
+</div>
+</body>
+</html>
