@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTTP/2 Push Calculator — Free Tool</title>
+    <meta name="description" content="Calculate HTTP/2 push benefits. Compare waterfall diagrams with and without server push optimization.">
+    <meta name="theme-color" content="#0a0e27">
+    <link rel="canonical" href="https://krzen.com/tools/http2-push-calculator">
+    <meta property="og:title" content="HTTP/2 Push Calculator — Free Tool">
+    <meta property="og:description" content="Calculate HTTP/2 push benefits. Compare waterfall diagrams with and without server push optimization.">
+    <meta property="og:url" content="https://krzen.com/tools/http2-push-calculator">
+    <meta property="og:type" content="website">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "HTTP/2 Push Calculator",
+      "description": "Calculate benefits of HTTP/2 server push with waterfall comparison",
+      "url": "https://krzen.com/tools/http2-push-calculator",
+      "applicationCategory": "UtilityApplication",
+      "operatingSystem": "Web"
+    }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0a0e27;
+            color: #e0e6ed;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            flex: 1;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-top: 20px;
+        }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: #00d4aa;
+        }
+        .subtitle {
+            font-size: 14px;
+            color: #a0afc0;
+        }
+        .calculator {
+            background: #1a1f3a;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid #2a3554;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #00d4aa;
+        }
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #2a3554;
+            border-radius: 6px;
+            background: #0a0e27;
+            color: #e0e6ed;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #00d4aa;
+            box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.2);
+        }
+        .resources-list {
+            background: #0a0e27;
+            border: 1px solid #2a3554;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .resource-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #1a1f3a;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .resource-name {
+            flex: 1;
+            color: #00d4aa;
+        }
+        .resource-size {
+            color: #a0afc0;
+            margin: 0 10px;
+        }
+        .remove-btn {
+            background: #f87171;
+            color: #0a0e27;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .remove-btn:hover {
+            background: #ef4444;
+        }
+        .add-resource-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        .add-resource-group input {
+            margin-bottom: 0;
+        }
+        button {
+            padding: 10px 20px;
+            background: #00d4aa;
+            color: #0a0e27;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.3s;
+            white-space: nowrap;
+        }
+        button:hover {
+            background: #00c094;
+        }
+        button.secondary {
+            background: #4a5078;
+            color: #e0e6ed;
+            width: 100%;
+            margin-top: 20px;
+            font-size: 16px;
+            padding: 12px;
+        }
+        button.secondary:hover {
+            background: #5a6088;
+        }
+        .results {
+            display: none;
+        }
+        .results.show {
+            display: block;
+        }
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .comparison-card {
+            background: #1a1f3a;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #2a3554;
+        }
+        .comparison-card h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #00d4aa;
+        }
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #2a3554;
+            font-size: 13px;
+        }
+        .metric:last-child {
+            border-bottom: none;
+        }
+        .metric-label {
+            color: #a0afc0;
+        }
+        .metric-value {
+            color: #00d4aa;
+            font-weight: 700;
+        }
+        .savings {
+            background: #1a1f3a;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #2a3554;
+            text-align: center;
+            grid-column: 1 / -1;
+        }
+        .savings h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #00d4aa;
+        }
+        .savings-value {
+            font-size: 32px;
+            font-weight: 900;
+            color: #4ade80;
+            margin: 10px 0;
+        }
+        .savings-percent {
+            font-size: 14px;
+            color: #a0afc0;
+        }
+        .waterfall {
+            background: #1a1f3a;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #2a3554;
+            margin-bottom: 20px;
+        }
+        .waterfall h3 {
+            font-size: 14px;
+            margin-bottom: 15px;
+            color: #00d4aa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .waterfall-item {
+            margin-bottom: 10px;
+        }
+        .waterfall-label {
+            font-size: 12px;
+            color: #708090;
+            margin-bottom: 4px;
+        }
+        .waterfall-bar {
+            height: 20px;
+            border-radius: 3px;
+            background: #00d4aa;
+            position: relative;
+            overflow: hidden;
+        }
+        .waterfall-bar.secondary {
+            background: #4a5078;
+            opacity: 0.6;
+        }
+        .waterfall-time {
+            font-size: 11px;
+            color: #0a0e27;
+            padding: 2px 4px;
+            line-height: 20px;
+        }
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #708090;
+            font-size: 13px;
+            border-top: 1px solid #2a3554;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            .calculator {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 22px;
+            }
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+            .add-resource-group {
+                grid-template-columns: 1fr;
+            }
+            .savings {
+                grid-column: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>HTTP/2 Push Calculator</h1>
+            <p class="subtitle">Calculate the impact of server push on your resources</p>
+        </header>
+
+        <div class="calculator">
+            <div class="input-group">
+                <label>Network Latency (ms)</label>
+                <input type="number" id="latency" min="10" max="500" value="50">
+            </div>
+
+            <div class="input-group">
+                <label>Bandwidth (Mbps)</label>
+                <input type="number" id="bandwidth" min="0.5" max="100" value="10" step="0.5">
+            </div>
+
+            <div class="input-group">
+                <label>Resources to Push</label>
+                <div class="resources-list" id="resourcesList">
+                    <div class="resource-item">
+                        <span class="resource-name">style.css</span>
+                        <span class="resource-size">45 KB</span>
+                        <button class="remove-btn" onclick="removeResource(this)">Remove</button>
+                    </div>
+                    <div class="resource-item">
+                        <span class="resource-name">font.woff2</span>
+                        <span class="resource-size">120 KB</span>
+                        <button class="remove-btn" onclick="removeResource(this)">Remove</button>
+                    </div>
+                    <div class="resource-item">
+                        <span class="resource-name">app.js</span>
+                        <span class="resource-size">85 KB</span>
+                        <button class="remove-btn" onclick="removeResource(this)">Remove</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Add Resource</label>
+                <div class="add-resource-group">
+                    <input type="text" id="resourceName" placeholder="e.g., image.png">
+                    <input type="number" id="resourceSize" placeholder="Size (KB)" min="1" max="5000">
+                    <button onclick="addResource()">Add</button>
+                </div>
+            </div>
+
+            <button class="secondary" onclick="calculatePush()">Calculate Push Benefits</button>
+        </div>
+
+        <div class="results" id="results">
+            <div class="results-grid">
+                <div class="comparison-card">
+                    <h3>Without Server Push</h3>
+                    <div class="metric">
+                        <span class="metric-label">Total Time:</span>
+                        <span class="metric-value" id="withoutTime">0 ms</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Requests:</span>
+                        <span class="metric-value" id="withoutRequests">0</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Total Size:</span>
+                        <span class="metric-value" id="withoutSize">0 KB</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Avg Load Time:</span>
+                        <span class="metric-value" id="withoutAvg">0 ms</span>
+                    </div>
+                </div>
+
+                <div class="comparison-card">
+                    <h3>With Server Push</h3>
+                    <div class="metric">
+                        <span class="metric-label">Total Time:</span>
+                        <span class="metric-value" id="withTime">0 ms</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Parallel Requests:</span>
+                        <span class="metric-value" id="withRequests">0</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Total Size:</span>
+                        <span class="metric-value" id="withSize">0 KB</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Avg Load Time:</span>
+                        <span class="metric-value" id="withAvg">0 ms</span>
+                    </div>
+                </div>
+
+                <div class="savings">
+                    <h3>Time Savings</h3>
+                    <div class="savings-value" id="savings">0 ms</div>
+                    <div class="savings-percent" id="savingsPercent">0% faster</div>
+                </div>
+            </div>
+
+            <div class="waterfall">
+                <h3>Timeline Comparison</h3>
+                <div style="margin-bottom: 20px;">
+                    <div class="waterfall-label">Without Push</div>
+                    <div id="waterfallWithout"></div>
+                </div>
+                <div>
+                    <div class="waterfall-label">With Push (Parallel)</div>
+                    <div id="waterfallWith"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 krzen.com. All rights reserved.</p>
+    </footer>
+
+    <script>
+        function addResource() {
+            const name = document.getElementById('resourceName').value.trim();
+            const size = document.getElementById('resourceSize').value;
+
+            if (!name || !size) {
+                alert('Please enter resource name and size');
+                return;
+            }
+
+            const list = document.getElementById('resourcesList');
+            const item = document.createElement('div');
+            item.className = 'resource-item';
+            item.innerHTML = `
+                <span class="resource-name">${name}</span>
+                <span class="resource-size">${size} KB</span>
+                <button class="remove-btn" onclick="removeResource(this)">Remove</button>
+            `;
+            list.appendChild(item);
+
+            document.getElementById('resourceName').value = '';
+            document.getElementById('resourceSize').value = '';
+        }
+
+        function removeResource(btn) {
+            btn.parentElement.remove();
+        }
+
+        function calculatePush() {
+            const latency = parseInt(document.getElementById('latency').value);
+            const bandwidth = parseFloat(document.getElementById('bandwidth').value);
+
+            const resources = [];
+            document.querySelectorAll('.resource-item').forEach(item => {
+                const name = item.querySelector('.resource-name').textContent;
+                const size = parseInt(item.querySelector('.resource-size').textContent);
+                resources.push({ name, size });
+            });
+
+            if (resources.length === 0) {
+                alert('Please add at least one resource');
+                return;
+            }
+
+            const totalSize = resources.reduce((sum, r) => sum + r.size, 0);
+            const bytesPerMs = (bandwidth * 1024 * 1024) / 1000 / 8; // Convert to bytes per ms
+            const transferTime = totalSize / bytesPerMs;
+
+            // Without push: sequential requests (each adds latency + transfer)
+            const withoutTime = resources.length * latency + transferTime;
+            const withoutRequests = resources.length;
+            const withoutAvg = Math.round(withoutTime / resources.length);
+
+            // With push: all resources in parallel (one latency + all transfer)
+            const withTime = latency + transferTime;
+            const withAvg = Math.round(withTime / resources.length);
+
+            const savings = Math.round(withoutTime - withTime);
+            const savingsPercent = ((savings / withoutTime) * 100).toFixed(1);
+
+            // Update results
+            document.getElementById('withoutTime').textContent = Math.round(withoutTime) + ' ms';
+            document.getElementById('withoutRequests').textContent = withoutRequests;
+            document.getElementById('withoutSize').textContent = totalSize + ' KB';
+            document.getElementById('withoutAvg').textContent = withoutAvg + ' ms';
+
+            document.getElementById('withTime').textContent = Math.round(withTime) + ' ms';
+            document.getElementById('withRequests').textContent = resources.length;
+            document.getElementById('withSize').textContent = totalSize + ' KB';
+            document.getElementById('withAvg').textContent = withAvg + ' ms';
+
+            document.getElementById('savings').textContent = savings + ' ms';
+            document.getElementById('savingsPercent').textContent = savingsPercent + '% faster';
+
+            // Draw waterfalls
+            const waterfallWithout = document.getElementById('waterfallWithout');
+            const waterfallWith = document.getElementById('waterfallWith');
+            waterfallWithout.innerHTML = '';
+            waterfallWith.innerHTML = '';
+
+            let cumulativeWithout = 0;
+            resources.forEach((resource, idx) => {
+                const itemWithout = document.createElement('div');
+                itemWithout.className = 'waterfall-item';
+                const delayWithout = idx * latency;
+                const timeWithout = Math.round(transferTime / resources.length);
+                itemWithout.innerHTML = `
+                    <div class="waterfall-label">${resource.name}</div>
+                    <div style="margin-left: ${delayWithout}px;">
+                        <div class="waterfall-bar" style="width: ${Math.max(50, timeWithout)}px;">
+                            <div class="waterfall-time">${timeWithout}ms</div>
+                        </div>
+                    </div>
+                `;
+                waterfallWithout.appendChild(itemWithout);
+            });
+
+            const timePerResource = Math.round(transferTime / resources.length);
+            resources.forEach(resource => {
+                const itemWith = document.createElement('div');
+                itemWith.className = 'waterfall-item';
+                itemWith.innerHTML = `
+                    <div class="waterfall-label">${resource.name}</div>
+                    <div style="margin-left: ${latency}px;">
+                        <div class="waterfall-bar secondary" style="width: ${Math.max(50, timePerResource)}px;">
+                            <div class="waterfall-time">${timePerResource}ms</div>
+                        </div>
+                    </div>
+                `;
+                waterfallWith.appendChild(itemWith);
+            });
+
+            document.getElementById('results').classList.add('show');
+        }
+    </script>
+</body>
+</html>

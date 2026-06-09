@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Font Performance Calculator — Free Tool</title>
+    <meta name="description" content="Calculate web font impact on performance. Analyze download size, FOUT/FOIT, and optimal loading strategies.">
+    <meta name="theme-color" content="#0a0e27">
+    <link rel="canonical" href="https://krzen.com/tools/web-font-performance-calculator">
+    <meta property="og:title" content="Web Font Performance Calculator — Free Tool">
+    <meta property="og:description" content="Calculate web font impact on performance. Analyze download size, FOUT/FOIT, and optimal loading strategies.">
+    <meta property="og:url" content="https://krzen.com/tools/web-font-performance-calculator">
+    <meta property="og:type" content="website">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Web Font Performance Calculator",
+      "description": "Calculate web font download size and loading strategy impact",
+      "url": "https://krzen.com/tools/web-font-performance-calculator",
+      "applicationCategory": "UtilityApplication",
+      "operatingSystem": "Web"
+    }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0a0e27;
+            color: #e0e6ed;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            flex: 1;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-top: 20px;
+        }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: #00d4aa;
+        }
+        .subtitle {
+            font-size: 14px;
+            color: #a0afc0;
+        }
+        .calculator {
+            background: #1a1f3a;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid #2a3554;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #00d4aa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #2a3554;
+        }
+        .font-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .font-option {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: #0a0e27;
+            border-radius: 6px;
+            border: 1px solid #2a3554;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .font-option:hover {
+            border-color: #00d4aa;
+            background: #151a32;
+        }
+        .font-option input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            margin-right: 10px;
+            cursor: pointer;
+            accent-color: #00d4aa;
+        }
+        .font-option label {
+            cursor: pointer;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            flex: 1;
+        }
+        .font-details {
+            font-size: 12px;
+            color: #708090;
+            margin-left: 26px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #00d4aa;
+        }
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #2a3554;
+            border-radius: 6px;
+            background: #0a0e27;
+            color: #e0e6ed;
+            font-size: 14px;
+        }
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #00d4aa;
+            box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.2);
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #00d4aa;
+            color: #0a0e27;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #00c094;
+        }
+        .results {
+            display: none;
+        }
+        .results.show {
+            display: block;
+        }
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .result-card {
+            background: #1a1f3a;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #2a3554;
+        }
+        .result-card h3 {
+            font-size: 14px;
+            margin-bottom: 15px;
+            color: #00d4aa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .result-metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #2a3554;
+            font-size: 13px;
+        }
+        .result-metric:last-child {
+            border-bottom: none;
+        }
+        .metric-label {
+            color: #a0afc0;
+        }
+        .metric-value {
+            color: #00d4aa;
+            font-weight: 700;
+        }
+        .strategy-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .strategy-card {
+            background: #1a1f3a;
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid #2a3554;
+        }
+        .strategy-card h4 {
+            font-size: 13px;
+            color: #00d4aa;
+            margin-bottom: 10px;
+        }
+        .strategy-pros {
+            font-size: 12px;
+            color: #4ade80;
+            margin-bottom: 8px;
+        }
+        .strategy-cons {
+            font-size: 12px;
+            color: #f87171;
+        }
+        .timeline {
+            background: #1a1f3a;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #2a3554;
+            margin-top: 20px;
+        }
+        .timeline h3 {
+            font-size: 14px;
+            margin-bottom: 15px;
+            color: #00d4aa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .timeline-item {
+            display: flex;
+            padding: 10px 0;
+            font-size: 12px;
+        }
+        .timeline-time {
+            width: 60px;
+            color: #00d4aa;
+            font-weight: 700;
+        }
+        .timeline-event {
+            flex: 1;
+            color: #a0afc0;
+        }
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #708090;
+            font-size: 13px;
+            border-top: 1px solid #2a3554;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            h1 {
+                font-size: 22px;
+            }
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+            .font-grid {
+                grid-template-columns: 1fr;
+            }
+            .strategy-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Web Font Performance Calculator</h1>
+            <p class="subtitle">Analyze font loading impact on your site performance</p>
+        </header>
+
+        <div class="calculator">
+            <div class="section">
+                <div class="section-title">Select Fonts</div>
+                <div class="font-grid">
+                    <div class="font-option">
+                        <input type="checkbox" id="font-roboto" value="roboto" onchange="updateFonts()">
+                        <label for="font-roboto">Roboto</label>
+                    </div>
+                    <div class="font-option">
+                        <input type="checkbox" id="font-opensans" value="opensans" onchange="updateFonts()">
+                        <label for="font-opensans">Open Sans</label>
+                    </div>
+                    <div class="font-option">
+                        <input type="checkbox" id="font-inter" value="inter" onchange="updateFonts()">
+                        <label for="font-inter">Inter</label>
+                    </div>
+                    <div class="font-option">
+                        <input type="checkbox" id="font-lato" value="lato" onchange="updateFonts()">
+                        <label for="font-lato">Lato</label>
+                    </div>
+                    <div class="font-option">
+                        <input type="checkbox" id="font-montserrat" value="montserrat" onchange="updateFonts()">
+                        <label for="font-montserrat">Montserrat</label>
+                    </div>
+                    <div class="font-option">
+                        <input type="checkbox" id="font-poppins" value="poppins" onchange="updateFonts()">
+                        <label for="font-poppins">Poppins</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Font Weights & Styles</div>
+                <div class="font-grid">
+                    <div class="font-option">
+                        <input type="checkbox" id="weight-300" value="300" checked onchange="updateFonts()">
+                        <label for="weight-300">Light (300)</label>
+                    </div>
+                    <div class="font-option">
+                        <input type="checkbox" id="weight-400" value="400" checked onchange="updateFonts()">
+                        <label for="weight-400">Regular (400)</label>
+                    </div>
+                    <div class="font-option">
+                        <input type="checkbox" id="weight-500" value="500" onchange="updateFonts()">
+                        <label for="weight-500">Medium (500)</label>
+                    </div>
+                    <div class="font-option">
+                        <input type="checkbox" id="weight-700" value="700" checked onchange="updateFonts()">
+                        <label for="weight-700">Bold (700)</label>
+                    </div>
+                    <div class="font-option">
+                        <input type="checkbox" id="italic" value="italic" onchange="updateFonts()">
+                        <label for="italic">Italic</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Configuration</div>
+                <div class="input-group">
+                    <label>Loading Strategy</label>
+                    <select id="strategy" onchange="updateFonts()">
+                        <option value="fout">FOUT (Flash of Unstyled Text)</option>
+                        <option value="foit">FOIT (Flash of Invisible Text)</option>
+                        <option value="swap">font-display: swap</option>
+                        <option value="fallback">font-display: fallback</option>
+                        <option value="optional">font-display: optional</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Network Speed (Mbps)</label>
+                    <input type="number" id="bandwidth" min="0.5" max="100" value="10" step="0.5" onchange="updateFonts()">
+                </div>
+            </div>
+
+            <button onclick="calculateFonts()">Calculate Font Impact</button>
+        </div>
+
+        <div class="results" id="results">
+            <div class="results-grid">
+                <div class="result-card">
+                    <h3>Font Summary</h3>
+                    <div class="result-metric">
+                        <span class="metric-label">Fonts Selected:</span>
+                        <span class="metric-value" id="fontCount">0</span>
+                    </div>
+                    <div class="result-metric">
+                        <span class="metric-label">Total Variants:</span>
+                        <span class="metric-value" id="variantCount">0</span>
+                    </div>
+                    <div class="result-metric">
+                        <span class="metric-label">Total Size:</span>
+                        <span class="metric-value" id="totalSize">0 KB</span>
+                    </div>
+                    <div class="result-metric">
+                        <span class="metric-label">Compression (brotli):</span>
+                        <span class="metric-value" id="compressedSize">0 KB</span>
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <h3>Load Performance</h3>
+                    <div class="result-metric">
+                        <span class="metric-label">Load Time:</span>
+                        <span class="metric-value" id="loadTime">0 ms</span>
+                    </div>
+                    <div class="result-metric">
+                        <span class="metric-label">FOUT Duration:</span>
+                        <span class="metric-value" id="foutTime">0 ms</span>
+                    </div>
+                    <div class="result-metric">
+                        <span class="metric-label">Font Swap Time:</span>
+                        <span class="metric-value" id="swapTime">0 ms</span>
+                    </div>
+                    <div class="result-metric">
+                        <span class="metric-label">Strategy:</span>
+                        <span class="metric-value" id="strategyDisplay">FOUT</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="strategy-cards">
+                <div class="strategy-card">
+                    <h4>FOUT</h4>
+                    <div class="strategy-pros">+ Faster visible text</div>
+                    <div class="strategy-cons">- Text layout shift</div>
+                </div>
+                <div class="strategy-card">
+                    <h4>FOIT</h4>
+                    <div class="strategy-pros">+ No layout shift</div>
+                    <div class="strategy-cons">- Invisible text delay</div>
+                </div>
+                <div class="strategy-card">
+                    <h4>Swap</h4>
+                    <div class="strategy-pros">+ Fast fallback shown</div>
+                    <div class="strategy-cons">- Font still loads</div>
+                </div>
+                <div class="strategy-card">
+                    <h4>Optional</h4>
+                    <div class="strategy-pros">+ Minimal impact</div>
+                    <div class="strategy-cons">- Font may not load</div>
+                </div>
+            </div>
+
+            <div class="timeline">
+                <h3>Load Timeline</h3>
+                <div id="timelineContent"></div>
+            </div>
+
+            <div class="result-card" style="margin-top: 20px;">
+                <h3>Recommendations</h3>
+                <div id="recommendationsContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 krzen.com. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const fontData = {
+            roboto: { name: 'Roboto', baseSize: 85 },
+            opensans: { name: 'Open Sans', baseSize: 92 },
+            inter: { name: 'Inter', baseSize: 78 },
+            lato: { name: 'Lato', baseSize: 88 },
+            montserrat: { name: 'Montserrat', baseSize: 95 },
+            poppins: { name: 'Poppins', baseSize: 82 }
+        };
+
+        function updateFonts() {
+            // Real-time update display
+        }
+
+        function calculateFonts() {
+            const fonts = Object.keys(fontData).filter(font =>
+                document.getElementById(`font-${font}`).checked
+            );
+
+            const weights = [300, 400, 500, 700].filter(w =>
+                document.getElementById(`weight-${w}`)?.checked
+            );
+
+            const hasItalic = document.getElementById('italic').checked;
+            const variants = weights.length * (hasItalic ? 2 : 1);
+            const fontCount = fonts.length;
+
+            if (fontCount === 0) {
+                alert('Please select at least one font');
+                return;
+            }
+
+            // Calculate total size
+            let totalSize = 0;
+            fonts.forEach(font => {
+                totalSize += fontData[font].baseSize * variants;
+            });
+
+            const bandwidth = parseFloat(document.getElementById('bandwidth').value);
+            const bytesPerMs = (bandwidth * 1024 * 1024) / 1000 / 8;
+            const loadTime = Math.round((totalSize * 1024) / bytesPerMs);
+            const compressedSize = Math.round(totalSize * 0.4); // ~40% with brotli
+            const strategy = document.getElementById('strategy').value;
+
+            // Update results
+            document.getElementById('fontCount').textContent = fontCount;
+            document.getElementById('variantCount').textContent = variants;
+            document.getElementById('totalSize').textContent = totalSize + ' KB';
+            document.getElementById('compressedSize').textContent = compressedSize + ' KB';
+            document.getElementById('loadTime').textContent = loadTime + ' ms';
+            document.getElementById('foutTime').textContent = Math.round(loadTime * 0.3) + ' ms';
+            document.getElementById('swapTime').textContent = loadTime + ' ms';
+            document.getElementById('strategyDisplay').textContent = strategy.toUpperCase();
+
+            // Timeline
+            const timelineEvents = [
+                { time: 0, event: 'HTML request starts' },
+                { time: Math.round(loadTime * 0.1), event: 'HTML received' },
+                { time: Math.round(loadTime * 0.15), event: 'CSS parsing' },
+                { time: Math.round(loadTime * 0.2), event: 'Font request starts' },
+                { time: loadTime, event: 'Font loaded & painted' }
+            ];
+
+            let timelineHtml = '';
+            timelineEvents.forEach(item => {
+                timelineHtml += `<div class="timeline-item"><div class="timeline-time">${item.time}ms</div><div class="timeline-event">${item.event}</div></div>`;
+            });
+            document.getElementById('timelineContent').innerHTML = timelineHtml;
+
+            // Recommendations
+            let recs = [];
+            if (fontCount > 2) recs.push('Consider limiting to 2-3 fonts to reduce payload');
+            if (variants > 4) recs.push('Reduce font weights/styles to essential variants only');
+            if (loadTime > 1000) recs.push('Use font-display: swap to show text faster');
+            if (totalSize > 500) recs.push('Subset fonts to used characters only');
+            if (strategy === 'foit') recs.push('Consider font-display: swap for faster perceived performance');
+            if (recs.length === 0) recs.push('Your font setup is well-optimized');
+
+            const recsHtml = recs.map(r => `<div style="padding: 8px 0; border-bottom: 1px solid #2a3554; font-size: 13px;">✓ ${r}</div>`).join('');
+            document.getElementById('recommendationsContent').innerHTML = recsHtml;
+
+            document.getElementById('results').classList.add('show');
+        }
+    </script>
+</body>
+</html>

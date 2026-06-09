@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Speed Score Estimator — Free Tool</title>
+    <meta name="description" content="Estimate your PageSpeed score instantly. Input page size, requests, and server response time for recommendations.">
+    <meta name="theme-color" content="#0a0e27">
+    <link rel="canonical" href="https://krzen.com/tools/page-speed-score-estimator">
+    <meta property="og:title" content="Page Speed Score Estimator — Free Tool">
+    <meta property="og:description" content="Estimate your PageSpeed score instantly. Input page size, requests, and server response time for recommendations.">
+    <meta property="og:url" content="https://krzen.com/tools/page-speed-score-estimator">
+    <meta property="og:type" content="website">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Page Speed Score Estimator",
+      "description": "Estimate your PageSpeed score instantly with instant recommendations",
+      "url": "https://krzen.com/tools/page-speed-score-estimator",
+      "applicationCategory": "UtilityApplication",
+      "operatingSystem": "Web"
+    }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0a0e27;
+            color: #e0e6ed;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            flex: 1;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-top: 20px;
+        }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: #00d4aa;
+        }
+        .subtitle {
+            font-size: 14px;
+            color: #a0afc0;
+        }
+        .calculator {
+            background: #1a1f3a;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid #2a3554;
+        }
+        .input-group {
+            margin-bottom: 25px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #00d4aa;
+        }
+        input[type="number"],
+        input[type="range"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #2a3554;
+            border-radius: 6px;
+            background: #0a0e27;
+            color: #e0e6ed;
+            font-size: 14px;
+        }
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #00d4aa;
+            box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.2);
+        }
+        input[type="range"] {
+            padding: 0;
+            height: 6px;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #00d4aa;
+            cursor: pointer;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #00d4aa;
+            cursor: pointer;
+            border: none;
+        }
+        .range-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #708090;
+            margin-top: 5px;
+        }
+        .value-display {
+            display: inline-block;
+            background: #00d4aa;
+            color: #0a0e27;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #00d4aa;
+            color: #0a0e27;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #00c094;
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+        .results {
+            background: #1a1f3a;
+            border-radius: 12px;
+            padding: 30px;
+            border: 1px solid #2a3554;
+            display: none;
+        }
+        .results.show {
+            display: block;
+        }
+        .score-display {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .score-value {
+            font-size: 60px;
+            font-weight: 900;
+            margin: 10px 0;
+            color: #00d4aa;
+        }
+        .score-label {
+            font-size: 12px;
+            color: #a0afc0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .score-rating {
+            margin-top: 10px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .rating-excellent { color: #00d4aa; }
+        .rating-good { color: #4ade80; }
+        .rating-fair { color: #fbbf24; }
+        .rating-poor { color: #f87171; }
+        .recommendations {
+            margin-top: 25px;
+        }
+        .recommendations h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #00d4aa;
+        }
+        .recommendation-item {
+            background: #0a0e27;
+            border-left: 3px solid #00d4aa;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .breakdown {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .breakdown-item {
+            background: #0a0e27;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #2a3554;
+        }
+        .breakdown-label {
+            font-size: 12px;
+            color: #708090;
+            margin-bottom: 5px;
+        }
+        .breakdown-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #00d4aa;
+        }
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #708090;
+            font-size: 13px;
+            border-top: 1px solid #2a3554;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            .calculator, .results {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 22px;
+            }
+            .score-value {
+                font-size: 48px;
+            }
+            .breakdown {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Page Speed Score Estimator</h1>
+            <p class="subtitle">Estimate your PageSpeed score based on key metrics</p>
+        </header>
+
+        <div class="calculator">
+            <div class="input-group">
+                <label>Page Size (KB) <span class="value-display" id="sizeValue">500</span></label>
+                <input type="range" id="pageSize" min="50" max="5000" value="500" step="50">
+                <div class="range-labels">
+                    <span>50 KB</span>
+                    <span>5000 KB</span>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Number of Requests <span class="value-display" id="requestsValue">30</span></label>
+                <input type="range" id="numRequests" min="5" max="200" value="30" step="1">
+                <div class="range-labels">
+                    <span>5</span>
+                    <span>200</span>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Server Response Time (ms) <span class="value-display" id="ttfbValue">200</span></label>
+                <input type="range" id="serverTTFB" min="50" max="1000" value="200" step="50">
+                <div class="range-labels">
+                    <span>50 ms</span>
+                    <span>1000 ms</span>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Cumulative Layout Shift (0 - 0.25) <span class="value-display" id="clsValue">0.10</span></label>
+                <input type="range" id="cls" min="0" max="0.25" value="0.10" step="0.01">
+                <div class="range-labels">
+                    <span>0</span>
+                    <span>0.25</span>
+                </div>
+            </div>
+
+            <button onclick="calculateScore()">Calculate Score</button>
+        </div>
+
+        <div class="results" id="results">
+            <div class="score-display">
+                <div class="score-label">Your Estimated</div>
+                <div class="score-value" id="scoreValue">0</div>
+                <div class="score-rating" id="scoreRating"></div>
+            </div>
+
+            <div class="breakdown">
+                <div class="breakdown-item">
+                    <div class="breakdown-label">LCP Impact</div>
+                    <div class="breakdown-value" id="lcpScore">0</div>
+                </div>
+                <div class="breakdown-item">
+                    <div class="breakdown-label">FID Impact</div>
+                    <div class="breakdown-value" id="fidScore">0</div>
+                </div>
+                <div class="breakdown-item">
+                    <div class="breakdown-label">CLS Impact</div>
+                    <div class="breakdown-value" id="clsScore">0</div>
+                </div>
+                <div class="breakdown-item">
+                    <div class="breakdown-label">Resource Score</div>
+                    <div class="breakdown-value" id="resourceScore">0</div>
+                </div>
+            </div>
+
+            <div class="recommendations">
+                <h3>Recommendations</h3>
+                <div id="recommendationsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 krzen.com. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const pageSize = document.getElementById('pageSize');
+        const numRequests = document.getElementById('numRequests');
+        const serverTTFB = document.getElementById('serverTTFB');
+        const cls = document.getElementById('cls');
+
+        pageSize.addEventListener('input', () => {
+            document.getElementById('sizeValue').textContent = pageSize.value;
+        });
+        numRequests.addEventListener('input', () => {
+            document.getElementById('requestsValue').textContent = numRequests.value;
+        });
+        serverTTFB.addEventListener('input', () => {
+            document.getElementById('ttfbValue').textContent = serverTTFB.value + ' ms';
+        });
+        cls.addEventListener('input', () => {
+            document.getElementById('clsValue').textContent = parseFloat(cls.value).toFixed(2);
+        });
+
+        function calculateScore() {
+            const size = parseInt(pageSize.value);
+            const requests = parseInt(numRequests.value);
+            const ttfb = parseInt(serverTTFB.value);
+            const clsValue = parseFloat(cls.value);
+
+            // LCP calculation (50-3500ms range for scoring)
+            const estimatedLCP = ttfb + (requests * 15) + (size / 100);
+            let lcpScore = 100;
+            if (estimatedLCP > 2500) lcpScore = 10;
+            else if (estimatedLCP > 1500) lcpScore = Math.max(25, 100 - ((estimatedLCP - 1500) / 10));
+            else if (estimatedLCP > 750) lcpScore = Math.max(50, 100 - ((estimatedLCP - 750) / 10));
+
+            // FID calculation (0-100ms good, up to 300ms fair)
+            const estimatedFID = requests > 50 ? 100 : Math.max(10, 100 - (requests * 1.5));
+            let fidScore = estimatedFID > 100 ? 10 : Math.max(10, 100 - (estimatedFID * 0.5));
+
+            // CLS calculation
+            let clsScore = 100;
+            if (clsValue > 0.25) clsScore = 10;
+            else if (clsValue > 0.1) clsScore = Math.max(50, 100 - (clsValue * 200));
+            else clsScore = Math.max(75, 100 - (clsValue * 500));
+
+            // Resource score (based on size and requests)
+            const idealSize = 300;
+            const idealRequests = 20;
+            let resourceScore = 100;
+            const sizeDeviation = Math.abs(size - idealSize) / idealSize * 100;
+            const requestDeviation = Math.abs(requests - idealRequests) / idealRequests * 100;
+            resourceScore = Math.max(10, 100 - ((sizeDeviation + requestDeviation) / 4));
+
+            // Overall score (weighted average)
+            const overallScore = Math.round(
+                (lcpScore * 0.5) +
+                (fidScore * 0.2) +
+                (clsScore * 0.15) +
+                (resourceScore * 0.15)
+            );
+
+            // Display results
+            const resultsDiv = document.getElementById('results');
+            document.getElementById('scoreValue').textContent = overallScore;
+            document.getElementById('lcpScore').textContent = Math.round(lcpScore);
+            document.getElementById('fidScore').textContent = Math.round(fidScore);
+            document.getElementById('clsScore').textContent = Math.round(clsScore);
+            document.getElementById('resourceScore').textContent = Math.round(resourceScore);
+
+            // Rating
+            let rating = '';
+            let ratingClass = '';
+            if (overallScore >= 90) {
+                rating = 'Excellent';
+                ratingClass = 'rating-excellent';
+            } else if (overallScore >= 50) {
+                rating = 'Good';
+                ratingClass = 'rating-good';
+            } else if (overallScore >= 30) {
+                rating = 'Fair';
+                ratingClass = 'rating-fair';
+            } else {
+                rating = 'Poor';
+                ratingClass = 'rating-poor';
+            }
+
+            const ratingDiv = document.getElementById('scoreRating');
+            ratingDiv.textContent = rating;
+            ratingDiv.className = 'score-rating ' + ratingClass;
+
+            // Recommendations
+            const recommendations = [];
+            if (size > 1000) recommendations.push('Reduce page size: Consider image optimization and code splitting');
+            if (requests > 80) recommendations.push('Too many requests: Combine assets, use HTTP/2 push, enable compression');
+            if (ttfb > 300) recommendations.push('Slow TTFB: Upgrade hosting, use CDN, optimize server-side processing');
+            if (clsValue > 0.1) recommendations.push('High CLS: Reserve space for ads and images to prevent layout shifts');
+            if (estimatedLCP > 2500) recommendations.push('Slow LCP: Optimize critical rendering path and server response time');
+            if (recommendations.length === 0) recommendations.push('Great job! Your metrics are well-optimized.');
+
+            const recList = document.getElementById('recommendationsList');
+            recList.innerHTML = recommendations.map(r => `<div class="recommendation-item">✓ ${r}</div>`).join('');
+
+            resultsDiv.classList.add('show');
+        }
+    </script>
+</body>
+</html>
