@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LCP Subpart Breakdown and Attribution Analyzer</title>
+<meta name="description" content="Split LCP into TTFB, load delay, load duration and render delay, validate the identity, compare against the 40/10/40/10 budget and find the bottleneck.">
+<meta name="keywords" content="LCP subparts, LCP attribution, resource load delay, resource load duration, element render delay, TTFB, Largest Contentful Paint breakdown, Core Web Vitals">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="canonical" href="https://krzen.com/tools/lcp-subpart-breakdown-analyzer">
+<meta property="og:type" content="website">
+<meta property="og:title" content="LCP Subpart Breakdown and Attribution Analyzer">
+<meta property="og:description" content="Split LCP into TTFB, load delay, load duration and render delay, validate the identity, compare against the 40/10/40/10 budget and find the bottleneck.">
+<meta property="og:url" content="https://krzen.com/tools/lcp-subpart-breakdown-analyzer">
+<meta property="og:site_name" content="Krzen">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="LCP Subpart Breakdown and Attribution Analyzer">
+<meta name="twitter:description" content="Decompose Largest Contentful Paint into Chrome's four official subparts and audit the split against the published budget.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "LCP Subpart Breakdown and Attribution Analyzer",
+  "url": "https://krzen.com/tools/lcp-subpart-breakdown-analyzer",
+  "description": "Decompose Largest Contentful Paint into Chrome's four mutually exclusive subparts - time to first byte, resource load delay, resource load duration and element render delay - validate that they sum to the measured LCP, compare each share against the recommended 40/10/40/10 allocation, and get the milliseconds each phase must shed to hit a target LCP.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+  "author": {"@type": "Person", "name": "Michael Lip", "url": "https://zovo.one"},
+  "publisher": {"@type": "Organization", "name": "Krzen", "url": "https://krzen.com"},
+  "datePublished": "2026-07-29",
+  "dateModified": "2026-07-29",
+  "featureList": ["Four-subpart LCP decomposition", "Identity validation with signed residual", "Solve for a missing subpart by subtraction", "Per-phase share against the 40/10/40/10 budget", "Overspend in milliseconds and percentage points", "Proportional savings plan to reach a target LCP", "Dominant bottleneck detection", "Proportional stacked timeline, actual against ideal", "Phase-specific remediation", "Late-discovery pattern detection when load delay exceeds 25 percent"],
+  "browserRequirements": "Requires JavaScript",
+  "isAccessibleForFree": true
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://krzen.com/"},
+    {"@type": "ListItem", "position": 2, "name": "Tools", "item": "https://krzen.com/tools/"},
+    {"@type": "ListItem", "position": 3, "name": "LCP Subpart Breakdown Analyzer", "item": "https://krzen.com/tools/lcp-subpart-breakdown-analyzer"}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What are the four LCP subparts?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Chrome breaks Largest Contentful Paint into four consecutive, non-overlapping intervals. Time to first byte runs from the navigation start to the first byte of the main document response. Resource load delay runs from that first byte to the moment the browser starts fetching the LCP resource. Resource load duration is the fetch of the LCP resource itself. Element render delay runs from the end of that fetch to the frame in which the LCP element is painted. The four are mutually exclusive and collectively exhaustive, so they always add up to the reported LCP value."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the ideal split between the LCP subparts?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "web.dev's Optimize LCP guidance recommends roughly 40 percent of total LCP in time to first byte, under 10 percent in resource load delay, about 40 percent in resource load duration and under 10 percent in element render delay. The two delay phases are essentially pure overhead: they are waiting, not work, so any page spending a large share there has a discovery or rendering problem rather than a bandwidth problem."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why is my resource load delay so large?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Resource load delay measures how long the browser waited after receiving the HTML before it even started the LCP fetch. It is large when the LCP image is not discoverable by the preload scanner: a CSS background-image, an image injected by JavaScript, an image behind a client-side router or a carousel, or an img tag carrying loading=lazy. It is also inflated when the request is queued behind render-blocking CSS and scripts or behind lower-priority requests. Moving the image into the initial HTML as a plain img tag with fetchpriority=high, and never lazy-loading it, is the fix."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do text LCP elements have load delay and load duration?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. When the largest contentful element is a text block there is no LCP resource to fetch, so resource load delay and resource load duration are both zero and the entire LCP is time to first byte plus element render delay. In that case the render delay is usually dominated by render-blocking stylesheets and scripts, web font loading, or client-side hydration."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What counts as a good LCP?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Google's Core Web Vitals thresholds for LCP are 2500 ms or less for good, above 2500 ms up to and including 4000 ms for needs improvement, and above 4000 ms for poor, measured at the 75th percentile of page loads and segmented across mobile and desktop. The related standalone recommendation for time to first byte is 800 ms or less."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I read the real subpart values from my own page?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Use the attribution build of Google's web-vitals library. Calling onLCP from web-vitals/attribution gives you an attribution object containing timeToFirstByte, resourceLoadDelay, resourceLoadDuration and elementRenderDelay in milliseconds, along with the element and url of the LCP candidate. In web-vitals version 3 the third field was named resourceLoadTime; it was renamed to resourceLoadDuration in version 4. Chrome DevTools also exposes the same split in the Performance panel's LCP insight."
+      }
+    }
+  ]
+}
+</script>
+<style>
+:root{
+  --font-display:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --font-body:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --bg:#0a0a0a; --bg-card:#141414; --bg-hover:#1a1a1a;
+  --text:#e8e8e8; --text-muted:#888; --border:#222; --radius:6px; --accent:#FB923C;
+  --ok:#34D399; --warn:#FBBF24; --bad:#F87171;
+  --p1:#60A5FA; --p2:#A78BFA; --p3:#FB923C; --p4:#34D399;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.container{max-width:1100px;margin:0 auto;padding:0 20px}
+header{border-bottom:1px solid var(--border);padding:16px 0;position:sticky;top:0;background:var(--bg);z-index:100}
+header .container{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.logo{font-family:var(--font-display);font-size:1.4rem;font-weight:700;color:var(--accent)}
+nav{display:flex;align-items:center;flex-wrap:wrap;gap:24px}
+nav a{color:var(--text-muted);font-size:0.9rem;font-weight:500}
+nav a:hover{color:var(--text);text-decoration:none}
+.nav-right{display:flex;align-items:center;gap:0.75rem;margin-left:auto}
+.nav-pro{background:var(--accent);color:#000 !important;padding:5px 13px;border-radius:var(--radius);font-size:0.82rem;font-weight:600;white-space:nowrap}
+.nav-pro:hover{opacity:0.85;text-decoration:none}
+.nav-zovo{color:var(--text-muted) !important;font-size:0.78rem;white-space:nowrap}
+.nav-zovo:hover{color:var(--text) !important;text-decoration:none}
+.hero{padding:44px 0 26px;text-align:center}
+.hero h1{font-family:var(--font-display);font-size:2rem;margin-bottom:12px;line-height:1.25}
+.hero h1 span{color:var(--accent)}
+.hero p{color:var(--text-muted);font-size:1.05rem;max-width:760px;margin:0 auto}
+.tool-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin:20px 0}
+.tool-section h3{font-family:var(--font-display);font-size:0.85rem;text-transform:uppercase;color:var(--accent);margin-bottom:16px;letter-spacing:0.04em}
+.tool-section h3 .sub{text-transform:none;color:var(--text-muted);font-weight:400;letter-spacing:0}
+.input-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.input-field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:160px}
+.input-field label{font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;letter-spacing:0.3px}
+input[type="number"],input[type="text"],select{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:8px 12px;font-family:var(--font-body);font-size:0.9rem;width:100%}
+input:focus,select:focus{outline:none;border-color:var(--accent)}
+input:disabled{opacity:.45;cursor:not-allowed}
+input[readonly]{color:var(--text-muted)}
+.btn{background:var(--accent);color:#000;border:none;border-radius:var(--radius);padding:9px 20px;font-family:var(--font-body);font-weight:600;font-size:0.88rem;cursor:pointer;transition:opacity .2s}
+.btn:hover{opacity:.85}
+.btn-secondary{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.btn-secondary:hover{background:rgba(251,146,60,.08);opacity:1}
+.btn-sm{padding:5px 12px;font-size:0.78rem}
+.vp-btn{background:transparent;color:var(--text-muted);border:1px solid var(--border);border-radius:var(--radius);padding:6px 14px;font-size:0.8rem;font-family:var(--font-body);cursor:pointer;transition:all .2s;text-align:left}
+.vp-btn:hover,.vp-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(251,146,60,.06)}
+.preset-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius)}
+table{border-collapse:collapse;width:100%;min-width:700px;font-size:0.82rem}
+th{background:var(--bg);color:var(--text-muted);font-size:0.68rem;text-transform:uppercase;letter-spacing:.4px;text-align:left;padding:9px 10px;border-bottom:1px solid var(--border);white-space:nowrap;font-weight:600}
+td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+td.num,th.num{text-align:right;font-family:var(--font-display)}
+tr.dom-row{background:rgba(251,146,60,.09)}
+tr.dom-row td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+.res-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;text-align:center;margin-bottom:8px}
+.res-item .value{font-family:var(--font-display);font-size:1.55rem;font-weight:700;color:var(--accent);line-height:1.25;word-break:break-word}
+.res-item .label{font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px}
+.verdict{display:inline-block;padding:5px 16px;border-radius:99px;font-family:var(--font-display);font-weight:700;font-size:0.85rem;letter-spacing:.03em}
+.v-good{background:rgba(52,211,153,.12);color:var(--ok);border:1px solid rgba(52,211,153,.4)}
+.v-ni{background:rgba(251,191,36,.12);color:var(--warn);border:1px solid rgba(251,191,36,.4)}
+.v-poor{background:rgba(248,113,113,.12);color:var(--bad);border:1px solid rgba(248,113,113,.4)}
+.status-ok{color:var(--ok)}.status-warn{color:var(--warn)}.status-bad{color:var(--bad)}
+.meter{height:9px;background:var(--bg);border:1px solid var(--border);border-radius:99px;overflow:hidden;margin:14px 0 6px}
+.meter i{display:block;height:100%;background:var(--accent);transition:width .25s}
+.meter-scale{display:flex;justify-content:space-between;font-size:0.7rem;color:var(--text-muted);font-family:var(--font-display)}
+.bar-block{margin:18px 0 0}
+.bar-head{display:flex;justify-content:space-between;font-size:0.74rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px;font-weight:600}
+.stack{display:flex;height:42px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--bg)}
+.stack i{display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:0.7rem;color:#000;font-weight:700;overflow:hidden;white-space:nowrap;transition:width .25s;min-width:0}
+.axis{display:flex;justify-content:space-between;font-family:var(--font-display);font-size:0.68rem;color:var(--text-muted);margin-top:4px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;font-size:0.76rem;color:var(--text-muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.swatch{width:13px;height:13px;border-radius:2px;display:inline-block}
+.note{font-size:0.8rem;color:var(--text-muted);margin-top:12px;line-height:1.6}
+.flagbox{border-radius:var(--radius);padding:11px 14px;font-size:0.84rem;margin-bottom:10px;line-height:1.6}
+.flag-bad{border:1px solid rgba(248,113,113,.45);background:rgba(248,113,113,.07);color:#fca5a5}
+.flag-warn{border:1px solid rgba(251,191,36,.4);background:rgba(251,191,36,.07);color:#fcd34d}
+.flag-ok{border:1px solid rgba(52,211,153,.4);background:rgba(52,211,153,.07);color:#6ee7b7}
+.flagbox strong{color:inherit}
+.fix-block{border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--radius);background:var(--bg);padding:14px 16px;margin-bottom:12px}
+.fix-block h4{font-size:0.95rem;margin-bottom:4px;font-family:var(--font-display)}
+.fix-block .fix-meta{font-size:0.74rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px}
+.fix-block ul{margin:0 0 0 20px;color:var(--text-muted);font-size:0.85rem}
+.fix-block li{margin-bottom:5px;line-height:1.6}
+.fix-block code{font-family:var(--font-display);background:var(--bg-card);padding:1px 5px;border-radius:3px;font-size:0.88em;color:var(--text)}
+.formula{background:var(--bg);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--radius);padding:14px 16px;font-family:var(--font-display);font-size:0.82rem;color:var(--text-muted);overflow-x:auto;white-space:pre;line-height:1.7;margin:14px 0}
+.explainer-section{max-width:800px;margin:44px auto 0}
+.explainer-section h2{font-size:1.28rem;margin:32px 0 12px;color:var(--accent);font-family:var(--font-display)}
+.explainer-section h3{font-size:1.02rem;margin:22px 0 8px}
+.explainer-section p{color:var(--text-muted);margin-bottom:15px;line-height:1.75}
+.explainer-section ul,.explainer-section ol{color:var(--text-muted);margin:0 0 16px 24px}
+.explainer-section li{margin-bottom:7px;line-height:1.7}
+.explainer-section code{font-family:var(--font-display);background:var(--bg-card);padding:2px 6px;border-radius:3px;font-size:0.88em;color:var(--text)}
+.faq-item{border-bottom:1px solid var(--border);padding:15px 0}
+.faq-item:first-of-type{border-top:1px solid var(--border)}
+.faq-q{font-weight:600;font-size:0.98rem}
+.faq-a{color:var(--text-muted);font-size:0.92rem;padding-top:7px;line-height:1.7}
+.related-tools{margin:44px 0 0}
+.related-tools h3{font-family:var(--font-display);text-align:center;margin-bottom:16px;font-size:1rem}
+.related-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.related-grid a{display:block;padding:14px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:0.9rem;transition:border-color .2s}
+.related-grid a:hover{border-color:var(--accent);text-decoration:none}
+.related-grid a small{display:block;color:var(--text-muted);font-size:0.77rem;margin-top:4px}
+.author-bio{margin:32px 0 0;padding:20px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius)}
+.author-bio p{color:var(--text-muted);font-size:0.9rem;line-height:1.65;margin:0}
+.author-bio p strong{color:var(--text)}
+.last-updated{text-align:center;color:var(--text-muted);font-size:0.78rem;margin:24px 0 0}
+.site-footer{border-top:1px solid var(--border);margin-top:4rem}
+.footer-inner{max-width:640px;margin:0 auto;padding:3rem 2rem 2rem;text-align:center}
+.footer-brand{font-size:1.05rem;font-weight:700;color:var(--text)}
+.footer-tagline{font-size:.8rem;color:var(--text-muted);margin-top:.3rem;margin-bottom:1.5rem}
+.footer-cta{display:inline-block;padding:.6rem 1.75rem;border:1.5px solid var(--accent);border-radius:6px;color:var(--accent);font-size:.85rem;font-weight:600;transition:background .2s,color .2s}
+.footer-cta:hover{background:var(--accent);color:#000;text-decoration:none}
+.footer-links{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem 1.25rem;margin-top:1.5rem;font-size:.78rem}
+.footer-links a{color:var(--text-muted)}
+.footer-links a:hover{color:var(--accent)}
+.footer-copy{font-size:.7rem;color:var(--text-muted);margin-top:1.25rem}
+.footer-copy a{color:inherit}
+.zovo-network{border-top:1px solid var(--border);padding:2rem 2rem 3rem;text-align:center}
+.zovo-network-inner{max-width:720px;margin:0 auto}
+.zovo-network-title{font-size:.8rem;font-weight:600;color:var(--text);margin-bottom:1rem}
+.zovo-network-links{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem 1.25rem}
+.zovo-network-links a{font-size:.78rem;color:var(--text-muted);white-space:nowrap;line-height:1.9}
+.zovo-network-links a:hover{color:var(--accent)}
+.pow-strip{border-top:1px solid var(--border);padding:.75rem 2rem;text-align:center}
+.pow-strip-inner{max-width:720px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.2rem .9rem}
+.pow-label{font-size:.7rem;color:var(--text-muted);font-weight:600}
+.pow-strip-inner a{font-size:.7rem;color:var(--text-muted)}
+.pow-strip-inner a:hover{color:var(--accent)}
+.breadcrumb{font-size:.82rem;margin:20px 0 0}
+.breadcrumb span{color:var(--text-muted);margin:0 4px}
+@media(max-width:768px){
+  .hero h1{font-size:1.45rem}
+  .tool-section{padding:18px 14px}
+  nav{gap:14px}
+  .input-row{flex-direction:column}
+  .stack i{font-size:0.6rem}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <a href="/" class="logo">krzen</a>
+    <nav>
+      <a href="/">Tool</a>
+      <a href="/research/">Research</a>
+      <a href="/guides/">Guides</a>
+      <a href="/tools/">Tools</a>
+      <a href="/blog/">Blog</a>
+      <a href="/about.html">About</a>
+      <div class="nav-right">
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&amp;utm_medium=satellite&amp;utm_campaign=nav-link" class="nav-pro" target="_blank" rel="noopener">Go Pro</a>
+        <a href="https://zovo.one/tools" class="nav-zovo">Zovo Tools</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">Home</a> <span>/</span> <a href="/tools/">Tools</a> <span>/</span> <span>LCP Subpart Breakdown Analyzer</span></nav>
+
+  <section class="hero">
+    <h1>LCP Subpart <span>Breakdown Analyzer</span></h1>
+    <p>Decompose Largest Contentful Paint into Chrome's four official subparts, verify that they actually add up, compare every phase against the published 40 / 10 / 40 / 10 budget, and get the exact milliseconds each phase must shed to reach your target. Runs entirely in your browser.</p>
+  </section>
+
+  <div class="tool-section">
+    <h3>1. Scenario <span class="sub">&mdash; load a realistic profile or enter your own numbers below</span></h3>
+    <div class="preset-row" id="presets">
+      <button class="vp-btn" type="button" data-p="server">Slow server, image LCP</button>
+      <button class="vp-btn active" type="button" data-p="discovery">Late-discovered hero image</button>
+      <button class="vp-btn" type="button" data-p="bytes">Oversized hero image</button>
+      <button class="vp-btn" type="button" data-p="text">Text LCP, render-blocked</button>
+      <button class="vp-btn" type="button" data-p="hydration">Hydration-heavy SPA</button>
+      <button class="vp-btn" type="button" data-p="good">Well-balanced page</button>
+    </div>
+    <p class="note">Every preset is internally consistent: the four subparts sum exactly to the stated LCP, which is the invariant the browser guarantees.</p>
+  </div>
+
+  <div class="tool-section">
+    <h3>2. Input mode</h3>
+    <div class="input-row">
+      <div class="input-field">
+        <label for="mode">What do you have</label>
+        <select id="mode">
+          <option value="parts" selected>All four subparts (LCP is their sum)</option>
+          <option value="solve">Total LCP plus three subparts (solve for the fourth)</option>
+        </select>
+      </div>
+      <div class="input-field" id="unknown-wrap" style="display:none">
+        <label for="unknown">Subpart to solve for</label>
+        <select id="unknown">
+          <option value="ttfb">Time to first byte</option>
+          <option value="delay">Resource load delay</option>
+          <option value="dur">Resource load duration</option>
+          <option value="render" selected>Element render delay</option>
+        </select>
+      </div>
+      <div class="input-field">
+        <label for="eltype">LCP element type</label>
+        <select id="eltype">
+          <option value="resource" selected>Image or resource-backed</option>
+          <option value="text">Text block (no LCP resource)</option>
+        </select>
+      </div>
+    </div>
+    <p class="note">A text LCP element has no resource to fetch, so load delay and load duration are structurally zero and the budget is renormalised over the two phases that remain.</p>
+  </div>
+
+  <div class="tool-section">
+    <h3>3. Measurements <span class="sub">&mdash; milliseconds, from the web-vitals attribution build or the DevTools LCP insight</span></h3>
+    <div class="input-row">
+      <div class="input-field"><label for="ttfb">Time to first byte</label><input type="number" id="ttfb" min="0" step="10" value="600"></div>
+      <div class="input-field"><label for="delay">Resource load delay</label><input type="number" id="delay" min="0" step="10" value="1400"></div>
+      <div class="input-field"><label for="dur">Resource load duration</label><input type="number" id="dur" min="0" step="10" value="700"></div>
+      <div class="input-field"><label for="render">Element render delay</label><input type="number" id="render" min="0" step="10" value="200"></div>
+    </div>
+    <div class="input-row">
+      <div class="input-field"><label for="lcp" id="lcp-label">Measured LCP (optional cross-check)</label><input type="number" id="lcp" min="0" step="10" value="2900"></div>
+      <div class="input-field"><label for="target">Target LCP</label><input type="number" id="target" min="1" step="50" value="2500"></div>
+      <div class="input-field"><label for="tol">Identity tolerance (ms)</label><input type="number" id="tol" min="0" step="1" value="1"></div>
+      <div class="input-field"><label>Sum of subparts</label><input type="text" id="sum-out" readonly value=""></div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-secondary btn-sm" type="button" id="zero-all">Clear to zero</button>
+      <button class="btn btn-secondary btn-sm" type="button" id="sync-lcp">Set measured LCP = sum</button>
+    </div>
+    <p class="note">Leave measured LCP at 0 in the first mode to skip the cross-check. The 2500 ms default target is Google's Core Web Vitals "good" threshold at the 75th percentile.</p>
+  </div>
+
+  <div class="tool-section">
+    <h3>4. Identity check <span class="sub">&mdash; TTFB + load delay + load duration + render delay = LCP</span></h3>
+    <div id="validation"></div>
+    <div class="formula" id="identity-line">&mdash;</div>
+  </div>
+
+  <div class="tool-section">
+    <h3>5. Result</h3>
+    <div class="res-grid">
+      <div class="res-item"><div class="value" id="out-lcp">0 ms</div><div class="label">LCP used</div></div>
+      <div class="res-item"><div class="value" id="out-gap">0 ms</div><div class="label">Over target</div></div>
+      <div class="res-item"><div class="value" id="out-dom">&mdash;</div><div class="label">Dominant bottleneck</div></div>
+      <div class="res-item"><div class="value" id="out-over">0 ms</div><div class="label">Its overspend</div></div>
+    </div>
+    <div style="text-align:center;margin-top:6px"><span class="verdict v-good" id="out-verdict">Good</span></div>
+    <div class="meter"><i id="out-meter" style="width:0%"></i></div>
+    <div class="meter-scale"><span>0</span><span>2500 good</span><span>4000 poor</span><span>6000+</span></div>
+    <p class="note" id="out-summary"></p>
+  </div>
+
+  <div class="tool-section">
+    <h3>6. Proportional timeline <span class="sub">&mdash; actual against the ideal allocation, both drawn to the same scale</span></h3>
+    <div class="bar-block">
+      <div class="bar-head"><span>Actual</span><span id="bar-actual-total">0 ms</span></div>
+      <div class="stack" id="bar-actual"></div>
+      <div class="axis"><span>0 ms</span><span id="axis-mid"></span><span id="axis-end"></span></div>
+    </div>
+    <div class="bar-block">
+      <div class="bar-head"><span>Ideal allocation at the same LCP</span><span id="bar-ideal-total">0 ms</span></div>
+      <div class="stack" id="bar-ideal"></div>
+    </div>
+    <div class="bar-block">
+      <div class="bar-head"><span>Budget at your target LCP</span><span id="bar-target-total">0 ms</span></div>
+      <div class="stack" id="bar-target"></div>
+    </div>
+    <div class="legend">
+      <span><i class="swatch" style="background:#60A5FA"></i>Time to first byte</span>
+      <span><i class="swatch" style="background:#A78BFA"></i>Resource load delay</span>
+      <span><i class="swatch" style="background:#FB923C"></i>Resource load duration</span>
+      <span><i class="swatch" style="background:#34D399"></i>Element render delay</span>
+    </div>
+    <p class="note">All three bars share one horizontal scale, set by the larger of your actual LCP and the target, so a shorter bar genuinely means a faster page rather than a rescaled drawing.</p>
+  </div>
+
+  <div class="tool-section">
+    <h3>7. Per-phase audit</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>Phase</th>
+          <th class="num">Actual</th>
+          <th class="num">Share</th>
+          <th class="num">Ideal share</th>
+          <th class="num">Ideal at this LCP</th>
+          <th class="num">Overspend</th>
+          <th class="num">Overspend (pp)</th>
+          <th class="num">Budget at target</th>
+          <th class="num">Must shed</th>
+        </tr></thead>
+        <tbody id="audit-body"></tbody>
+        <tfoot id="audit-foot"></tfoot>
+      </table>
+    </div>
+    <p class="note" id="audit-note"></p>
+  </div>
+
+  <div class="tool-section">
+    <h3>8. Diagnosis and remediation <span class="sub">&mdash; ordered by the milliseconds each phase must give back</span></h3>
+    <div id="fixes"></div>
+  </div>
+
+  <section class="explainer-section">
+    <h2>The method, exactly</h2>
+    <p>Largest Contentful Paint is not a single measurement, it is the end of a chain. Chrome exposes that chain as four consecutive intervals, documented in web.dev's <a href="https://web.dev/articles/optimize-lcp" rel="nofollow" target="_blank">Optimize LCP</a> guide and surfaced programmatically by the attribution build of Google's <code>web-vitals</code> library. The intervals are mutually exclusive and collectively exhaustive, which gives the one hard invariant this page is built around.</p>
+    <div class="formula">TTFB + resourceLoadDelay + resourceLoadDuration + elementRenderDelay = LCP</div>
+
+    <h3>What each subpart actually measures</h3>
+    <ul>
+      <li><strong>Time to first byte.</strong> Navigation start to the first byte of the main document response. Contains DNS, connection, TLS, redirects, and server think time.</li>
+      <li><strong>Resource load delay.</strong> First byte of the document to the instant the browser <em>starts</em> fetching the LCP resource. This is pure waiting. It is the discoverability metric.</li>
+      <li><strong>Resource load duration.</strong> Start to end of the LCP resource fetch. This is the only phase where bytes on the wire are the real cost.</li>
+      <li><strong>Element render delay.</strong> End of that fetch to the frame in which the element is painted. Render-blocking CSS and JavaScript, font swaps, decode cost and hydration all land here.</li>
+    </ul>
+    <p>For a text LCP element there is no resource, so the middle two intervals are zero by construction and LCP collapses to time to first byte plus element render delay.</p>
+
+    <h3>The budget this page audits against</h3>
+    <p>web.dev's guidance gives a target distribution rather than absolute per-phase limits, because what is affordable in each phase depends on the total. The recommended allocation is:</p>
+    <div class="formula">Time to first byte        ~40% of LCP
+Resource load delay       &lt;10% of LCP
+Resource load duration    ~40% of LCP
+Element render delay      &lt;10% of LCP</div>
+    <p>The logic behind the shape is that the two 40 percent phases are unavoidable work &mdash; a server must respond and bytes must travel &mdash; while the two 10 percent phases are overhead. A page spending 45 percent of its LCP in load delay is not slow because of bandwidth; it is slow because the browser did not know what to fetch.</p>
+    <p>Applied to the 2500 ms "good" threshold this yields a 1000 ms time-to-first-byte allowance. Note that the standalone <a href="https://web.dev/articles/ttfb" rel="nofollow" target="_blank">TTFB recommendation</a> is stricter at 800 ms or less, so the page flags a TTFB above 800 ms even when its percentage share looks acceptable.</p>
+
+    <h3>How overspend is computed</h3>
+    <p>Two different comparisons are reported, because they answer different questions.</p>
+    <div class="formula">share_i        = phase_i / LCP
+idealMs_i      = idealWeight_i x LCP        (is the split healthy?)
+overspendMs_i  = phase_i - idealMs_i
+overspendPP_i  = 100 x (share_i - idealWeight_i)
+
+budget_i       = idealWeight_i x targetLCP   (is the page fast enough?)
+excess_i       = max(0, phase_i - budget_i)</div>
+    <p>The first block is scale-free: it tells you whether the shape of the load is right, even on a page that is already fast. The second block is absolute: it tells you what each phase is allowed to cost if the page is to hit the target at all.</p>
+
+    <h3>Distributing the required saving</h3>
+    <p>The total saving needed is simply <code>max(0, LCP - target)</code>. That saving is allocated across phases in proportion to how far each one exceeds its own target budget:</p>
+    <div class="formula">needed   = max(0, LCP - targetLCP)
+shed_i   = needed x excess_i / sum(excess)</div>
+    <p>This allocation has a useful property. Because the budgets sum exactly to the target, the sum of the positive excesses is always at least the needed saving, so every <code>shed_i</code> is bounded by <code>excess_i</code>. No phase is ever asked to go below its own budget, and phases already inside budget are never asked for anything. A phase that is under budget acts as slack: if time to first byte is already lean, the analyzer will not pretend the fix has to come from the server.</p>
+
+    <h3>Validation, not silent acceptance</h3>
+    <p>Real measurements get transcribed wrong, mixed across sessions, or pulled from different percentiles. The identity is checked explicitly and the signed residual is reported:</p>
+    <div class="formula">residual = measuredLCP - (TTFB + delay + duration + render)</div>
+    <ul>
+      <li><strong>residual near zero</strong> &mdash; consistent, within the tolerance you set.</li>
+      <li><strong>residual positive</strong> &mdash; the subparts do not reach the stated LCP; time is unaccounted for, usually because the values came from different page loads or a percentile was mixed with an average.</li>
+      <li><strong>residual negative</strong> &mdash; the subparts overshoot the stated LCP. This is impossible in a single real observation, since the intervals do not overlap.</li>
+    </ul>
+    <p>In solve mode the missing subpart is recovered by subtraction, and a negative result is reported as an error rather than clamped away.</p>
+
+    <h3>The late-discovery signature</h3>
+    <p>When resource load delay exceeds 25 percent of total LCP &mdash; two and a half times its recommended ceiling &mdash; the cause is almost never the network. It is one of a small, well-known set of discoverability failures:</p>
+    <ul>
+      <li>The LCP image is a CSS <code>background-image</code>, so it cannot be found until the stylesheet has downloaded and the rule has matched.</li>
+      <li>The image is injected by JavaScript, or lives behind a client-side route or carousel, so it does not exist until a bundle has executed.</li>
+      <li>The <code>img</code> tag carries <code>loading="lazy"</code>, which defers the one image that must never be deferred.</li>
+      <li>The request is queued behind render-blocking stylesheets and scripts, or was assigned a low initial priority.</li>
+      <li>The image arrives via a redirect chain or a different origin that still needs connection setup.</li>
+    </ul>
+
+    <h3>Reading the real numbers off your own page</h3>
+    <p>The attribution build of <code>web-vitals</code> returns all four values directly. Chrome DevTools shows the same split in the Performance panel's LCP insight.</p>
+    <div class="formula">import {onLCP} from 'web-vitals/attribution';
+
+onLCP(({value, attribution: a}) =&gt; {
+  console.log('LCP                 ', Math.round(value));
+  console.log('TTFB                ', Math.round(a.timeToFirstByte));
+  console.log('resourceLoadDelay   ', Math.round(a.resourceLoadDelay));
+  console.log('resourceLoadDuration', Math.round(a.resourceLoadDuration));
+  console.log('elementRenderDelay  ', Math.round(a.elementRenderDelay));
+  console.log('element             ', a.element, a.url);
+});</div>
+    <p>In <code>web-vitals</code> v3 the third field was named <code>resourceLoadTime</code>; it became <code>resourceLoadDuration</code> in v4. Field data from the Chrome UX Report does not include this split, so the subparts always come from your own lab or RUM instrumentation.</p>
+
+    <h3>Thresholds used on this page</h3>
+    <ul>
+      <li><strong class="status-ok">Good</strong> &mdash; LCP at or below 2500 ms</li>
+      <li><strong class="status-warn">Needs improvement</strong> &mdash; above 2500 ms, at or below 4000 ms</li>
+      <li><strong class="status-bad">Poor</strong> &mdash; above 4000 ms</li>
+      <li>Time to first byte: good at or below 800 ms, poor above 1800 ms</li>
+    </ul>
+    <p>All Core Web Vitals thresholds are evaluated at the 75th percentile of page loads, segmented separately for mobile and desktop. Feeding this tool a median or an average will produce a diagnosis of a page load that nobody actually experienced.</p>
+
+    <h2>Frequently asked questions</h2>
+    <div class="faq-item"><div class="faq-q">My four subparts do not add up to the LCP my monitoring reports. Which is wrong?</div><div class="faq-a">Neither, usually. Within a single observation the identity is exact by construction. It breaks when values are aggregated separately: the 75th percentile of TTFB and the 75th percentile of render delay come from different page loads, and percentiles do not add. Aggregate the subparts only from the same set of observations, or compare a single representative trace.</div></div>
+    <div class="faq-item"><div class="faq-q">Is a 40 percent time-to-first-byte share really acceptable?</div><div class="faq-a">As a share, yes. In absolute terms it depends on the total. At an LCP of 2500 ms a 40 percent share is 1000 ms, which already exceeds the standalone 800 ms TTFB recommendation, so this page flags it separately. At an LCP of 1500 ms the same share is 600 ms and is genuinely fine. Percentages diagnose the shape, milliseconds decide whether you pass.</div></div>
+    <div class="faq-item"><div class="faq-q">Why does the tool refuse a negative subpart instead of clamping it to zero?</div><div class="faq-a">Because a negative residual means the inputs are mutually impossible: the four intervals are consecutive and non-overlapping, so they can never sum to more than the LCP they compose. Clamping would hide a data-collection bug and produce a confident, wrong recommendation. The tool reports the size of the contradiction instead.</div></div>
+    <div class="faq-item"><div class="faq-q">My LCP element is text. Does the 40 / 10 / 40 / 10 budget still apply?</div><div class="faq-a">Not directly, because two of its four phases cannot exist. Select the text element type and the analyzer renormalises the published weights over the two remaining phases, giving 80 percent time to first byte and 20 percent element render delay. That renormalisation is derived here, not published by web.dev, and it is labelled as such in the audit table.</div></div>
+    <div class="faq-item"><div class="faq-q">Load duration is 90 percent of my LCP. Is that bad?</div><div class="faq-a">It is out of shape but it is the least alarming way to be slow, because it is the one phase where the cost is real work rather than waiting. It usually means the hero image is far larger than the space it is displayed in, is served in a legacy format, or is coming from an origin with no CDN in front of it. Correctly sized responsive sources plus AVIF or WebP routinely remove most of it.</div></div>
+    <div class="faq-item"><div class="faq-q">Can preloading the LCP image make things worse?</div><div class="faq-a">Yes. A preload competes for bandwidth and connection slots with everything else the browser needs early, including the stylesheet that must arrive before anything paints. Preloading is the right fix when load delay is genuinely large; when load delay is already small, a preload just reshuffles contention and can push render delay up. Fix discoverability first, and use <code>fetchpriority="high"</code> on a normal img tag before reaching for a preload.</div></div>
+
+    <div class="author-bio">
+      <p><strong>About the author.</strong> Built by <a href="https://zovo.one" rel="author">Michael Lip</a>, a solo developer shipping performance and developer tooling across the Zovo network. This analyzer implements the LCP subpart model documented by Chrome's web.dev performance guidance and exposed by the <code>web-vitals</code> attribution build. Everything is computed client side; nothing you type leaves the page.</p>
+    </div>
+
+    <div class="related-tools">
+      <h3>Related tools</h3>
+      <div class="related-grid">
+        <a href="/tools/core-web-vitals-calculator">Core Web Vitals Calculator<small>Grade LCP, INP and CLS against the thresholds</small></a>
+        <a href="/tools/cls-layout-shift-score-calculator">CLS Layout Shift Score Calculator<small>Impact fraction, distance fraction, session windows</small></a>
+        <a href="/tools/ttfb-analyzer">TTFB Analyzer<small>Break first-byte time into DNS, TCP, TLS and server</small></a>
+        <a href="/tools/image-optimization-calculator">Image Optimization Calculator<small>Format and byte-size savings for the hero image</small></a>
+        <a href="/tools/critical-css-extractor">Critical CSS Extractor<small>Cut render-blocking stylesheets out of render delay</small></a>
+        <a href="/tools/resource-hints-generator">Resource Hints Generator<small>preload, preconnect and fetchpriority markup</small></a>
+      </div>
+    </div>
+
+    <p class="last-updated">Last updated 29 July 2026</p>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">Krzen</div>
+    <div class="footer-tagline">Free web performance tools by a solo dev. No tracking, no uploads.</div>
+    <a href="https://zovo.one/pricing?utm_source=krzen.com&amp;utm_medium=satellite&amp;utm_campaign=footer-link" class="footer-cta">Zovo Lifetime &mdash; $99 once, free forever &rarr;</a>
+    <div class="footer-links">
+      <a href="/tools/">All tools</a>
+      <a href="/tools/core-web-vitals-calculator">Core Web Vitals</a>
+      <a href="/tools/ttfb-analyzer">TTFB Analyzer</a>
+      <a href="/research/">Research</a>
+      <a href="/about.html">About</a>
+      <a href="https://zovo.one">Zovo</a>
+    </div>
+    <div class="footer-copy">&copy; 2026 <a href="https://krzen.com">Krzen</a> &middot; built by <a href="https://zovo.one">Michael Lip</a></div>
+  </div>
+</footer>
+
+<nav class="zovo-network" aria-label="Zovo Tools Network">
+  <div class="zovo-network-inner">
+    <h3 class="zovo-network-title">Explore More Tools</h3>
+    <div class="zovo-network-links">
+      <a href="https://abwex.com">ABWex &mdash; A/B Testing</a>
+      <a href="https://claudflow.com">ClaudFlow &mdash; Workflows</a>
+      <a href="https://claudkit.com">ClaudKit &mdash; API Tools</a>
+      <a href="https://enhio.com">Enhio &mdash; Text Tools</a>
+      <a href="https://epochpilot.com">EpochPilot &mdash; Timestamps</a>
+      <a href="https://gen8x.com">Gen8X &mdash; Color Tools</a>
+      <a href="https://kappafy.com">Kappafy &mdash; JSON</a>
+      <a href="https://kickllm.com">KickLLM &mdash; LLM Costs</a>
+      <a href="https://ml3x.com">ML3X &mdash; Matrix Math</a>
+      <a href="https://viryd.com">Viryd &mdash; Dev Tools</a>
+    </div>
+  </div>
+</nav>
+
+<div class="pow-strip">
+  <div class="pow-strip-inner">
+    <span class="pow-label">By the same builder:</span>
+    <a href="https://github.com/theluckystrike" rel="nofollow">GitHub &mdash; theluckystrike</a>
+    <a href="https://www.belikenative.com" rel="nofollow">BeLikeNative &mdash; Grammar AI</a>
+    <a href="https://earlythunder.com" rel="nofollow">EarlyThunder &mdash; Dev Blog</a>
+    <a href="https://zovo.one" rel="nofollow">Zovo &mdash; AI Dev Tools</a>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- constants ---------- */
+/* Core Web Vitals thresholds, 75th percentile (web.dev) */
+var LCP_GOOD = 2500;
+var LCP_POOR = 4000;
+/* standalone TTFB recommendation (web.dev) */
+var TTFB_GOOD = 800;
+var TTFB_POOR = 1800;
+/* late-discovery signature: load delay at 2.5x its 10% ceiling */
+var DISCOVERY_FLAG = 0.25;
+
+/* recommended allocation from web.dev "Optimize LCP" */
+var BASE_W = {ttfb:0.40, delay:0.10, dur:0.40, render:0.10};
+
+var PHASES = [
+  {k:'ttfb',   name:'Time to first byte',    color:'#60A5FA'},
+  {k:'delay',  name:'Resource load delay',   color:'#A78BFA'},
+  {k:'dur',    name:'Resource load duration',color:'#FB923C'},
+  {k:'render', name:'Element render delay',  color:'#34D399'}
+];
+
+var PRESETS = {
+  server:    {ttfb:1200, delay:150,  dur:900,  render:250,  lcp:2500, type:'resource'},
+  discovery: {ttfb:600,  delay:1400, dur:700,  render:200,  lcp:2900, type:'resource'},
+  bytes:     {ttfb:500,  delay:100,  dur:2400, render:150,  lcp:3150, type:'resource'},
+  text:      {ttfb:700,  delay:0,    dur:0,    render:1900, lcp:2600, type:'text'},
+  hydration: {ttfb:400,  delay:500,  dur:600,  render:1600, lcp:3100, type:'resource'},
+  good:      {ttfb:700,  delay:120,  dur:800,  render:180,  lcp:1800, type:'resource'}
+};
+
+/* ---------- helpers ---------- */
+function $(id){ return document.getElementById(id); }
+function nn(v){ var n = parseFloat(v); return isFinite(n) ? n : 0; }
+function pos(v){ var n = parseFloat(v); return (isFinite(n) && n > 0) ? n : 0; }
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]; }); }
+function ms(n){ if(!isFinite(n)) return '0 ms'; return Math.round(n).toLocaleString('en-US') + ' ms'; }
+function sgn(n){ if(!isFinite(n)) return '0 ms'; return (n > 0 ? '+' : (n < 0 ? '−' : '')) + Math.round(Math.abs(n)).toLocaleString('en-US') + ' ms'; }
+function pct(n, d){ if(!isFinite(n)) return '0.0%'; return n.toFixed(d === undefined ? 1 : d) + '%'; }
+function sgnpp(n){ if(!isFinite(n)) return '0.0 pp'; return (n > 0 ? '+' : (n < 0 ? '−' : '')) + Math.abs(n).toFixed(1) + ' pp'; }
+
+/* ---------- weights (renormalised when a phase cannot exist) ---------- */
+function weightsFor(isText){
+  var w = {ttfb:BASE_W.ttfb, delay:BASE_W.delay, dur:BASE_W.dur, render:BASE_W.render};
+  if(!isText) return w;
+  var keep = BASE_W.ttfb + BASE_W.render;   /* 0.50 */
+  return {ttfb:BASE_W.ttfb / keep, delay:0, dur:0, render:BASE_W.render / keep};
+}
+
+/* ---------- read + validate inputs ---------- */
+function readState(){
+  var mode = $('mode').value;
+  var isText = ($('eltype').value === 'text');
+  var unknown = $('unknown').value;
+  var tol = Math.max(0, nn($('tol').value));
+  var target = pos($('target').value) || LCP_GOOD;
+
+  var raw = {ttfb:nn($('ttfb').value), delay:nn($('delay').value), dur:nn($('dur').value), render:nn($('render').value)};
+  var measured = nn($('lcp').value);
+
+  var errs = [], warns = [], oks = [];
+  var negKeys = [];
+  var i, p;
+
+  for(i = 0; i < PHASES.length; i++){
+    p = PHASES[i].k;
+    if(mode === 'solve' && p === unknown) continue;
+    if(raw[p] < 0){ negKeys.push(PHASES[i].name); raw[p] = 0; }
+  }
+  if(measured < 0){ negKeys.push('Measured LCP'); measured = 0; }
+  if(negKeys.length){
+    errs.push('Negative input rejected for: <strong>' + esc(negKeys.join(', ')) + '</strong>. No LCP interval can be negative; those fields were treated as 0.');
+  }
+
+  if(isText && (raw.delay > 0 || raw.dur > 0)){
+    warns.push('The element type is set to <strong>text</strong>, so resource load delay and resource load duration were forced to 0. A text LCP element has no resource to fetch.');
+    raw.delay = 0; raw.dur = 0;
+  }
+
+  var parts = {ttfb:raw.ttfb, delay:raw.delay, dur:raw.dur, render:raw.render};
+  var total = 0, residual = 0, solved = null, consistent = true, haveData = true;
+
+  if(mode === 'solve'){
+    if(isText && (unknown === 'delay' || unknown === 'dur')){
+      parts[unknown] = 0;
+      solved = {k:unknown, v:0};
+      var s0 = parts.ttfb + parts.delay + parts.dur + parts.render;
+      total = measured > 0 ? measured : s0;
+      residual = measured > 0 ? (measured - s0) : 0;
+      if(Math.abs(residual) > tol){
+        consistent = false;
+        errs.push('Solving for a phase that is structurally zero on a text LCP element leaves <strong>' + sgn(residual) + '</strong> unaccounted for. Solve for time to first byte or element render delay instead.');
+      }
+    } else {
+      var known = 0;
+      for(i = 0; i < PHASES.length; i++){
+        if(PHASES[i].k !== unknown) known += parts[PHASES[i].k];
+      }
+      if(measured <= 0){
+        haveData = false;
+        consistent = false;
+        errs.push('Solve mode needs a measured LCP greater than 0 to subtract from. The three supplied subparts currently total <strong>' + ms(known) + '</strong>; enter the LCP that they are part of and the fourth phase will be recovered by subtraction.');
+        parts[unknown] = 0;
+        total = 0;
+      } else {
+        var v = measured - known;
+        if(v < -tol){
+          consistent = false;
+          errs.push('The three supplied subparts total <strong>' + ms(known) + '</strong>, which overshoots the stated LCP of <strong>' + ms(measured) + '</strong> by <strong>' + ms(-v) + '</strong>. The four intervals do not overlap, so this cannot happen in a single observation. Recheck which values belong to which phase, and that they all come from the same page load.');
+          parts[unknown] = 0;
+          total = known;
+        } else {
+          if(v < 0) v = 0;
+          parts[unknown] = v;
+          solved = {k:unknown, v:v};
+          total = measured;
+          oks.push('Solved for <strong>' + esc(phaseName(unknown)) + '</strong> by subtraction: ' + ms(measured) + ' &minus; ' + ms(known) + ' = <strong>' + ms(v) + '</strong>.');
+        }
+      }
+      residual = 0;
+    }
+  } else {
+    var s = parts.ttfb + parts.delay + parts.dur + parts.render;
+    total = s;
+    if(measured > 0){
+      residual = measured - s;
+      if(Math.abs(residual) > tol){
+        consistent = false;
+        if(residual < 0){
+          errs.push('The subparts sum to <strong>' + ms(s) + '</strong>, overshooting the measured LCP of <strong>' + ms(measured) + '</strong> by <strong>' + ms(-residual) + '</strong>. Because the four intervals are consecutive and non-overlapping, that is impossible within one observation.');
+        } else {
+          warns.push('The subparts sum to <strong>' + ms(s) + '</strong> but the measured LCP is <strong>' + ms(measured) + '</strong>, leaving <strong>' + ms(residual) + '</strong> unaccounted for. Aggregated percentiles do not add: the 75th percentile of each phase comes from a different page load. Use one observation, or aggregate the subparts from the same set of loads.');
+        }
+      } else {
+        oks.push('Identity holds. The four subparts reproduce the measured LCP to within ' + ms(tol) + '.');
+      }
+    }
+  }
+
+  if(total <= 0) haveData = false;
+
+  return {
+    mode:mode, isText:isText, unknown:unknown, tol:tol, target:target,
+    parts:parts, measured:measured, total:total, residual:residual,
+    solved:solved, consistent:consistent, haveData:haveData,
+    errs:errs, warns:warns, oks:oks, sum:(parts.ttfb + parts.delay + parts.dur + parts.render)
+  };
+}
+
+function phaseName(k){
+  for(var i = 0; i < PHASES.length; i++){ if(PHASES[i].k === k) return PHASES[i].name; }
+  return k;
+}
+
+/* ---------- core computation ---------- */
+function analyse(st){
+  var W = weightsFor(st.isText);
+  var total = st.total, target = st.target;
+  var rows = [], i, p, k;
+  var sumExcess = 0;
+  /* when the inputs are blocked there is nothing to plot: show zeros rather
+     than phase values that do not belong to any known total */
+  var shown = st.haveData ? st.parts : {ttfb:0, delay:0, dur:0, render:0};
+
+  for(i = 0; i < PHASES.length; i++){
+    p = PHASES[i]; k = p.k;
+    var actual = shown[k];
+    var share = total > 0 ? (actual / total) * 100 : 0;
+    var idealMs = W[k] * total;
+    var budget = W[k] * target;
+    var excess = actual - budget; if(excess < 0) excess = 0;
+    sumExcess += excess;
+    rows.push({
+      k:k, name:p.name, color:p.color, w:W[k],
+      actual:actual, share:share,
+      idealMs:idealMs, overMs:actual - idealMs, overPP:share - W[k] * 100,
+      budget:budget, excess:excess, shed:0
+    });
+  }
+
+  var needed = total - target; if(needed < 0) needed = 0;
+  for(i = 0; i < rows.length; i++){
+    rows[i].shed = (sumExcess > 0 && needed > 0) ? (needed * rows[i].excess / sumExcess) : 0;
+  }
+
+  /* dominant bottleneck: largest excess over the target budget;
+     if nothing exceeds, largest overspend against the ideal share;
+     if the split is perfect, the largest phase in absolute ms */
+  var dom = null, i2;
+  for(i2 = 0; i2 < rows.length; i2++){
+    if(!dom || rows[i2].excess > dom.excess) dom = rows[i2];
+  }
+  if(!dom || dom.excess <= 0){
+    dom = null;
+    for(i2 = 0; i2 < rows.length; i2++){ if(!dom || rows[i2].overMs > dom.overMs) dom = rows[i2]; }
+  }
+  if(!dom || dom.overMs <= 0){
+    dom = null;
+    for(i2 = 0; i2 < rows.length; i2++){ if(!dom || rows[i2].actual > dom.actual) dom = rows[i2]; }
+  }
+
+  return {rows:rows, weights:W, needed:needed, sumExcess:sumExcess, dom:dom, shown:shown};
+}
+
+function verdictOf(v){
+  if(v <= LCP_GOOD) return {t:'Good', c:'v-good', s:'status-ok'};
+  if(v <= LCP_POOR) return {t:'Needs improvement', c:'v-ni', s:'status-warn'};
+  return {t:'Poor', c:'v-poor', s:'status-bad'};
+}
+
+/* ---------- remediation content ---------- */
+var FIXES = {
+  ttfb: {
+    title:'Time to first byte',
+    lead:'The browser is waiting on the server before any page work can start. Nothing downstream can be optimised around this.',
+    items:[
+      'Serve the document from an edge cache or CDN so the response does not travel to the origin on every request.',
+      'Cache the HTML itself where possible: full-page caching, stale-while-revalidate, or a static build. Dynamic HTML on every request is the single most common cause.',
+      'Profile server think time separately from network time. Slow database queries and uncached template rendering are invisible in the browser but sit entirely inside this phase.',
+      'Remove redirect chains on the entry URL. Each hop adds a full round trip before the first byte of the real document.',
+      'Enable <code>preconnect</code> for the origin serving the LCP resource, and make sure HTTP/2 or HTTP/3 is negotiated so the connection is reused.',
+      'Consider early hints (HTTP 103) to let the browser start critical fetches while the server is still assembling the document.'
+    ]
+  },
+  delay: {
+    title:'Resource load delay',
+    lead:'This is dead time. The document had arrived and the browser still had not started fetching the LCP resource. It is a discoverability problem, not a bandwidth problem.',
+    items:[
+      'Put the LCP image in the initial HTML as a plain <code>&lt;img&gt;</code> tag so the preload scanner finds it before the parser reaches it.',
+      'Add <code>fetchpriority="high"</code> to that img tag. It is the cheapest single change available in this phase.',
+      'Never set <code>loading="lazy"</code> on the LCP image. Lazy-loading the hero is the most common cause of a large load delay.',
+      'Avoid CSS <code>background-image</code> for the LCP element: the request cannot start until the stylesheet has downloaded, parsed and matched.',
+      'Avoid injecting the hero via JavaScript, a client-side route or a carousel component. The image then waits on a bundle download plus execution.',
+      'If the image genuinely cannot be in the initial markup, add <code>&lt;link rel="preload" as="image" fetchpriority="high"&gt;</code> with the matching <code>imagesrcset</code> and <code>imagesizes</code>.',
+      'Move render-blocking stylesheets and synchronous scripts out of the way so the image request is not queued behind them.'
+    ]
+  },
+  dur: {
+    title:'Resource load duration',
+    lead:'The fetch itself is the cost. This is the one phase where the fix is straightforwardly fewer bytes over a shorter path.',
+    items:[
+      'Serve AVIF with a WebP fallback. Against an equivalent-quality JPEG this typically removes a large majority of the bytes.',
+      'Size the image to the box it is displayed in. A 3000 px wide source rendered into a 390 px viewport is pure waste.',
+      'Use responsive <code>srcset</code> and <code>sizes</code> so phones never download the desktop asset.',
+      'Serve the asset from a CDN close to the user, on the same origin where possible so no extra connection setup is needed.',
+      'Check compression: quality 75 to 85 is visually indistinguishable from lossless for photographic content at typical hero sizes.',
+      'Verify the response is not being downgraded to an uncompressed or unoptimised variant by an image proxy or a stale cache rule.',
+      'Make sure the connection is warm. A cold TLS handshake to a third-party image host lands inside this phase.'
+    ]
+  },
+  render: {
+    title:'Element render delay',
+    lead:'The bytes had arrived and the pixels still were not on screen. The main thread or the render-blocking chain is holding the frame back.',
+    items:[
+      'Cut render-blocking CSS. Inline the critical rules and load the rest asynchronously; the browser cannot paint until every blocking stylesheet is done.',
+      'Defer or move non-essential JavaScript off the critical path, and split bundles so the first paint does not wait on the whole application.',
+      'Use <code>font-display: swap</code> or <code>optional</code> so text renders immediately instead of waiting on a web font. A text LCP element blocked by a font lands entirely in this phase.',
+      'Preload only the one or two fonts actually used above the fold, in WOFF2, with the <code>crossorigin</code> attribute.',
+      'Reduce hydration cost on server-rendered frameworks: stream HTML, hydrate progressively, and avoid blocking the first frame on client-side data fetching.',
+      'Check for long tasks between the resource finishing and the paint. Anything above 50 ms on the main thread there is directly delaying LCP.',
+      'Avoid animating the hero in with an opacity or transform transition. The element does not count as painted until it is actually visible.'
+    ]
+  }
+};
+
+/* ---------- rendering ---------- */
+function renderValidation(st, an){
+  var html = '', i;
+  for(i = 0; i < st.errs.length; i++) html += '<div class="flagbox flag-bad">' + st.errs[i] + '</div>';
+  for(i = 0; i < st.warns.length; i++) html += '<div class="flagbox flag-warn">' + st.warns[i] + '</div>';
+  for(i = 0; i < st.oks.length; i++) html += '<div class="flagbox flag-ok">' + st.oks[i] + '</div>';
+
+  if(st.haveData){
+    if(st.parts.delay > DISCOVERY_FLAG * st.total){
+      html += '<div class="flagbox flag-warn"><strong>Late-discovery signature.</strong> Resource load delay is ' +
+        pct((st.parts.delay / st.total) * 100) + ' of LCP, more than 2.5 times its 10 percent ceiling. At that level the LCP resource is almost never slow to download &mdash; it is slow to be found. Check for a CSS <code>background-image</code>, a JavaScript-injected or carousel-hosted hero, <code>loading="lazy"</code> on the LCP image, or a request queued behind render-blocking CSS and scripts.</div>';
+    }
+    if(st.parts.ttfb > TTFB_POOR){
+      html += '<div class="flagbox flag-bad"><strong>Time to first byte is ' + ms(st.parts.ttfb) + '.</strong> The standalone recommendation is 800 ms or less, and above 1800 ms is classed as poor on its own, independent of its share of LCP.</div>';
+    } else if(st.parts.ttfb > TTFB_GOOD){
+      html += '<div class="flagbox flag-warn"><strong>Time to first byte is ' + ms(st.parts.ttfb) + '.</strong> Its share of LCP may look acceptable, but the standalone recommendation is 800 ms or less, which is stricter than 40 percent of a 2500 ms budget.</div>';
+    }
+    if(st.isText && (st.parts.delay === 0 && st.parts.dur === 0)){
+      html += '<div class="flagbox flag-ok"><strong>Text LCP element.</strong> Only two phases exist, so the published weights are renormalised to 80 percent time to first byte and 20 percent element render delay. That renormalisation is derived here, not a figure published by web.dev.</div>';
+    }
+  }
+
+  if(!html) html = '<div class="flagbox flag-warn">Enter at least one non-zero subpart to run the analysis.</div>';
+  $('validation').innerHTML = html;
+
+  var lhs = Math.round(st.parts.ttfb) + ' + ' + Math.round(st.parts.delay) + ' + ' + Math.round(st.parts.dur) + ' + ' + Math.round(st.parts.render);
+  var line = 'TTFB + delay + duration + render\n  ' + lhs + '  =  ' + Math.round(st.sum) + ' ms';
+  if(st.measured > 0){
+    line += '\nmeasured LCP                      =  ' + Math.round(st.measured) + ' ms';
+    line += '\nresidual (measured − sum)         =  ' + (st.measured - st.sum >= 0 ? '' : '−') + Math.round(Math.abs(st.measured - st.sum)) + ' ms';
+  }
+  $('identity-line').textContent = line;
+  $('sum-out').value = Math.round(st.sum) + ' ms';
+}
+
+function renderStack(elId, values, scale){
+  var el = $(elId);
+  var html = '', i, w;
+  var any = false;
+  for(i = 0; i < PHASES.length; i++){ if(values[PHASES[i].k] > 0) any = true; }
+  if(!any || !(scale > 0)){
+    el.innerHTML = '<i style="width:100%;background:transparent;color:#888;font-weight:400">no data</i>';
+    return;
+  }
+  for(i = 0; i < PHASES.length; i++){
+    var k = PHASES[i].k, v = values[k];
+    if(!(v > 0)) continue;
+    w = (v / scale) * 100;
+    var label = (w >= 11) ? (Math.round(v) + ' ms') : (w >= 6 ? Math.round(v) : '');
+    html += '<i style="width:' + w.toFixed(3) + '%;background:' + PHASES[i].color + '" title="' + esc(PHASES[i].name + ': ' + Math.round(v) + ' ms') + '">' + label + '</i>';
+  }
+  var used = 0;
+  for(i = 0; i < PHASES.length; i++) used += values[PHASES[i].k] > 0 ? values[PHASES[i].k] : 0;
+  if(used < scale){
+    html += '<i style="width:' + (((scale - used) / scale) * 100).toFixed(3) + '%;background:transparent"></i>';
+  }
+  el.innerHTML = html;
+}
+
+function renderBars(st, an){
+  var scale = Math.max(st.total, st.target, 1);
+  var ideal = {}, budget = {}, i;
+  for(i = 0; i < an.rows.length; i++){
+    ideal[an.rows[i].k] = an.rows[i].idealMs;
+    budget[an.rows[i].k] = an.rows[i].budget;
+  }
+  renderStack('bar-actual', an.shown, scale);
+  renderStack('bar-ideal', ideal, scale);
+  renderStack('bar-target', budget, scale);
+  $('bar-actual-total').textContent = ms(st.total);
+  $('bar-ideal-total').textContent = ms(st.total);
+  $('bar-target-total').textContent = ms(st.target);
+  $('axis-mid').textContent = ms(scale / 2);
+  $('axis-end').textContent = ms(scale);
+}
+
+function renderAudit(st, an){
+  var html = '', i;
+  for(i = 0; i < an.rows.length; i++){
+    var r = an.rows[i];
+    var isDom = an.dom && an.dom.k === r.k && st.haveData;
+    var overCls = r.overMs > 0 ? 'status-bad' : (r.overMs < 0 ? 'status-ok' : '');
+    html += '<tr class="' + (isDom ? 'dom-row' : '') + '">' +
+      '<td><span class="swatch" style="background:' + r.color + ';margin-right:7px;vertical-align:-1px"></span>' + esc(r.name) + (isDom ? ' <strong style="color:var(--accent)">&larr; bottleneck</strong>' : '') + '</td>' +
+      '<td class="num">' + ms(r.actual) + '</td>' +
+      '<td class="num">' + pct(r.share) + '</td>' +
+      '<td class="num">' + pct(r.w * 100, 0) + '</td>' +
+      '<td class="num">' + ms(r.idealMs) + '</td>' +
+      '<td class="num ' + overCls + '">' + sgn(r.overMs) + '</td>' +
+      '<td class="num ' + overCls + '">' + sgnpp(r.overPP) + '</td>' +
+      '<td class="num">' + ms(r.budget) + '</td>' +
+      '<td class="num">' + (r.shed > 0 ? '<strong>' + ms(r.shed) + '</strong>' : '&mdash;') + '</td>' +
+    '</tr>';
+  }
+  $('audit-body').innerHTML = html;
+
+  var totShed = 0;
+  for(i = 0; i < an.rows.length; i++) totShed += an.rows[i].shed;
+  $('audit-foot').innerHTML = '<tr>' +
+    '<td><strong>Total</strong></td>' +
+    '<td class="num"><strong>' + ms(st.total) + '</strong></td>' +
+    '<td class="num">' + (st.total > 0 ? '100.0%' : '0.0%') + '</td>' +
+    '<td class="num">100%</td>' +
+    '<td class="num">' + ms(st.total) + '</td>' +
+    '<td class="num">0 ms</td>' +
+    '<td class="num">0.0 pp</td>' +
+    '<td class="num">' + ms(st.target) + '</td>' +
+    '<td class="num"><strong>' + ms(totShed) + '</strong></td>' +
+  '</tr>';
+
+  var note;
+  if(!st.haveData){
+    note = 'Nothing to audit yet.';
+  } else if(an.needed <= 0){
+    note = 'LCP is already at or below the ' + ms(st.target) + ' target, so no phase is required to shed anything. The overspend columns still show whether the split is the right shape: a page that passes today with 60 percent of its time in load delay is one hero-image change away from failing.';
+  } else {
+    note = 'Reaching ' + ms(st.target) + ' requires removing <strong>' + ms(an.needed) + '</strong> in total. That saving is distributed in proportion to how far each phase exceeds its own budget at the target, so no phase is asked to go below its allocation and phases already inside budget are asked for nothing.';
+  }
+  if(st.isText) note += ' Weights are renormalised for a text LCP element: 80 percent time to first byte, 20 percent element render delay.';
+  $('audit-note').innerHTML = note;
+}
+
+function renderFixes(st, an){
+  if(!st.haveData){
+    $('fixes').innerHTML = '<p class="note">Enter measurements above to get phase-specific remediation.</p>';
+    return;
+  }
+  var ranked = an.rows.slice().sort(function(a, b){
+    return (b.shed - a.shed) || (b.excess - a.excess) || (b.overMs - a.overMs);
+  });
+  var html = '', i, shown = 0;
+  for(i = 0; i < ranked.length; i++){
+    var r = ranked[i];
+    var relevant = (r.shed > 0) || (r.overMs > 0);
+    if(!relevant) continue;
+    if(st.isText && (r.k === 'delay' || r.k === 'dur')) continue;
+    shown++;
+    var f = FIXES[r.k];
+    var meta = 'Share ' + pct(r.share) + ' against a ' + pct(r.w * 100, 0) + ' target';
+    meta += ' &middot; overspend ' + sgn(r.overMs);
+    if(r.shed > 0) meta += ' &middot; must shed ' + ms(r.shed) + ' to reach ' + ms(st.target);
+    var li = '';
+    for(var j = 0; j < f.items.length; j++) li += '<li>' + f.items[j] + '</li>';
+    html += '<div class="fix-block">' +
+      '<h4>' + (shown === 1 ? 'Primary: ' : '') + esc(f.title) + '</h4>' +
+      '<div class="fix-meta">' + meta + '</div>' +
+      '<p style="color:var(--text-muted);font-size:.87rem;margin-bottom:9px">' + f.lead + '</p>' +
+      '<ul>' + li + '</ul>' +
+    '</div>';
+  }
+  if(!shown){
+    html = '<div class="flagbox flag-ok"><strong>No phase is over its ideal share.</strong> The load is well shaped: every subpart is at or below the allocation web.dev recommends, and the page is inside your ' + ms(st.target) + ' target. Keep the hero image discoverable in the initial HTML and the shape will hold.</div>';
+  }
+  $('fixes').innerHTML = html;
+}
+
+function renderResult(st, an){
+  var v = verdictOf(st.total);
+  $('out-lcp').textContent = ms(st.total);
+  $('out-lcp').className = 'value ' + v.s;
+  var gap = st.total - st.target;
+  $('out-gap').textContent = gap > 0 ? sgn(gap) : 'within target';
+  $('out-gap').className = 'value ' + (gap > 0 ? 'status-bad' : 'status-ok');
+  $('out-gap').style.fontSize = gap > 0 ? '1.55rem' : '1.05rem';
+
+  var domName = (an.dom && st.haveData) ? an.dom.name : '—';
+  $('out-dom').textContent = domName;
+  $('out-dom').style.fontSize = '1.05rem';
+  $('out-over').textContent = (an.dom && st.haveData) ? sgn(an.dom.overMs) : '0 ms';
+  $('out-over').className = 'value ' + ((an.dom && an.dom.overMs > 0) ? 'status-bad' : 'status-ok');
+
+  var vEl = $('out-verdict');
+  vEl.className = 'verdict ' + v.c;
+  vEl.textContent = v.t + ' · ' + ms(st.total);
+  $('out-meter').style.width = Math.min(100, (st.total / 6000) * 100) + '%';
+  $('out-meter').style.background = st.total <= LCP_GOOD ? '#34D399' : (st.total <= LCP_POOR ? '#FBBF24' : '#F87171');
+
+  var msg;
+  if(!st.haveData){
+    msg = 'No usable measurements yet.';
+  } else {
+    msg = 'LCP is <strong>' + ms(st.total) + '</strong> (' + v.t.toLowerCase() + '). ';
+    if(an.dom){
+      msg += 'The dominant phase is <strong>' + esc(an.dom.name) + '</strong> at ' + ms(an.dom.actual) + ', which is ' +
+        pct(an.dom.share) + ' of LCP against a recommended ' + pct(an.dom.w * 100, 0) + ', an overspend of <strong>' + sgn(an.dom.overMs) + '</strong>. ';
+    }
+    if(an.needed > 0){
+      msg += 'To reach ' + ms(st.target) + ' the page must give back <strong>' + ms(an.needed) + '</strong>';
+      if(an.dom && an.dom.shed > 0) msg += ', of which <strong>' + ms(an.dom.shed) + '</strong> is allocated to that phase';
+      msg += '. ';
+    } else {
+      msg += 'The page is already inside the ' + ms(st.target) + ' target. ';
+    }
+    if(!st.consistent) msg += 'Note that the inputs failed the identity check, so treat the split above as unreliable until the measurements are reconciled.';
+  }
+  $('out-summary').innerHTML = msg;
+}
+
+/* ---------- orchestration ---------- */
+function syncModeUI(){
+  var solve = ($('mode').value === 'solve');
+  var isText = ($('eltype').value === 'text');
+  $('unknown-wrap').style.display = solve ? 'flex' : 'none';
+  $('lcp-label').textContent = solve ? 'Measured LCP (required)' : 'Measured LCP (optional cross-check)';
+  var unknown = $('unknown').value;
+  for(var i = 0; i < PHASES.length; i++){
+    var k = PHASES[i].k;
+    var el = $(k);
+    var lockedByText = isText && (k === 'delay' || k === 'dur');
+    var lockedBySolve = solve && k === unknown;
+    el.disabled = lockedByText || lockedBySolve;
+    if(lockedByText) el.value = 0;
+  }
+}
+
+function recompute(){
+  syncModeUI();
+  var st = readState();
+  var an = analyse(st);
+  renderValidation(st, an);
+  renderResult(st, an);
+  renderBars(st, an);
+  renderAudit(st, an);
+  renderFixes(st, an);
+  if(st.mode === 'solve' && st.solved){
+    var f = $(st.solved.k);
+    if(f && f.disabled) f.value = Math.round(st.solved.v);
+  }
+}
+
+function applyPreset(name){
+  var p = PRESETS[name];
+  if(!p) return;
+  $('ttfb').value = p.ttfb;
+  $('delay').value = p.delay;
+  $('dur').value = p.dur;
+  $('render').value = p.render;
+  $('lcp').value = p.lcp;
+  $('eltype').value = p.type;
+  $('mode').value = 'parts';
+  var btns = $('presets').querySelectorAll('.vp-btn');
+  for(var i = 0; i < btns.length; i++){
+    if(btns[i].getAttribute('data-p') === name) btns[i].classList.add('active');
+    else btns[i].classList.remove('active');
+  }
+  recompute();
+}
+
+function clearPresetHighlight(){
+  var btns = $('presets').querySelectorAll('.vp-btn');
+  for(var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+}
+
+/* ---------- events ---------- */
+$('presets').addEventListener('click', function(ev){
+  var b = ev.target.closest ? ev.target.closest('.vp-btn') : null;
+  if(!b) return;
+  applyPreset(b.getAttribute('data-p'));
+});
+
+var watched = ['ttfb', 'delay', 'dur', 'render', 'lcp', 'target', 'tol'];
+for(var wi = 0; wi < watched.length; wi++){
+  $(watched[wi]).addEventListener('input', function(){ clearPresetHighlight(); recompute(); });
+}
+$('mode').addEventListener('change', recompute);
+$('unknown').addEventListener('change', recompute);
+$('eltype').addEventListener('change', function(){ clearPresetHighlight(); recompute(); });
+
+$('zero-all').addEventListener('click', function(){
+  $('ttfb').value = 0; $('delay').value = 0; $('dur').value = 0; $('render').value = 0; $('lcp').value = 0;
+  clearPresetHighlight();
+  recompute();
+});
+$('sync-lcp').addEventListener('click', function(){
+  var s = nn($('ttfb').value) + nn($('delay').value) + nn($('dur').value) + nn($('render').value);
+  $('lcp').value = Math.round(Math.max(0, s));
+  recompute();
+});
+
+/* ---------- boot ---------- */
+recompute();
+})();
+</script>
+</body>
+</html>

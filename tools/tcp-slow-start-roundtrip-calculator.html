@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TCP Slow Start Round-Trip &amp; 14KB Rule Calculator</title>
+<meta name="description" content="Simulate TCP slow start: how many round trips your payload costs, whether it fits the 14,600-byte first flight, and if you are latency or bandwidth bound.">
+<meta name="keywords" content="TCP slow start calculator, 14KB rule, initcwnd, congestion window, round trip time, bandwidth delay product, TTFB, critical HTML size">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="canonical" href="https://krzen.com/tools/tcp-slow-start-roundtrip-calculator">
+<meta property="og:type" content="website">
+<meta property="og:title" content="TCP Slow Start Round-Trip &amp; 14KB Rule Calculator">
+<meta property="og:description" content="Simulate TCP slow start: how many round trips your payload costs, whether it fits the 14,600-byte first flight, and if you are latency or bandwidth bound.">
+<meta property="og:url" content="https://krzen.com/tools/tcp-slow-start-roundtrip-calculator">
+<meta property="og:site_name" content="Krzen">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="TCP Slow Start Round-Trip &amp; 14KB Rule Calculator">
+<meta name="twitter:description" content="Congestion-window simulation of a transfer: exact round-trip count, first-flight fit, and the latency versus bandwidth crossover.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "TCP Slow Start Round-Trip and 14KB Rule Calculator",
+  "url": "https://krzen.com/tools/tcp-slow-start-roundtrip-calculator",
+  "description": "Simulates TCP congestion-window growth to compute the exact number of round trips a payload costs, whether it fits inside the initcwnd first flight (10 x 1460 = 14,600 bytes), the total transfer time including TCP and TLS handshakes, and the payload size at which bandwidth finally overtakes latency.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+  "author": {"@type": "Person", "name": "Michael Lip", "url": "https://zovo.one"},
+  "publisher": {"@type": "Organization", "name": "Krzen", "url": "https://krzen.com"},
+  "datePublished": "2026-07-29",
+  "dateModified": "2026-07-29",
+  "featureList": ["Per-round-trip congestion window simulation", "Exact slow-start round-trip count from the geometric series", "14KB rule first-flight fit check against initcwnd x MSS", "TCP and TLS 1.2, TLS 1.3, 0-RTT and QUIC handshake costs", "Bandwidth-delay product and latency-bound versus bandwidth-bound verdict", "Waterfall timeline of handshake and every flight", "Crossover payload size where bandwidth overtakes latency", "Savings from shrinking critical HTML or raising initcwnd", "Two-RTT compare mode for origin versus CDN edge"],
+  "browserRequirements": "Requires JavaScript",
+  "isAccessibleForFree": true
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://krzen.com/"},
+    {"@type": "ListItem", "position": 2, "name": "Tools", "item": "https://krzen.com/tools/"},
+    {"@type": "ListItem", "position": 3, "name": "TCP Slow Start Round-Trip Calculator", "item": "https://krzen.com/tools/tcp-slow-start-roundtrip-calculator"}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the 14KB rule and where does the number come from?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "RFC 6928 raised the recommended TCP initial congestion window to 10 segments. With a 1500 byte Ethernet MTU, an IPv4 header of 20 bytes and a TCP header of 20 bytes, the maximum segment size is 1460 bytes. Ten segments of 1460 bytes is 14,600 bytes, which is 14.26 KiB. That is everything a server can put on the wire before it has to stop and wait for an acknowledgement, so a response that fits inside it arrives one round trip sooner than one that does not."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How many round trips does a payload take in slow start?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The congestion window doubles every round trip, so the cumulative bytes a server can deliver after k round trips is MSS x initcwnd x (2^k - 1). Inverting that gives k = ceil(log2(payload / (MSS x initcwnd) + 1)). With the defaults of initcwnd 10 and MSS 1460, one round trip carries 14,600 bytes, two carry 43,800, three carry 102,200 and four carry 219,000. A 100 KB response therefore costs three round trips of data delivery, not one."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does adding bandwidth not make small pages load faster?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A transfer is latency bound whenever the payload is smaller than the bandwidth-delay product, which is bandwidth multiplied by round-trip time. On a 100 Mbps link with a 40 ms RTT the bandwidth-delay product is about 500 KB, so any response smaller than that never fills the pipe. The clock is spent waiting for acknowledgements, not moving bytes, and doubling the bandwidth changes nothing. Reducing RTT, reusing the connection, or shrinking the response below the first-flight limit are the only levers that work."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How many round trips does the handshake cost before any data moves?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A warm connection costs zero. A cold plain-HTTP connection costs one round trip for the TCP three-way handshake. Cold TCP plus a full TLS 1.3 handshake costs two round trips, TLS 1.2 costs three, and TLS 1.3 session resumption with 0-RTT early data costs one because the request rides along with the ClientHello. QUIC folds the transport and cryptographic handshakes together, so a first connection costs one round trip and a 0-RTT resumption costs zero. DNS resolution is on top of all of these."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I raise initcwnd above 10 segments?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "On Linux you can, per route, with a command such as ip route change default via 192.0.2.1 dev eth0 initcwnd 20 initrwnd 20. Doubling the initial window doubles the first-flight budget to roughly 29 KB and removes one round trip for responses in the 15 to 29 KB range. The trade-off is that a larger unacknowledged burst is more likely to overflow a shallow buffer on a constrained last mile, which costs a retransmission timeout far more expensive than the round trip you saved. Test on real client networks before shipping it."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does the congestion window really double every round trip?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Only if every segment is acknowledged individually. Slow start increases the window by one MSS per acknowledgement received, and most receivers use delayed acknowledgements, sending one ACK for every two segments. That makes the real growth factor closer to 1.5 per round trip rather than 2.0. This calculator exposes the growth factor as an input so you can model both, and the closed-form round-trip count generalises to k = ceil(log(1 + payload x (g - 1) / (MSS x initcwnd)) / log(g))."
+      }
+    }
+  ]
+}
+</script>
+<style>
+:root{
+  --font-display:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --font-body:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --bg:#0a0a0a; --bg-card:#141414; --bg-hover:#1a1a1a;
+  --text:#e8e8e8; --text-muted:#888; --border:#222; --radius:6px; --accent:#FB923C;
+  --ok:#34D399; --warn:#FBBF24; --bad:#F87171; --blue:#60A5FA;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.container{max-width:1100px;margin:0 auto;padding:0 20px}
+header{border-bottom:1px solid var(--border);padding:16px 0;position:sticky;top:0;background:var(--bg);z-index:100}
+header .container{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.logo{font-family:var(--font-display);font-size:1.4rem;font-weight:700;color:var(--accent)}
+nav{display:flex;align-items:center;flex-wrap:wrap;gap:24px}
+nav a{color:var(--text-muted);font-size:0.9rem;font-weight:500}
+nav a:hover{color:var(--text);text-decoration:none}
+.nav-right{display:flex;align-items:center;gap:0.75rem;margin-left:auto}
+.nav-pro{background:var(--accent);color:#000 !important;padding:5px 13px;border-radius:var(--radius);font-size:0.82rem;font-weight:600;white-space:nowrap}
+.nav-pro:hover{opacity:0.85;text-decoration:none}
+.nav-zovo{color:var(--text-muted) !important;font-size:0.78rem;white-space:nowrap}
+.nav-zovo:hover{color:var(--text) !important;text-decoration:none}
+.hero{padding:44px 0 26px;text-align:center}
+.hero h1{font-family:var(--font-display);font-size:2rem;margin-bottom:12px;line-height:1.25}
+.hero h1 span{color:var(--accent)}
+.hero p{color:var(--text-muted);font-size:1.05rem;max-width:740px;margin:0 auto}
+.tool-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin:20px 0}
+.tool-section h3{font-family:var(--font-display);font-size:0.85rem;text-transform:uppercase;color:var(--accent);margin-bottom:16px;letter-spacing:0.04em}
+.tool-section h3 .sub{text-transform:none;color:var(--text-muted);font-weight:400;letter-spacing:0}
+.input-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.input-row:last-child{margin-bottom:0}
+.input-field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:150px}
+.input-field label{font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;letter-spacing:0.3px}
+.input-field .hint{font-size:0.7rem;color:var(--text-muted);font-family:var(--font-display)}
+input[type="number"],select{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:8px 12px;font-family:var(--font-body);font-size:0.9rem;width:100%}
+input:focus,select:focus{outline:none;border-color:var(--accent)}
+.chk{display:flex;align-items:center;gap:8px;font-size:0.85rem;color:var(--text-muted);cursor:pointer;user-select:none}
+.chk input{width:auto;accent-color:var(--accent)}
+.btn{background:var(--accent);color:#000;border:none;border-radius:var(--radius);padding:9px 20px;font-family:var(--font-body);font-weight:600;font-size:0.88rem;cursor:pointer;transition:opacity .2s}
+.btn:hover{opacity:.85}
+.btn-secondary{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.btn-secondary:hover{background:rgba(251,146,60,.08);opacity:1}
+.vp-btn{background:transparent;color:var(--text-muted);border:1px solid var(--border);border-radius:var(--radius);padding:6px 14px;font-size:0.8rem;font-family:var(--font-body);cursor:pointer;transition:all .2s}
+.vp-btn:hover,.vp-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(251,146,60,.06)}
+.viewport-selector{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius)}
+table{border-collapse:collapse;width:100%;min-width:660px;font-size:0.82rem}
+th{background:var(--bg);color:var(--text-muted);font-size:0.68rem;text-transform:uppercase;letter-spacing:.4px;text-align:left;padding:9px 10px;border-bottom:1px solid var(--border);white-space:nowrap;font-weight:600}
+td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+td.num,th.num{text-align:right;font-family:var(--font-display)}
+tr.rt-fit td{background:rgba(52,211,153,.07)}
+tr.rt-fit td:first-child{box-shadow:inset 3px 0 0 var(--ok)}
+tr.rt-bw td:first-child{box-shadow:inset 3px 0 0 var(--blue)}
+.res-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;text-align:center;margin-bottom:8px}
+.res-item .value{font-family:var(--font-display);font-size:1.55rem;font-weight:700;color:var(--accent);line-height:1.25;word-break:break-word}
+.res-item .label{font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px}
+.res-item .sub{font-size:0.72rem;color:var(--text-muted);font-family:var(--font-display)}
+.verdict-row{text-align:center;margin:18px 0 4px}
+.verdict{display:inline-block;padding:5px 16px;border-radius:99px;font-family:var(--font-display);font-weight:700;font-size:0.85rem;letter-spacing:.03em}
+.v-good{background:rgba(52,211,153,.12);color:var(--ok);border:1px solid rgba(52,211,153,.4)}
+.v-ni{background:rgba(251,191,36,.12);color:var(--warn);border:1px solid rgba(251,191,36,.4)}
+.v-poor{background:rgba(248,113,113,.12);color:var(--bad);border:1px solid rgba(248,113,113,.4)}
+.v-info{background:rgba(96,165,250,.12);color:var(--blue);border:1px solid rgba(96,165,250,.4)}
+.status-ok{color:var(--ok)}.status-warn{color:var(--warn)}.status-bad{color:var(--bad)}.status-info{color:var(--blue)}
+.wf{margin:6px 0 4px}
+.wf-track{display:flex;width:100%;height:30px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--bg)}
+.wf-seg{height:100%;position:relative;border-right:1px solid rgba(10,10,10,.85);min-width:2px;transition:width .2s}
+.wf-seg:last-child{border-right:none}
+.wf-hs{background:rgba(136,136,136,.55)}
+.wf-win{background:var(--accent)}
+.wf-bw{background:var(--blue)}
+.wf-axis{display:flex;justify-content:space-between;font-size:0.7rem;color:var(--text-muted);font-family:var(--font-display);margin-top:5px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:0.76rem;color:var(--text-muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.swatch{width:13px;height:13px;border-radius:2px;display:inline-block}
+.bar-wrap{margin:14px 0 4px}
+.bar-lbl{display:flex;justify-content:space-between;font-size:0.76rem;color:var(--text-muted);margin-bottom:4px;font-family:var(--font-display)}
+.bar{height:11px;background:var(--bg);border:1px solid var(--border);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;transition:width .25s}
+.bar i.fill-a{background:var(--accent)}
+.bar i.fill-b{background:var(--blue)}
+.note{font-size:0.8rem;color:var(--text-muted);margin-top:12px;line-height:1.65}
+.warn-box{border:1px solid rgba(251,191,36,.4);background:rgba(251,191,36,.07);color:var(--warn);border-radius:var(--radius);padding:10px 14px;font-size:0.82rem;margin-bottom:14px}
+.info-box{border:1px solid var(--border);background:var(--bg);border-left:3px solid var(--accent);border-radius:var(--radius);padding:12px 16px;font-size:0.85rem;color:var(--text-muted);line-height:1.7;margin:14px 0}
+.info-box strong{color:var(--text)}
+.formula{background:var(--bg);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--radius);padding:14px 16px;font-family:var(--font-display);font-size:0.82rem;color:var(--text-muted);overflow-x:auto;white-space:pre;line-height:1.7;margin:14px 0}
+.kv-list{list-style:none;margin:0;padding:0}
+.kv-list li{display:flex;justify-content:space-between;gap:16px;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.86rem}
+.kv-list li:last-child{border-bottom:none}
+.kv-list .k{color:var(--text-muted)}
+.kv-list .v{font-family:var(--font-display);color:var(--text);text-align:right}
+.explainer-section{max-width:800px;margin:44px auto 0}
+.explainer-section h2{font-size:1.28rem;margin:32px 0 12px;color:var(--accent);font-family:var(--font-display)}
+.explainer-section h3{font-size:1.02rem;margin:22px 0 8px}
+.explainer-section p{color:var(--text-muted);margin-bottom:15px;line-height:1.75}
+.explainer-section ul,.explainer-section ol{color:var(--text-muted);margin:0 0 16px 24px}
+.explainer-section li{margin-bottom:7px;line-height:1.7}
+.explainer-section code{font-family:var(--font-display);background:var(--bg-card);padding:2px 6px;border-radius:3px;font-size:0.88em;color:var(--text)}
+.faq-item{border-bottom:1px solid var(--border);padding:15px 0}
+.faq-item:first-of-type{border-top:1px solid var(--border)}
+.faq-q{font-weight:600;font-size:0.98rem}
+.faq-a{color:var(--text-muted);font-size:0.92rem;padding-top:7px;line-height:1.7}
+.related-tools{margin:44px 0 0}
+.related-tools h3{font-family:var(--font-display);text-align:center;margin-bottom:16px;font-size:1rem}
+.related-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.related-grid a{display:block;padding:14px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:0.9rem;transition:border-color .2s}
+.related-grid a:hover{border-color:var(--accent);text-decoration:none}
+.related-grid a small{display:block;color:var(--text-muted);font-size:0.77rem;margin-top:4px}
+.author-bio{margin:32px 0 0;padding:20px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius)}
+.author-bio p{color:var(--text-muted);font-size:0.9rem;line-height:1.65;margin:0}
+.author-bio p strong{color:var(--text)}
+.last-updated{text-align:center;color:var(--text-muted);font-size:0.78rem;margin:24px 0 0}
+.site-footer{border-top:1px solid var(--border);margin-top:4rem}
+.footer-inner{max-width:640px;margin:0 auto;padding:3rem 2rem 2rem;text-align:center}
+.footer-brand{font-size:1.05rem;font-weight:700;color:var(--text)}
+.footer-tagline{font-size:.8rem;color:var(--text-muted);margin-top:.3rem;margin-bottom:1.5rem}
+.footer-cta{display:inline-block;padding:.6rem 1.75rem;border:1.5px solid var(--accent);border-radius:6px;color:var(--accent);font-size:.85rem;font-weight:600;transition:background .2s,color .2s}
+.footer-cta:hover{background:var(--accent);color:#000;text-decoration:none}
+.footer-links{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem 1.25rem;margin-top:1.5rem;font-size:.78rem}
+.footer-links a{color:var(--text-muted)}
+.footer-links a:hover{color:var(--accent)}
+.footer-copy{font-size:.7rem;color:var(--text-muted);margin-top:1.25rem}
+.footer-copy a{color:inherit}
+.zovo-network{border-top:1px solid var(--border);padding:2rem 2rem 3rem;text-align:center}
+.zovo-network-inner{max-width:720px;margin:0 auto}
+.zovo-network-title{font-size:.8rem;font-weight:600;color:var(--text);margin-bottom:1rem}
+.zovo-network-links{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem 1.25rem}
+.zovo-network-links a{font-size:.78rem;color:var(--text-muted);white-space:nowrap;line-height:1.9}
+.zovo-network-links a:hover{color:var(--accent)}
+.pow-strip{border-top:1px solid var(--border);padding:.75rem 2rem;text-align:center}
+.pow-strip-inner{max-width:720px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.2rem .9rem}
+.pow-label{font-size:.7rem;color:var(--text-muted);font-weight:600}
+.pow-strip-inner a{font-size:.7rem;color:var(--text-muted)}
+.pow-strip-inner a:hover{color:var(--accent)}
+.breadcrumb{font-size:.82rem;margin:20px 0 0}
+.breadcrumb span{color:var(--text-muted);margin:0 4px}
+.hidden{display:none}
+@media(max-width:768px){
+  .hero h1{font-size:1.45rem}
+  .tool-section{padding:18px 14px}
+  nav{gap:14px}
+  .input-row{flex-direction:column}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <a href="/" class="logo">krzen</a>
+    <nav>
+      <a href="/">Tool</a>
+      <a href="/research/">Research</a>
+      <a href="/guides/">Guides</a>
+      <a href="/tools/">Tools</a>
+      <a href="/blog/">Blog</a>
+      <a href="/about.html">About</a>
+      <div class="nav-right">
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&amp;utm_medium=satellite&amp;utm_campaign=nav-link" class="nav-pro" target="_blank" rel="noopener">Go Pro</a>
+        <a href="https://zovo.one/tools" class="nav-zovo">Zovo Tools</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">Home</a> <span>/</span> <a href="/tools/">Tools</a> <span>/</span> <span>TCP Slow Start Round-Trip Calculator</span></nav>
+
+  <section class="hero">
+    <h1>TCP Slow Start <span>Round-Trip Calculator</span></h1>
+    <p>Bandwidth-only math says a 100 KB response takes 8 ms on a 100 Mbps link. TCP says it takes three round trips. This tool simulates congestion-window growth flight by flight, tells you whether your payload fits the 14,600-byte first flight, and shows exactly where the time actually goes. Runs entirely in your browser.</p>
+  </section>
+
+  <div class="tool-section">
+    <h3>1. Network <span class="sub">&mdash; pick a preset or type your own</span></h3>
+    <div class="viewport-selector" id="net-presets">
+      <button type="button" class="vp-btn" data-rtt="300" data-bw="1.6">Slow 3G &mdash; 300 ms / 1.6 Mbps</button>
+      <button type="button" class="vp-btn active" data-rtt="70" data-bw="20">4G &mdash; 70 ms / 20 Mbps</button>
+      <button type="button" class="vp-btn" data-rtt="30" data-bw="100">Cable &mdash; 30 ms / 100 Mbps</button>
+      <button type="button" class="vp-btn" data-rtt="10" data-bw="500">Fibre &mdash; 10 ms / 500 Mbps</button>
+      <button type="button" class="vp-btn" data-rtt="45" data-bw="100">LEO satellite &mdash; 45 ms / 100 Mbps</button>
+      <button type="button" class="vp-btn" data-rtt="600" data-bw="25">GEO satellite &mdash; 600 ms / 25 Mbps</button>
+      <button type="button" class="vp-btn" data-rtt="160" data-bw="40">Cross-continent &mdash; 160 ms / 40 Mbps</button>
+    </div>
+    <div class="input-row">
+      <div class="input-field">
+        <label for="in-rtt">Round-trip time (ms)</label>
+        <input type="number" id="in-rtt" value="70" min="0.1" max="5000" step="1">
+        <span class="hint">One full there-and-back on the path</span>
+      </div>
+      <div class="input-field">
+        <label for="in-bw">Bandwidth (Mbps)</label>
+        <input type="number" id="in-bw" value="20" min="0.05" max="100000" step="0.1">
+        <span class="hint">Decimal Mbps: 1 Mbps = 1,000,000 bit/s</span>
+      </div>
+      <div class="input-field">
+        <label for="in-payload">Payload size (KB)</label>
+        <input type="number" id="in-payload" value="45" min="0.1" max="10000000" step="1">
+        <span class="hint">Compressed bytes on the wire, 1 KB = 1024 B</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tool-section">
+    <h3>2. TCP parameters <span class="sub">&mdash; defaults follow RFC 6928 and a 1500-byte MTU</span></h3>
+    <div class="input-row">
+      <div class="input-field">
+        <label for="in-icw">Initial congestion window (segments)</label>
+        <input type="number" id="in-icw" value="10" min="1" max="200" step="1">
+        <span class="hint">RFC 6928 default: 10</span>
+      </div>
+      <div class="input-field">
+        <label for="in-mss">MSS (bytes)</label>
+        <input type="number" id="in-mss" value="1460" min="88" max="65535" step="1">
+        <span class="hint">1500 MTU &minus; 20 IPv4 &minus; 20 TCP = 1460</span>
+      </div>
+      <div class="input-field">
+        <label for="in-growth">Window growth per round trip</label>
+        <select id="in-growth">
+          <option value="2">2.0x &mdash; ACK every segment</option>
+          <option value="1.5">1.5x &mdash; delayed ACK, every 2nd segment</option>
+        </select>
+        <span class="hint">Delayed ACKs are the common real case</span>
+      </div>
+    </div>
+    <div class="input-row">
+      <div class="input-field">
+        <label for="in-hs">Connection state</label>
+        <select id="in-hs">
+          <option value="warm">Warm connection &mdash; 0 RTT</option>
+          <option value="tcp">Cold TCP, plain HTTP &mdash; 1 RTT</option>
+          <option value="tls13" selected>Cold TCP + TLS 1.3 full &mdash; 2 RTT</option>
+          <option value="tls13r">Cold TCP + TLS 1.3 0-RTT resume &mdash; 1 RTT</option>
+          <option value="tls12">Cold TCP + TLS 1.2 full &mdash; 3 RTT</option>
+          <option value="quic">QUIC / HTTP-3 first connect &mdash; 1 RTT</option>
+          <option value="quic0">QUIC / HTTP-3 0-RTT resume &mdash; 0 RTT</option>
+        </select>
+        <span class="hint">DNS lookup is not included</span>
+      </div>
+      <div class="input-field">
+        <label for="in-rwnd">Receiver window cap (KB)</label>
+        <input type="number" id="in-rwnd" value="6144" min="1" max="1048576" step="1">
+        <span class="hint">Linux tcp_rmem max default is 6 MB</span>
+      </div>
+      <div class="input-field">
+        <label for="in-alticw">What-if initcwnd (segments)</label>
+        <input type="number" id="in-alticw" value="20" min="1" max="200" step="1">
+        <span class="hint">Used for the savings estimate below</span>
+      </div>
+    </div>
+    <div class="input-row">
+      <div class="input-field">
+        <label class="chk" for="in-compare"><input type="checkbox" id="in-compare"> Compare a second RTT (origin versus CDN edge)</label>
+      </div>
+      <div class="input-field">
+        <label for="in-rtt2">Second RTT (ms)</label>
+        <input type="number" id="in-rtt2" value="15" min="0.1" max="5000" step="1" disabled>
+        <span class="hint">Everything else stays identical</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tool-section">
+    <h3>3. Result</h3>
+    <div id="err-box" class="warn-box hidden"></div>
+    <div class="res-grid">
+      <div class="res-item"><div class="value" id="r-rt">0</div><div class="label">Data round trips</div><div class="sub" id="r-rt-sub">slow start</div></div>
+      <div class="res-item"><div class="value" id="r-total">0 ms</div><div class="label">Total time</div><div class="sub" id="r-total-sub">handshake + transfer</div></div>
+      <div class="res-item"><div class="value" id="r-naive">0 ms</div><div class="label">Bandwidth-only guess</div><div class="sub" id="r-naive-sub">payload / bandwidth</div></div>
+      <div class="res-item"><div class="value" id="r-err">0x</div><div class="label">Understated by</div><div class="sub" id="r-err-sub">real / naive</div></div>
+    </div>
+    <div class="verdict-row"><span class="verdict v-info" id="r-verdict">latency-bound</span></div>
+    <div class="info-box" id="r-summary">Enter your numbers above.</div>
+
+    <div class="wf">
+      <div class="wf-track" id="wf-track"></div>
+      <div class="wf-axis"><span>0 ms</span><span id="wf-mid">&nbsp;</span><span id="wf-end">0 ms</span></div>
+      <div class="legend">
+        <span><i class="swatch wf-hs"></i> Handshake</span>
+        <span><i class="swatch wf-win"></i> Window-limited flight (idle waiting for ACKs)</span>
+        <span><i class="swatch wf-bw"></i> Bandwidth-limited flight (pipe full)</span>
+      </div>
+    </div>
+
+    <div class="bar-wrap">
+      <div class="bar-lbl"><span>First flight budget</span><span id="ff-txt">0 / 0 B</span></div>
+      <div class="bar"><i class="fill-a" id="ff-bar" style="width:0%"></i></div>
+    </div>
+
+    <ul class="kv-list" style="margin-top:18px">
+      <li><span class="k">First-flight capacity (initcwnd &times; MSS)</span><span class="v" id="k-ff">0 B</span></li>
+      <li><span class="k">Payload on the wire</span><span class="v" id="k-payload">0 B</span></li>
+      <li><span class="k">Handshake cost</span><span class="v" id="k-hs">0 RTT / 0 ms</span></li>
+      <li><span class="k">Slow-start transfer time</span><span class="v" id="k-transfer">0 ms</span></li>
+      <li><span class="k">Bandwidth-delay product (BDP)</span><span class="v" id="k-bdp">0 B</span></li>
+      <li><span class="k">Closed-form round trips</span><span class="v" id="k-closed">0</span></li>
+      <li><span class="k">Round trips actually simulated</span><span class="v" id="k-sim">0</span></li>
+      <li><span class="k">Average throughput achieved</span><span class="v" id="k-thr">0 Mbps</span></li>
+    </ul>
+  </div>
+
+  <div class="tool-section">
+    <h3>4. Round-trip by round-trip</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>RT</th>
+            <th class="num">cwnd (segments)</th>
+            <th class="num">Usable segments</th>
+            <th class="num">Bytes this flight</th>
+            <th class="num">Cumulative</th>
+            <th class="num">Cost (ms)</th>
+            <th class="num">Elapsed (ms)</th>
+            <th>Limiter</th>
+          </tr>
+        </thead>
+        <tbody id="rt-body"></tbody>
+      </table>
+    </div>
+    <p class="note">Elapsed includes the handshake. A flight is <span class="status-ok">window-limited</span> when it drains in less than one RTT, so the sender sits idle waiting for acknowledgements; it is <span class="status-info">bandwidth-limited</span> once the flight takes longer than an RTT to serialise, at which point the pipe is full and slow start no longer matters.</p>
+  </div>
+
+  <div class="tool-section">
+    <h3>5. What would actually help</h3>
+    <ul class="kv-list">
+      <li><span class="k">Shrink the payload to fit the first flight</span><span class="v" id="w-shrink">&mdash;</span></li>
+      <li><span class="k" id="w-icw-k">Raise initcwnd to 20 segments</span><span class="v" id="w-icw">&mdash;</span></li>
+      <li><span class="k">Reuse a warm connection (skip the handshake)</span><span class="v" id="w-warm">&mdash;</span></li>
+      <li><span class="k">Halve the RTT (move closer / use an edge)</span><span class="v" id="w-rtt">&mdash;</span></li>
+      <li><span class="k">Crossover payload &mdash; where bandwidth finally dominates</span><span class="v" id="w-cross">&mdash;</span></li>
+    </ul>
+    <p class="note" id="w-note"></p>
+  </div>
+
+  <div class="tool-section hidden" id="cmp-section">
+    <h3>6. RTT comparison <span class="sub">&mdash; same payload, two paths</span></h3>
+    <div class="tbl-wrap">
+      <table style="min-width:520px">
+        <thead>
+          <tr><th>Path</th><th class="num">RTT</th><th class="num">Data round trips</th><th class="num">Handshake</th><th class="num">Transfer</th><th class="num">Total</th></tr>
+        </thead>
+        <tbody id="cmp-body"></tbody>
+      </table>
+    </div>
+    <div class="bar-wrap">
+      <div class="bar-lbl"><span>Path A</span><span id="cmp-a-txt">0 ms</span></div>
+      <div class="bar"><i class="fill-a" id="cmp-a-bar" style="width:0%"></i></div>
+    </div>
+    <div class="bar-wrap">
+      <div class="bar-lbl"><span>Path B</span><span id="cmp-b-txt">0 ms</span></div>
+      <div class="bar"><i class="fill-b" id="cmp-b-bar" style="width:0%"></i></div>
+    </div>
+    <p class="note" id="cmp-note"></p>
+  </div>
+
+  <section class="explainer-section">
+    <h2>The method, exactly</h2>
+    <p>TCP does not start at full speed. A brand-new connection has no idea what the path can carry, so it begins with a small <strong>initial congestion window</strong> and probes upward. Every calculation on this page follows from that one fact.</p>
+
+    <h3>Step 1 &mdash; the first flight, and where 14 KB comes from</h3>
+    <p><a href="https://www.rfc-editor.org/rfc/rfc6928" rel="nofollow" target="_blank">RFC 6928</a> (2013) raised the recommended initial window from the RFC 5681 rule of <code>min(4&times;MSS, max(2&times;MSS, 4380))</code> to a flat 10 segments. On a standard 1500-byte Ethernet MTU, a TCP segment carries <code>1500 &minus; 20 (IPv4) &minus; 20 (TCP) = 1460</code> bytes of payload. So:</p>
+    <div class="formula">firstFlight = initcwnd &times; MSS
+            = 10 &times; 1460
+            = 14,600 bytes  (14.26 KiB)</div>
+    <p>That is the entire budget a server has before it must stop and wait a full round trip for an acknowledgement. This is the real origin of the "keep your critical HTML under 14 KB" advice. It is not a rendering rule or a Google rule; it is an arithmetic consequence of two constants.</p>
+
+    <h3>Step 2 &mdash; exponential growth and the round-trip count</h3>
+    <p>During slow start the sender adds one MSS to the window for every segment acknowledged, which doubles the window each round trip. The window after <em>n</em> round trips, and the cumulative bytes deliverable after <em>k</em> round trips, are a geometric series:</p>
+    <div class="formula">window(n)     = initcwnd &times; g^n          segments
+cumulative(k) = MSS &times; initcwnd &times; (g^k &minus; 1) / (g &minus; 1)   bytes
+
+with g = 2:  cumulative(k) = MSS &times; initcwnd &times; (2^k &minus; 1)
+
+k = ceil( log(1 + payload &times; (g&minus;1) / (MSS &times; initcwnd)) / log(g) )</div>
+    <p>With the defaults that produces a ladder worth memorising:</p>
+    <ul>
+      <li>1 round trip &mdash; <strong>14,600 bytes</strong> (14.3 KiB)</li>
+      <li>2 round trips &mdash; <strong>43,800 bytes</strong> (42.8 KiB)</li>
+      <li>3 round trips &mdash; <strong>102,200 bytes</strong> (99.8 KiB)</li>
+      <li>4 round trips &mdash; <strong>219,000 bytes</strong> (213.9 KiB)</li>
+      <li>5 round trips &mdash; <strong>452,600 bytes</strong> (442.0 KiB)</li>
+    </ul>
+    <p>Crossing one of those boundaries by a single byte costs a full RTT. That is why a 15 KB HTML document can be measurably slower than a 14 KB one on a high-latency connection, and why the gap widens as RTT grows rather than shrinking as bandwidth grows.</p>
+
+    <h3>Step 3 &mdash; the growth factor is rarely a clean 2.0</h3>
+    <p>Slow start grows by one MSS <em>per acknowledgement</em>, not per segment. Most receivers implement delayed acknowledgements and send one ACK for every two segments, so the effective growth is nearer <strong>1.5x per round trip</strong>. The growth selector above switches between the textbook 2.0x and the pessimistic 1.5x so you can bracket reality rather than guess it.</p>
+
+    <h3>Step 4 &mdash; the handshake tax</h3>
+    <p>Before a single byte of response can move, the connection has to exist. These costs are additive round trips on top of the data round trips:</p>
+    <ul>
+      <li><strong>Warm connection</strong> &mdash; 0 RTT. The socket is open and the window may already be large.</li>
+      <li><strong>TCP three-way handshake</strong> &mdash; 1 RTT. SYN, SYN-ACK, then the request rides with the ACK.</li>
+      <li><strong>TLS 1.3 full handshake</strong> &mdash; 1 additional RTT, so 2 RTT cold.</li>
+      <li><strong>TLS 1.2 full handshake</strong> &mdash; 2 additional RTT, so 3 RTT cold.</li>
+      <li><strong>TLS 1.3 session resumption with 0-RTT early data</strong> &mdash; 0 additional RTT, so 1 RTT cold. The request travels with the ClientHello, at the cost of replay exposure, which is why it is only safe for idempotent requests.</li>
+      <li><strong>QUIC / HTTP-3</strong> &mdash; 1 RTT on a first connection because the transport and cryptographic handshakes are combined, and 0 RTT on resumption. QUIC uses the same 10-segment initial window: <a href="https://www.rfc-editor.org/rfc/rfc9002" rel="nofollow" target="_blank">RFC 9002</a> sets it to <code>min(10 &times; max_datagram_size, max(14720, 2 &times; max_datagram_size))</code>.</li>
+    </ul>
+
+    <h3>Step 5 &mdash; latency-bound or bandwidth-bound</h3>
+    <p>The <strong>bandwidth-delay product</strong> is how many bytes fit in the pipe at once:</p>
+    <div class="formula">BDP = bandwidth (bit/s) &times; RTT (s) / 8    bytes</div>
+    <p>If your payload is smaller than the BDP, the connection never fills the pipe and the transfer is <strong>latency-bound</strong>: buying bandwidth changes nothing, and the only levers are fewer round trips, a shorter RTT, or a smaller payload. A 100 Mbps link at 40 ms RTT has a BDP of 500,000 bytes, which is larger than almost every HTML document, stylesheet and script bundle on the web. This is the single most common reason a bandwidth upgrade does not make a site feel faster.</p>
+
+    <h3>The timing model this page uses</h3>
+    <p>Each round trip is charged at <code>max(RTT, flightBytes / bandwidth)</code>. Below the crossover the sender transmits its window and then idles until the ACKs come back, so the cost is one RTT; above it, the flight takes longer to serialise than an RTT, acknowledgements return while data is still being sent, transmission becomes continuous and the cost is pure serialisation. The window is additionally capped by the receiver window, since a sender may never have more unacknowledged data in flight than <code>min(cwnd, rwnd)</code>.</p>
+    <div class="formula">totalTime = handshakeRTTs &times; RTT
+          + &Sigma; over flights of max(RTT, flightBytes / bandwidth)</div>
+
+    <h3>What this deliberately does not model</h3>
+    <ul>
+      <li><strong>Packet loss.</strong> A single loss triggers fast retransmit or, worse, a retransmission timeout of at least 200 ms on Linux, which dwarfs everything computed here. This is a clean-path model.</li>
+      <li><strong>Server think time.</strong> Time to first byte also contains backend processing. Add it separately.</li>
+      <li><strong>DNS and connection setup discovery.</strong> A cold DNS lookup is typically one further RTT to the resolver, sometimes several.</li>
+      <li><strong>Protocol overhead inside the first flight.</strong> HTTP response headers, HTTP/2 HEADERS frames and TLS record framing (roughly 22 to 29 bytes per record) all consume part of the 14,600 bytes. Budget around 13.5 KiB of actual HTML if you want to be sure, not 14.6 KB.</li>
+      <li><strong>BBR and other pacing algorithms.</strong> Slow start behaviour is the same at the start, but the exit conditions and the steady-state rate differ from classic loss-based CUBIC.</li>
+      <li><strong>Connection warmth carried over.</strong> A reused connection often has a window far above initcwnd, so warm mode here is a conservative estimate: it uses the initial window rather than a grown one.</li>
+    </ul>
+
+    <h3>How to check your own numbers</h3>
+    <p>On a Linux server, inspect the live congestion window and smoothed RTT of active sockets, then raise the initial window per route if the data justifies it:</p>
+    <div class="formula">ss -ti                      # look for cwnd: and rtt: on each socket
+ip route show               # current route attributes
+ip route change default via 192.0.2.1 dev eth0 initcwnd 20 initrwnd 20</div>
+    <p>Raising initcwnd is a real lever with a real risk: a larger unacknowledged burst is more likely to overflow a shallow buffer somewhere on a constrained last mile, and the resulting timeout costs far more than the round trip you saved. Measure on the networks your users actually have.</p>
+
+    <h2>Frequently asked questions</h2>
+    <div class="faq-item"><div class="faq-q">Is the 14 KB limit 14,000 or 14,336 bytes?</div><div class="faq-a">Neither, strictly. It is 10 segments of 1460 bytes, which is 14,600 bytes, or 14.26 KiB. The "14 KB" shorthand rounds down and happens to leave a small safety margin for the response headers and TLS record overhead that share the flight. If you tunnel over IPv6 the header is 40 bytes rather than 20, so the MSS drops to 1440 and the budget falls to 14,400 bytes; with the TCP timestamp option enabled it drops another 12 bytes per segment.</div></div>
+    <div class="faq-item"><div class="faq-q">Does gzip or Brotli change the round-trip count?</div><div class="faq-a">Yes, and it is usually the cheapest fix available. Slow start counts bytes on the wire, so compression works directly on the quantity that matters. A 40 KB HTML document that Brotli compresses to 9 KB moves from two data round trips to one, saving a full RTT on every cold request. This is also why compressing tiny responses still matters at high latency even when the byte saving looks trivial.</div></div>
+    <div class="faq-item"><div class="faq-q">Why does my CDN help so much more than my bandwidth upgrade?</div><div class="faq-a">Because a CDN edge attacks the term that dominates. Every round trip in the model is multiplied by RTT, so cutting RTT from 120 ms to 15 ms cuts the handshake and every slow-start flight by the same factor of eight. Bandwidth only appears in the serialisation term, which for a sub-BDP payload is never the binding constraint. Turn on compare mode above to see the two paths side by side with your own numbers.</div></div>
+    <div class="faq-item"><div class="faq-q">Do HTTP/2 and HTTP/3 remove the slow-start problem?</div><div class="faq-a">They remove the per-resource handshake problem, not the congestion-window problem. Multiplexing means many resources share one connection and one window, so the first flight is shared rather than duplicated, which is a large win over HTTP/1.1 with six connections each running its own slow start. But the window still starts at ten segments and still doubles once per round trip. HTTP/3 additionally removes head-of-line blocking at the transport layer and saves a round trip on connection setup.</div></div>
+    <div class="faq-item"><div class="faq-q">Should I inline critical CSS to stay under the first flight?</div><div class="faq-a">Inlining converts a second request, with its own round trip, into extra bytes in the first document. That is a win only while the combined document still fits inside the first flight, or at least does not push you across a round-trip boundary. Past that point you have paid the same round trip you were trying to avoid and made the document uncacheable. Compute both sizes here before deciding.</div></div>
+    <div class="faq-item"><div class="faq-q">Why does the tool sometimes report fewer round trips than the closed form?</div><div class="faq-a">The closed form assumes an unbounded window and infinite bandwidth. The simulation additionally caps each flight at the receiver window and charges serialisation time when a flight takes longer than an RTT to send. Once a flight becomes bandwidth-limited the connection is effectively at line rate and the remaining bytes are charged at the serialisation rate rather than at whole round trips, so the two figures diverge for large payloads on slow links.</div></div>
+
+    <div class="related-tools">
+      <h3>Related tools</h3>
+      <div class="related-grid">
+        <a href="/tools/cdn-latency-estimator">CDN Latency Estimator<small>Model RTT reduction from an edge PoP</small></a>
+        <a href="/tools/critical-css-extractor">Critical CSS Extractor<small>Get the above-the-fold bytes down</small></a>
+        <a href="/tools/ttfb-analyzer">TTFB Analyzer<small>Break time to first byte into its parts</small></a>
+        <a href="/tools/core-web-vitals-calculator">Core Web Vitals Calculator<small>Grade LCP, INP and CLS</small></a>
+      </div>
+    </div>
+
+    <div class="author-bio">
+      <p><strong>Michael Lip</strong> builds developer tools at <a href="https://zovo.one">Zovo</a>. This calculator implements the RFC 6928 initial window and the classic slow-start geometric series directly, with no fitted constants, so every figure it reports can be reproduced by hand from the formulas above.</p>
+    </div>
+
+    <p class="last-updated">Last updated 29 July 2026</p>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">Krzen</div>
+    <div class="footer-tagline">Free web performance tools by a solo dev. No tracking, no uploads.</div>
+    <a href="https://zovo.one/pricing?utm_source=krzen.com&amp;utm_medium=satellite&amp;utm_campaign=footer-link" class="footer-cta">Zovo Lifetime &mdash; $99 once, free forever &rarr;</a>
+    <div class="footer-links">
+      <a href="/tools/">All tools</a>
+      <a href="/tools/cdn-latency-estimator">CDN Latency</a>
+      <a href="/tools/ttfb-analyzer">TTFB Analyzer</a>
+      <a href="/research/">Research</a>
+      <a href="/about.html">About</a>
+      <a href="https://zovo.one">Zovo</a>
+    </div>
+    <div class="footer-copy">&copy; 2026 <a href="https://krzen.com">Krzen</a> &middot; built by <a href="https://zovo.one">Michael Lip</a></div>
+  </div>
+</footer>
+
+<nav class="zovo-network" aria-label="Zovo Tools Network">
+  <div class="zovo-network-inner">
+    <h3 class="zovo-network-title">Explore More Tools</h3>
+    <div class="zovo-network-links">
+      <a href="https://abwex.com">ABWex &mdash; A/B Testing</a>
+      <a href="https://claudflow.com">ClaudFlow &mdash; Workflows</a>
+      <a href="https://claudkit.com">ClaudKit &mdash; API Tools</a>
+      <a href="https://enhio.com">Enhio &mdash; Text Tools</a>
+      <a href="https://epochpilot.com">EpochPilot &mdash; Timestamps</a>
+      <a href="https://gen8x.com">Gen8X &mdash; Color Tools</a>
+      <a href="https://kappafy.com">Kappafy &mdash; JSON</a>
+      <a href="https://kickllm.com">KickLLM &mdash; LLM Costs</a>
+      <a href="https://ml3x.com">ML3X &mdash; Matrix Math</a>
+      <a href="https://viryd.com">Viryd &mdash; Dev Tools</a>
+    </div>
+  </div>
+</nav>
+
+<div class="pow-strip">
+  <div class="pow-strip-inner">
+    <span class="pow-label">By the same builder:</span>
+    <a href="https://github.com/theluckystrike" rel="nofollow">GitHub &mdash; theluckystrike</a>
+    <a href="https://www.belikenative.com" rel="nofollow">BeLikeNative &mdash; Grammar AI</a>
+    <a href="https://earlythunder.com" rel="nofollow">EarlyThunder &mdash; Dev Blog</a>
+    <a href="https://zovo.one" rel="nofollow">Zovo &mdash; AI Dev Tools</a>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ------------------------------------------------------------------
+   Constants that are fixed by specification, not invented here.
+   RFC 6928  : initial congestion window = 10 segments
+   1500 MTU  : MSS = 1500 - 20 (IPv4) - 20 (TCP) = 1460 bytes
+   RFC 9002  : QUIC uses the same 10-datagram initial window
+   ------------------------------------------------------------------ */
+var MAX_FLIGHTS = 64;          /* bounded loop, NASA rule 2 */
+var BITS_PER_BYTE = 8;
+var KIB = 1024;
+
+/* handshake cost in round trips before the first request byte moves */
+var HANDSHAKE = {
+  warm:   {rtt: 0, name: 'warm connection'},
+  tcp:    {rtt: 1, name: 'TCP three-way handshake'},
+  tls13:  {rtt: 2, name: 'TCP + TLS 1.3 full handshake'},
+  tls13r: {rtt: 1, name: 'TCP + TLS 1.3 0-RTT resumption'},
+  tls12:  {rtt: 3, name: 'TCP + TLS 1.2 full handshake'},
+  quic:   {rtt: 1, name: 'QUIC first connection'},
+  quic0:  {rtt: 0, name: 'QUIC 0-RTT resumption'}
+};
+
+function $(id){ return document.getElementById(id); }
+
+/* safe numeric read: never throws, never returns NaN or Infinity */
+function num(el, fallback, min, max){
+  if(!el) return fallback;
+  var n = parseFloat(el.value);
+  if(!isFinite(n)) return fallback;
+  if(n < min) return min;
+  if(n > max) return max;
+  return n;
+}
+
+function fmtBytes(b){
+  if(!isFinite(b) || b < 0) return '0 B';
+  if(b >= KIB*KIB) return (b/(KIB*KIB)).toFixed(2) + ' MiB';
+  if(b >= KIB) return (b/KIB).toFixed(1) + ' KiB';
+  return Math.round(b) + ' B';
+}
+function fmtBytesExact(b){
+  if(!isFinite(b) || b < 0) return '0 B';
+  return Math.round(b).toLocaleString('en-US') + ' B';
+}
+function fmtMs(ms){
+  if(!isFinite(ms)) return '--';
+  if(ms >= 10000) return (ms/1000).toFixed(1) + ' s';
+  if(ms >= 1000) return (ms/1000).toFixed(2) + ' s';
+  if(ms >= 100) return ms.toFixed(0) + ' ms';
+  return ms.toFixed(1) + ' ms';
+}
+function fmtNum(n, d){ return isFinite(n) ? n.toFixed(d) : '0'; }
+
+/* ------------------------------------------------------------------
+   Core simulation. Charges each round trip max(RTT, serialisation),
+   caps the window at the receiver window, and stops after
+   MAX_FLIGHTS iterations no matter what.
+   ------------------------------------------------------------------ */
+function simulate(p){
+  var out = {
+    flights: [], dataRTTs: 0, transferMs: 0, handshakeMs: 0,
+    handshakeRTTs: p.hsRTTs, totalMs: 0, naiveMs: 0,
+    firstFlight: 0, fits: false, bdp: 0, truncated: false,
+    bytes: p.bytes, bwBytesPerMs: 0, closedForm: 0
+  };
+
+  var bwBytesPerMs = (p.mbps * 1e6) / BITS_PER_BYTE / 1000; /* decimal Mbps */
+  if(!isFinite(bwBytesPerMs) || bwBytesPerMs <= 0) bwBytesPerMs = 1e-6;
+  out.bwBytesPerMs = bwBytesPerMs;
+
+  out.firstFlight = p.icw * p.mss;
+  out.fits = p.bytes <= out.firstFlight;
+  out.bdp = bwBytesPerMs * p.rtt;
+  out.handshakeMs = p.hsRTTs * p.rtt;
+  out.naiveMs = p.bytes / bwBytesPerMs;
+
+  /* closed form: k = ceil( log(1 + B(g-1)/(MSS*icw)) / log(g) ) */
+  var base = p.mss * p.icw;
+  if(base > 0 && p.bytes > 0){
+    if(p.growth === 1){
+      out.closedForm = Math.ceil(p.bytes / base);
+    } else {
+      out.closedForm = Math.ceil(Math.log(1 + (p.bytes * (p.growth - 1)) / base) / Math.log(p.growth));
+    }
+    if(!isFinite(out.closedForm) || out.closedForm < 1) out.closedForm = 1;
+  }
+
+  var rwndSeg = Math.floor(p.rwndBytes / p.mss);
+  if(!isFinite(rwndSeg) || rwndSeg < 1) rwndSeg = 1;
+
+  var remaining = p.bytes;
+  var cwnd = p.icw;
+  var elapsed = out.handshakeMs;
+  var cum = 0;
+  var i = 0;
+
+  while(remaining > 0 && i < MAX_FLIGHTS){
+    i++;
+    var effSeg = Math.floor(Math.min(cwnd, rwndSeg));
+    if(effSeg < 1) effSeg = 1;
+    var capacity = effSeg * p.mss;
+    var send = Math.min(capacity, remaining);
+    var serialise = send / bwBytesPerMs;
+    var windowLimited = serialise < p.rtt;
+    var cost = windowLimited ? p.rtt : serialise;
+
+    elapsed += cost;
+    cum += send;
+    remaining -= send;
+
+    out.flights.push({
+      n: i, cwnd: cwnd, eff: effSeg, capacity: capacity,
+      bytes: send, cum: cum, cost: cost, elapsed: elapsed,
+      windowLimited: windowLimited,
+      capped: cwnd > rwndSeg
+    });
+
+    cwnd = cwnd * p.growth;
+    if(cwnd > 1e9) cwnd = 1e9;
+  }
+
+  if(remaining > 0) out.truncated = true;
+  out.dataRTTs = out.flights.length;
+  out.transferMs = elapsed - out.handshakeMs;
+  out.totalMs = elapsed;
+  return out;
+}
+
+/* total time only, used for what-if deltas */
+function totalOf(p){ return simulate(p).totalMs; }
+
+/* ------------------------------------------------------------------
+   Crossover payload: smallest payload where pure serialisation time
+   (bytes / bandwidth) equals or exceeds the pure latency cost
+   (handshake + slow-start round trips) x RTT.
+   Exponential bracket then bisection, both bounded.
+   ------------------------------------------------------------------ */
+function crossover(p){
+  function f(bytes){
+    var q = {}; for(var k in p){ if(Object.prototype.hasOwnProperty.call(p,k)) q[k] = p[k]; }
+    q.bytes = bytes;
+    var s = simulate(q);
+    var latency = (s.handshakeRTTs + s.dataRTTs) * p.rtt;
+    return (bytes / s.bwBytesPerMs) - latency;
+  }
+  var lo = 1, hi = 1024;
+  var guard = 0;
+  while(f(hi) < 0 && guard < 48){ lo = hi; hi = hi * 2; guard++; }
+  if(f(hi) < 0) return null;
+  for(var i = 0; i < 48; i++){
+    var mid = (lo + hi) / 2;
+    if(f(mid) >= 0) hi = mid; else lo = mid;
+  }
+  return hi;
+}
+
+/* ------------------------------------------------------------------ */
+function readParams(rttOverride, icwOverride, hsOverride, bytesOverride){
+  var hsKey = $('in-hs').value;
+  var hs = HANDSHAKE[hsKey] || HANDSHAKE.tls13;
+  var p = {
+    rtt: num($('in-rtt'), 70, 0.1, 5000),
+    mbps: num($('in-bw'), 20, 0.05, 100000),
+    bytes: Math.round(num($('in-payload'), 45, 0.001, 10000000) * KIB),
+    icw: Math.round(num($('in-icw'), 10, 1, 200)),
+    mss: Math.round(num($('in-mss'), 1460, 88, 65535)),
+    growth: parseFloat($('in-growth').value) || 2,
+    rwndBytes: Math.round(num($('in-rwnd'), 6144, 1, 1048576) * KIB),
+    hsRTTs: hs.rtt,
+    hsName: hs.name
+  };
+  if(rttOverride !== undefined && rttOverride !== null) p.rtt = rttOverride;
+  if(icwOverride !== undefined && icwOverride !== null) p.icw = icwOverride;
+  if(hsOverride !== undefined && hsOverride !== null) p.hsRTTs = hsOverride;
+  if(bytesOverride !== undefined && bytesOverride !== null) p.bytes = bytesOverride;
+  if(p.bytes < 1) p.bytes = 1;
+  if(p.growth < 1.01) p.growth = 1.01;
+  return p;
+}
+
+function pct(a, b){ if(!isFinite(b) || b <= 0) return 0; return Math.max(0, Math.min(100, (a/b)*100)); }
+
+function render(){
+  var p = readParams();
+  var s = simulate(p);
+
+  /* ---- error / edge notices ---- */
+  var msgs = [];
+  if(s.truncated) msgs.push('Payload needs more than ' + MAX_FLIGHTS + ' round trips at these settings; the table is truncated.');
+  if(p.mss > 1460) msgs.push('An MSS above 1460 bytes needs jumbo frames end to end. Most public paths clamp to 1460 or lower.');
+  if(p.icw > 40) msgs.push('An initcwnd above 40 segments is well outside RFC 6928 and is very likely to cause buffer overflow on a constrained last mile.');
+  var eb = $('err-box');
+  if(msgs.length){ eb.innerHTML = msgs.join('<br>'); eb.className = 'warn-box'; }
+  else { eb.className = 'warn-box hidden'; eb.innerHTML = ''; }
+
+  /* ---- headline ---- */
+  $('r-rt').textContent = String(s.dataRTTs);
+  $('r-rt-sub').textContent = s.dataRTTs === 1 ? 'fits the first flight' : 'flights of data';
+  $('r-total').textContent = fmtMs(s.totalMs);
+  $('r-total-sub').textContent = fmtMs(s.handshakeMs) + ' handshake + ' + fmtMs(s.transferMs) + ' data';
+  $('r-naive').textContent = fmtMs(s.naiveMs);
+  var ratio = s.naiveMs > 0 ? s.totalMs / s.naiveMs : 0;
+  $('r-err').textContent = (ratio >= 100 ? Math.round(ratio) : fmtNum(ratio, 1)) + 'x';
+  $('r-err-sub').textContent = 'real is ' + fmtMs(Math.max(0, s.totalMs - s.naiveMs)) + ' slower';
+
+  /* ---- verdict ---- */
+  var v = $('r-verdict');
+  var latencyShare = s.totalMs > 0 ? (s.totalMs - s.naiveMs) / s.totalMs : 0;
+  if(p.bytes <= s.bdp){
+    v.textContent = 'latency-bound';
+    v.className = 'verdict v-info';
+  } else if(latencyShare > 0.25){
+    v.textContent = 'mixed, latency still dominant';
+    v.className = 'verdict v-ni';
+  } else {
+    v.textContent = 'bandwidth-bound';
+    v.className = 'verdict v-good';
+  }
+
+  /* ---- summary prose ---- */
+  var sum = [];
+  sum.push('<strong>' + fmtBytesExact(p.bytes) + '</strong> over a <strong>' + fmtNum(p.rtt,0) + ' ms</strong> / <strong>' + p.mbps + ' Mbps</strong> path needs <strong>' + s.dataRTTs + '</strong> data round trip' + (s.dataRTTs === 1 ? '' : 's') + ' after a ' + p.hsName + ' costing <strong>' + p.hsRTTs + ' RTT</strong>.');
+  if(s.fits){
+    sum.push('It fits inside the first flight of ' + fmtBytesExact(s.firstFlight) + ', so the server sends everything without ever waiting for an acknowledgement. You are already at the floor for this connection.');
+  } else {
+    var overBy = p.bytes - s.firstFlight;
+    sum.push('It overflows the first flight by <strong>' + fmtBytesExact(overBy) + '</strong>, which is what turns one round trip into ' + s.dataRTTs + '.');
+  }
+  if(p.bytes <= s.bdp){
+    sum.push('The payload is smaller than the bandwidth-delay product of ' + fmtBytes(s.bdp) + ', so the pipe is never full: <strong>more bandwidth will not help at all</strong>. Cut round trips or cut RTT.');
+  } else {
+    sum.push('The payload exceeds the bandwidth-delay product of ' + fmtBytes(s.bdp) + ', so the link does become the constraint once the window opens up. Average achieved throughput is ' + fmtNum((p.bytes * BITS_PER_BYTE / 1e6) / (s.totalMs/1000), 1) + ' Mbps against a nominal ' + p.mbps + ' Mbps.');
+  }
+  $('r-summary').innerHTML = sum.join(' ');
+
+  /* ---- waterfall ---- */
+  var track = $('wf-track');
+  track.innerHTML = '';
+  var segs = [];
+  if(s.handshakeMs > 0) segs.push({cls: 'wf-hs', ms: s.handshakeMs, t: p.hsName + ': ' + fmtMs(s.handshakeMs)});
+  for(var i = 0; i < s.flights.length; i++){
+    var f = s.flights[i];
+    segs.push({
+      cls: f.windowLimited ? 'wf-win' : 'wf-bw',
+      ms: f.cost,
+      t: 'RT ' + f.n + ': ' + fmtBytes(f.bytes) + ' in ' + fmtMs(f.cost) + (f.windowLimited ? ' (window-limited)' : ' (bandwidth-limited)')
+    });
+  }
+  for(var j = 0; j < segs.length; j++){
+    var d = document.createElement('div');
+    d.className = 'wf-seg ' + segs[j].cls;
+    d.style.width = (s.totalMs > 0 ? (segs[j].ms / s.totalMs) * 100 : 0) + '%';
+    d.title = segs[j].t;
+    track.appendChild(d);
+  }
+  $('wf-mid').textContent = fmtMs(s.totalMs / 2);
+  $('wf-end').textContent = fmtMs(s.totalMs);
+
+  /* ---- first flight bar ---- */
+  var ffPct = pct(Math.min(p.bytes, s.firstFlight), s.firstFlight);
+  $('ff-bar').style.width = ffPct + '%';
+  $('ff-bar').className = s.fits ? 'fill-a' : 'fill-b';
+  $('ff-txt').textContent = fmtBytesExact(p.bytes) + ' / ' + fmtBytesExact(s.firstFlight) +
+    (s.fits ? ' (fits)' : ' (' + fmtNum(p.bytes / s.firstFlight, 1) + 'x over)');
+
+  /* ---- key values ---- */
+  $('k-ff').textContent = fmtBytesExact(s.firstFlight) + '  (' + (s.firstFlight/KIB).toFixed(2) + ' KiB)';
+  $('k-payload').textContent = fmtBytesExact(p.bytes) + '  (' + (p.bytes/KIB).toFixed(2) + ' KiB)';
+  $('k-hs').textContent = p.hsRTTs + ' RTT  =  ' + fmtMs(s.handshakeMs);
+  $('k-transfer').textContent = fmtMs(s.transferMs);
+  $('k-bdp').textContent = fmtBytesExact(s.bdp) + '  (' + fmtBytes(s.bdp) + ')';
+  $('k-closed').textContent = s.closedForm;
+  $('k-sim').textContent = s.dataRTTs + (s.dataRTTs !== s.closedForm ? '  (capped by rwnd or bandwidth)' : '');
+  $('k-thr').textContent = fmtNum((p.bytes * BITS_PER_BYTE / 1e6) / Math.max(0.001, s.totalMs/1000), 2) + ' Mbps of ' + p.mbps + ' Mbps';
+
+  /* ---- per round trip table ---- */
+  var rows = [];
+  for(var r = 0; r < s.flights.length; r++){
+    var ff = s.flights[r];
+    var cls = ff.windowLimited ? 'rt-fit' : 'rt-bw';
+    rows.push('<tr class="' + cls + '">' +
+      '<td>' + ff.n + '</td>' +
+      '<td class="num">' + Math.round(ff.cwnd * 10) / 10 + '</td>' +
+      '<td class="num">' + ff.eff + (ff.capped ? ' (rwnd cap)' : '') + '</td>' +
+      '<td class="num">' + fmtBytesExact(ff.bytes) + '</td>' +
+      '<td class="num">' + fmtBytesExact(ff.cum) + '</td>' +
+      '<td class="num">' + fmtNum(ff.cost, 1) + '</td>' +
+      '<td class="num">' + fmtNum(ff.elapsed, 1) + '</td>' +
+      '<td>' + (ff.windowLimited ? '<span class="status-ok">window</span>' : '<span class="status-info">bandwidth</span>') + '</td>' +
+      '</tr>');
+  }
+  if(!rows.length) rows.push('<tr><td colspan="8">No data to send.</td></tr>');
+  $('rt-body').innerHTML = rows.join('');
+
+  /* ---- what-if ---- */
+  var shrinkBytes = Math.min(p.bytes, s.firstFlight);
+  var shrinkMs = totalOf(readParams(null, null, null, shrinkBytes));
+  var shrinkSave = s.totalMs - shrinkMs;
+  $('w-shrink').textContent = s.fits
+    ? 'already fits'
+    : 'saves ' + fmtMs(shrinkSave) + '  (trim ' + fmtBytesExact(p.bytes - s.firstFlight) + ')';
+
+  var altIcw = Math.round(num($('in-alticw'), 20, 1, 200));
+  $('w-icw-k').textContent = 'Raise initcwnd from ' + p.icw + ' to ' + altIcw + ' segments';
+  var altMs = totalOf(readParams(null, altIcw, null, null));
+  var altSave = s.totalMs - altMs;
+  $('w-icw').textContent = altSave > 0.05
+    ? 'saves ' + fmtMs(altSave) + '  (first flight ' + fmtBytesExact(altIcw * p.mss) + ')'
+    : (altSave < -0.05 ? 'costs ' + fmtMs(-altSave) : 'no change');
+
+  var warmMs = totalOf(readParams(null, null, 0, null));
+  var warmSave = s.totalMs - warmMs;
+  $('w-warm').textContent = warmSave > 0.05 ? 'saves ' + fmtMs(warmSave) : 'already warm';
+
+  var halfMs = totalOf(readParams(p.rtt / 2, null, null, null));
+  $('w-rtt').textContent = 'saves ' + fmtMs(s.totalMs - halfMs) + '  (' + fmtNum(p.rtt/2, 0) + ' ms RTT)';
+
+  var cx = crossover(p);
+  $('w-cross').textContent = cx === null ? 'beyond 100 GB at these settings' : fmtBytes(cx) + '  (' + fmtBytesExact(cx) + ')';
+  $('w-note').innerHTML = cx === null
+    ? 'At this RTT the latency term never stops dominating for any realistic payload.'
+    : 'Below roughly <strong>' + fmtBytes(cx) + '</strong> this transfer is governed by round trips, so shaving bytes and round trips is what pays. Above it, serialisation time exceeds the accumulated latency and raw bandwidth starts to matter more than RTT.';
+
+  /* ---- compare mode ---- */
+  var cmpOn = $('in-compare').checked;
+  $('cmp-section').className = cmpOn ? 'tool-section' : 'tool-section hidden';
+  $('in-rtt2').disabled = !cmpOn;
+  if(cmpOn){
+    var rtt2 = num($('in-rtt2'), 15, 0.1, 5000);
+    var s2 = simulate(readParams(rtt2, null, null, null));
+    var maxT = Math.max(s.totalMs, s2.totalMs, 0.001);
+    var body = '';
+    body += '<tr><td>A &mdash; current</td><td class="num">' + fmtNum(p.rtt,0) + ' ms</td><td class="num">' + s.dataRTTs + '</td><td class="num">' + fmtMs(s.handshakeMs) + '</td><td class="num">' + fmtMs(s.transferMs) + '</td><td class="num">' + fmtMs(s.totalMs) + '</td></tr>';
+    body += '<tr><td>B &mdash; comparison</td><td class="num">' + fmtNum(rtt2,0) + ' ms</td><td class="num">' + s2.dataRTTs + '</td><td class="num">' + fmtMs(s2.handshakeMs) + '</td><td class="num">' + fmtMs(s2.transferMs) + '</td><td class="num">' + fmtMs(s2.totalMs) + '</td></tr>';
+    var delta = s.totalMs - s2.totalMs;
+    body += '<tr><td><strong>Delta</strong></td><td class="num">' + fmtNum(p.rtt - rtt2, 0) + ' ms</td><td class="num">' + (s.dataRTTs - s2.dataRTTs) + '</td><td class="num">' + fmtMs(s.handshakeMs - s2.handshakeMs) + '</td><td class="num">' + fmtMs(s.transferMs - s2.transferMs) + '</td><td class="num ' + (delta > 0 ? 'status-ok' : 'status-bad') + '">' + (delta >= 0 ? '-' : '+') + fmtMs(Math.abs(delta)) + '</td></tr>';
+    $('cmp-body').innerHTML = body;
+    $('cmp-a-bar').style.width = pct(s.totalMs, maxT) + '%';
+    $('cmp-b-bar').style.width = pct(s2.totalMs, maxT) + '%';
+    $('cmp-a-txt').textContent = fmtNum(p.rtt,0) + ' ms RTT: ' + fmtMs(s.totalMs);
+    $('cmp-b-txt').textContent = fmtNum(rtt2,0) + ' ms RTT: ' + fmtMs(s2.totalMs);
+    var speedup = s2.totalMs > 0 ? s.totalMs / s2.totalMs : 0;
+    $('cmp-note').innerHTML = 'Path B is <strong>' + fmtNum(speedup, 2) + 'x</strong> faster end to end. The same ' + fmtBytesExact(p.bytes) + ' costs ' + s.dataRTTs + ' data round trip' + (s.dataRTTs === 1 ? '' : 's') + ' on both paths &mdash; slow start does not care about distance &mdash; but each of those round trips, plus the ' + p.hsRTTs + '-RTT handshake, is charged at the path RTT. That is why an edge PoP multiplies out across every single flight.';
+  }
+}
+
+/* ------------------------------------------------------------------ */
+function bind(){
+  var ids = ['in-rtt','in-bw','in-payload','in-icw','in-mss','in-growth','in-hs','in-rwnd','in-alticw','in-rtt2'];
+  for(var i = 0; i < ids.length; i++){
+    var el = $(ids[i]);
+    if(!el) continue;
+    el.addEventListener('input', render);
+    el.addEventListener('change', render);
+  }
+  $('in-compare').addEventListener('change', render);
+
+  var presets = $('net-presets').getElementsByTagName('button');
+  for(var j = 0; j < presets.length; j++){
+    presets[j].addEventListener('click', function(ev){
+      var b = ev.currentTarget;
+      var all = $('net-presets').getElementsByTagName('button');
+      for(var k = 0; k < all.length; k++) all[k].className = 'vp-btn';
+      b.className = 'vp-btn active';
+      $('in-rtt').value = b.getAttribute('data-rtt');
+      $('in-bw').value = b.getAttribute('data-bw');
+      render();
+    });
+  }
+  render();
+}
+
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', bind);
+} else {
+  bind();
+}
+})();
+</script>
+</body>
+</html>

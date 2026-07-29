@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CLS Layout Shift Score Calculator (Impact x Distance)</title>
+<meta name="description" content="Compute CLS with real Layout Instability API math: impact fraction, distance fraction, per-frame shift values and the 5s session window maximum.">
+<meta name="keywords" content="CLS calculator, layout shift score, impact fraction, distance fraction, session window, Layout Instability API, Core Web Vitals, cumulative layout shift">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="canonical" href="https://krzen.com/tools/cls-layout-shift-score-calculator">
+<meta property="og:type" content="website">
+<meta property="og:title" content="CLS Layout Shift Score Calculator (Impact x Distance)">
+<meta property="og:description" content="Compute CLS with real Layout Instability API math: impact fraction, distance fraction, per-frame shift values and the 5s session window maximum.">
+<meta property="og:url" content="https://krzen.com/tools/cls-layout-shift-score-calculator">
+<meta property="og:site_name" content="Krzen">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="CLS Layout Shift Score Calculator (Impact x Distance)">
+<meta name="twitter:description" content="Compute CLS with the real Layout Instability API formula and the session window algorithm.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "CLS Layout Shift Score Calculator",
+  "url": "https://krzen.com/tools/cls-layout-shift-score-calculator",
+  "description": "Compute Cumulative Layout Shift from raw element geometry using the Layout Instability API formula: impact fraction times distance fraction per shifted element, summed per frame, then reduced with the 1s gap / 5s cap session window algorithm.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+  "author": {"@type": "Person", "name": "Michael Lip", "url": "https://zovo.one"},
+  "publisher": {"@type": "Organization", "name": "Krzen", "url": "https://krzen.com"},
+  "datePublished": "2026-07-29",
+  "dateModified": "2026-07-29",
+  "featureList": ["Per-element impact fraction from union of before and after rects clipped to viewport", "Distance fraction from greatest single-axis displacement", "Per-frame shift record summing", "Spec-exact frame union comparison", "Session window algorithm with 1000ms gap and 5000ms cap", "Maximum session window CLS", "To-scale SVG overlay of viewport, before rect, after rect and union region", "Reverse displacement budget before CLS crosses 0.1"],
+  "browserRequirements": "Requires JavaScript",
+  "isAccessibleForFree": true
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://krzen.com/"},
+    {"@type": "ListItem", "position": 2, "name": "Tools", "item": "https://krzen.com/tools/"},
+    {"@type": "ListItem", "position": 3, "name": "CLS Layout Shift Score Calculator", "item": "https://krzen.com/tools/cls-layout-shift-score-calculator"}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How is a single layout shift score calculated?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A layout shift value is the impact fraction multiplied by the distance fraction. The impact fraction is the area of the union of an unstable element's previous and current visual rectangles, intersected with the viewport, divided by the total viewport area. The distance fraction is the greatest distance the element moved along a single axis, that is the maximum of the absolute horizontal and vertical movement, divided by the larger of the viewport width and viewport height. Both fractions are between 0 and 1, so a single shift value can never exceed 1."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why is CLS not the sum of all layout shifts?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Since 2021 Chrome reports CLS as the largest burst of shifts rather than the lifetime total, so that long lived pages and single page applications are not penalised indefinitely. Shifts are grouped into session windows. A window keeps growing while each new shift occurs less than 1000 ms after the previous shift and less than 5000 ms after the first shift in that window. Otherwise a new window starts. CLS is the maximum sum across all windows, never the total sum."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What counts as a good CLS score?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Google's Core Web Vitals thresholds for CLS are 0.1 or less for good, above 0.1 up to and including 0.25 for needs improvement, and above 0.25 for poor. The thresholds are evaluated at the 75th percentile of page loads segmented across mobile and desktop."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does the distance fraction use diagonal distance?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. The Layout Instability specification uses the greatest single axis movement, meaning the maximum of the absolute horizontal delta and the absolute vertical delta, not the Pythagorean diagonal. An element that moves 100 px right and 100 px down has a move distance of 100 px, not 141 px."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do shifts caused by user interaction count toward CLS?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. A layout shift entry whose hadRecentInput flag is true, meaning it occurred within 500 ms of a discrete user input such as a tap, click or key press, is excluded from CLS. Shifts caused by CSS transforms are also excluded, because transforms do not change an element's layout position."
+      }
+    }
+  ]
+}
+</script>
+<style>
+:root{
+  --font-display:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --font-body:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --bg:#0a0a0a; --bg-card:#141414; --bg-hover:#1a1a1a;
+  --text:#e8e8e8; --text-muted:#888; --border:#222; --radius:6px; --accent:#FB923C;
+  --ok:#34D399; --warn:#FBBF24; --bad:#F87171;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.container{max-width:1100px;margin:0 auto;padding:0 20px}
+header{border-bottom:1px solid var(--border);padding:16px 0;position:sticky;top:0;background:var(--bg);z-index:100}
+header .container{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.logo{font-family:var(--font-display);font-size:1.4rem;font-weight:700;color:var(--accent)}
+nav{display:flex;align-items:center;flex-wrap:wrap;gap:24px}
+nav a{color:var(--text-muted);font-size:0.9rem;font-weight:500}
+nav a:hover{color:var(--text);text-decoration:none}
+.nav-right{display:flex;align-items:center;gap:0.75rem;margin-left:auto}
+.nav-pro{background:var(--accent);color:#000 !important;padding:5px 13px;border-radius:var(--radius);font-size:0.82rem;font-weight:600;white-space:nowrap}
+.nav-pro:hover{opacity:0.85;text-decoration:none}
+.nav-zovo{color:var(--text-muted) !important;font-size:0.78rem;white-space:nowrap}
+.nav-zovo:hover{color:var(--text) !important;text-decoration:none}
+.hero{padding:44px 0 26px;text-align:center}
+.hero h1{font-family:var(--font-display);font-size:2rem;margin-bottom:12px;line-height:1.25}
+.hero h1 span{color:var(--accent)}
+.hero p{color:var(--text-muted);font-size:1.05rem;max-width:720px;margin:0 auto}
+.tool-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin:20px 0}
+.tool-section h3{font-family:var(--font-display);font-size:0.85rem;text-transform:uppercase;color:var(--accent);margin-bottom:16px;letter-spacing:0.04em}
+.tool-section h3 .sub{text-transform:none;color:var(--text-muted);font-weight:400;letter-spacing:0}
+.input-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.input-field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:150px}
+.input-field label{font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;letter-spacing:0.3px}
+input[type="number"],input[type="text"],select{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:8px 12px;font-family:var(--font-body);font-size:0.9rem;width:100%}
+input:focus,select:focus{outline:none;border-color:var(--accent)}
+.btn{background:var(--accent);color:#000;border:none;border-radius:var(--radius);padding:9px 20px;font-family:var(--font-body);font-weight:600;font-size:0.88rem;cursor:pointer;transition:opacity .2s}
+.btn:hover{opacity:.85}
+.btn-secondary{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.btn-secondary:hover{background:rgba(251,146,60,.08);opacity:1}
+.btn-sm{padding:5px 12px;font-size:0.78rem}
+.vp-btn{background:transparent;color:var(--text-muted);border:1px solid var(--border);border-radius:var(--radius);padding:6px 14px;font-size:0.8rem;font-family:var(--font-body);cursor:pointer;transition:all .2s}
+.vp-btn:hover,.vp-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(251,146,60,.06)}
+.viewport-selector{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius)}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:0.82rem}
+th{background:var(--bg);color:var(--text-muted);font-size:0.68rem;text-transform:uppercase;letter-spacing:.4px;text-align:left;padding:9px 10px;border-bottom:1px solid var(--border);white-space:nowrap;font-weight:600}
+td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+td.num,th.num{text-align:right;font-family:var(--font-display)}
+.el-tbl input[type="number"]{width:74px;padding:5px 7px;font-family:var(--font-display);font-size:0.8rem}
+.el-tbl input[type="text"]{width:150px;padding:5px 7px;font-size:0.82rem}
+.el-tbl input.frame{width:56px}
+.grp-b{border-left:2px solid rgba(96,165,250,.35)}
+.grp-a{border-left:2px solid rgba(251,146,60,.35)}
+.row-del{background:transparent;border:1px solid var(--border);color:var(--text-muted);border-radius:4px;cursor:pointer;padding:3px 9px;font-size:0.8rem}
+.row-del:hover{border-color:var(--bad);color:var(--bad)}
+.win-hit{background:rgba(251,146,60,.09)}
+.win-hit td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+.res-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;text-align:center;margin-bottom:8px}
+.res-item .value{font-family:var(--font-display);font-size:1.55rem;font-weight:700;color:var(--accent);line-height:1.25;word-break:break-word}
+.res-item .label{font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px}
+.verdict{display:inline-block;padding:5px 16px;border-radius:99px;font-family:var(--font-display);font-weight:700;font-size:0.85rem;letter-spacing:.03em}
+.v-good{background:rgba(52,211,153,.12);color:var(--ok);border:1px solid rgba(52,211,153,.4)}
+.v-ni{background:rgba(251,191,36,.12);color:var(--warn);border:1px solid rgba(251,191,36,.4)}
+.v-poor{background:rgba(248,113,113,.12);color:var(--bad);border:1px solid rgba(248,113,113,.4)}
+.status-ok{color:var(--ok)}.status-warn{color:var(--warn)}.status-bad{color:var(--bad)}
+.meter{height:9px;background:var(--bg);border:1px solid var(--border);border-radius:99px;overflow:hidden;margin:14px 0 6px;position:relative}
+.meter i{display:block;height:100%;background:var(--accent);transition:width .25s}
+.meter-scale{display:flex;justify-content:space-between;font-size:0.7rem;color:var(--text-muted);font-family:var(--font-display)}
+.svg-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px;overflow-x:auto}
+.svg-box svg{display:block;width:100%;height:auto;max-height:520px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:0.76rem;color:var(--text-muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.swatch{width:13px;height:13px;border-radius:2px;display:inline-block}
+.note{font-size:0.8rem;color:var(--text-muted);margin-top:12px;line-height:1.6}
+.warn-box{border:1px solid rgba(251,191,36,.4);background:rgba(251,191,36,.07);color:var(--warn);border-radius:var(--radius);padding:10px 14px;font-size:0.82rem;margin-bottom:14px}
+.formula{background:var(--bg);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--radius);padding:14px 16px;font-family:var(--font-display);font-size:0.82rem;color:var(--text-muted);overflow-x:auto;white-space:pre;line-height:1.7;margin:14px 0}
+.explainer-section{max-width:800px;margin:44px auto 0}
+.explainer-section h2{font-size:1.28rem;margin:32px 0 12px;color:var(--accent);font-family:var(--font-display)}
+.explainer-section h3{font-size:1.02rem;margin:22px 0 8px}
+.explainer-section p{color:var(--text-muted);margin-bottom:15px;line-height:1.75}
+.explainer-section ul,.explainer-section ol{color:var(--text-muted);margin:0 0 16px 24px}
+.explainer-section li{margin-bottom:7px;line-height:1.7}
+.explainer-section code{font-family:var(--font-display);background:var(--bg-card);padding:2px 6px;border-radius:3px;font-size:0.88em;color:var(--text)}
+.faq-item{border-bottom:1px solid var(--border);padding:15px 0}
+.faq-item:first-of-type{border-top:1px solid var(--border)}
+.faq-q{font-weight:600;font-size:0.98rem}
+.faq-a{color:var(--text-muted);font-size:0.92rem;padding-top:7px;line-height:1.7}
+.related-tools{margin:44px 0 0}
+.related-tools h3{font-family:var(--font-display);text-align:center;margin-bottom:16px;font-size:1rem}
+.related-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.related-grid a{display:block;padding:14px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:0.9rem;transition:border-color .2s}
+.related-grid a:hover{border-color:var(--accent);text-decoration:none}
+.related-grid a small{display:block;color:var(--text-muted);font-size:0.77rem;margin-top:4px}
+.author-bio{margin:32px 0 0;padding:20px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius)}
+.author-bio p{color:var(--text-muted);font-size:0.9rem;line-height:1.65;margin:0}
+.author-bio p strong{color:var(--text)}
+.last-updated{text-align:center;color:var(--text-muted);font-size:0.78rem;margin:24px 0 0}
+.site-footer{border-top:1px solid var(--border);margin-top:4rem}
+.footer-inner{max-width:640px;margin:0 auto;padding:3rem 2rem 2rem;text-align:center}
+.footer-brand{font-size:1.05rem;font-weight:700;color:var(--text)}
+.footer-tagline{font-size:.8rem;color:var(--text-muted);margin-top:.3rem;margin-bottom:1.5rem}
+.footer-cta{display:inline-block;padding:.6rem 1.75rem;border:1.5px solid var(--accent);border-radius:6px;color:var(--accent);font-size:.85rem;font-weight:600;transition:background .2s,color .2s}
+.footer-cta:hover{background:var(--accent);color:#000;text-decoration:none}
+.footer-links{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem 1.25rem;margin-top:1.5rem;font-size:.78rem}
+.footer-links a{color:var(--text-muted)}
+.footer-links a:hover{color:var(--accent)}
+.footer-copy{font-size:.7rem;color:var(--text-muted);margin-top:1.25rem}
+.footer-copy a{color:inherit}
+.zovo-network{border-top:1px solid var(--border);padding:2rem 2rem 3rem;text-align:center}
+.zovo-network-inner{max-width:720px;margin:0 auto}
+.zovo-network-title{font-size:.8rem;font-weight:600;color:var(--text);margin-bottom:1rem}
+.zovo-network-links{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem 1.25rem}
+.zovo-network-links a{font-size:.78rem;color:var(--text-muted);white-space:nowrap;line-height:1.9}
+.zovo-network-links a:hover{color:var(--accent)}
+.pow-strip{border-top:1px solid var(--border);padding:.75rem 2rem;text-align:center}
+.pow-strip-inner{max-width:720px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.2rem .9rem}
+.pow-label{font-size:.7rem;color:var(--text-muted);font-weight:600}
+.pow-strip-inner a{font-size:.7rem;color:var(--text-muted)}
+.pow-strip-inner a:hover{color:var(--accent)}
+.breadcrumb{font-size:.82rem;margin:20px 0 0}
+.breadcrumb span{color:var(--text-muted);margin:0 4px}
+@media(max-width:768px){
+  .hero h1{font-size:1.45rem}
+  .tool-section{padding:18px 14px}
+  nav{gap:14px}
+  .input-row{flex-direction:column}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <a href="/" class="logo">krzen</a>
+    <nav>
+      <a href="/">Tool</a>
+      <a href="/research/">Research</a>
+      <a href="/guides/">Guides</a>
+      <a href="/tools/">Tools</a>
+      <a href="/blog/">Blog</a>
+      <a href="/about.html">About</a>
+      <div class="nav-right">
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&amp;utm_medium=satellite&amp;utm_campaign=nav-link" class="nav-pro" target="_blank" rel="noopener">Go Pro</a>
+        <a href="https://zovo.one/tools" class="nav-zovo">Zovo Tools</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">Home</a> <span>/</span> <a href="/tools/">Tools</a> <span>/</span> <span>CLS Layout Shift Score Calculator</span></nav>
+
+  <section class="hero">
+    <h1>CLS Layout Shift <span>Score Calculator</span></h1>
+    <p>Enter the before and after bounding rectangles of every unstable element and get the real numbers: impact fraction, distance fraction, per-frame shift values, session windows, and the maximum-window CLS. Not a threshold grader &mdash; the actual Layout Instability formula. Runs entirely in your browser.</p>
+  </section>
+
+  <div class="tool-section">
+    <h3>1. Viewport</h3>
+    <div class="viewport-selector" id="vp-presets">
+      <button class="vp-btn" data-w="360" data-h="800">Android 360x800</button>
+      <button class="vp-btn active" data-w="390" data-h="844">iPhone 390x844</button>
+      <button class="vp-btn" data-w="412" data-h="915">Pixel 412x915</button>
+      <button class="vp-btn" data-w="768" data-h="1024">Tablet 768x1024</button>
+      <button class="vp-btn" data-w="1280" data-h="800">Laptop 1280x800</button>
+      <button class="vp-btn" data-w="1920" data-h="1080">FHD 1920x1080</button>
+      <button class="vp-btn" id="vp-detect" type="button">Use this window</button>
+    </div>
+    <div class="input-row">
+      <div class="input-field"><label for="vw">Viewport width (px)</label><input type="number" id="vw" value="390" min="1" max="10000" step="1"></div>
+      <div class="input-field"><label for="vh">Viewport height (px)</label><input type="number" id="vh" value="844" min="1" max="10000" step="1"></div>
+      <div class="input-field"><label>Viewport area (px&sup2;)</label><input type="text" id="vp-area" value="" readonly></div>
+      <div class="input-field"><label>max(width, height)</label><input type="text" id="vp-max" value="" readonly></div>
+    </div>
+    <p class="note">The impact fraction divides by the viewport <strong>area</strong>. The distance fraction divides by the <strong>larger single dimension</strong>. These are two different denominators &mdash; that is why a tall phone punishes vertical shifts less than you would expect.</p>
+  </div>
+
+  <div class="tool-section">
+    <h3>2. Unstable elements <span class="sub">&mdash; bounding rect before and after the shift, in viewport coordinates</span></h3>
+    <div id="geo-warn"></div>
+    <div class="tbl-wrap">
+      <table class="el-tbl">
+        <thead>
+          <tr>
+            <th>Element</th><th class="num">Frame</th>
+            <th class="num grp-b">Before x</th><th class="num">y</th><th class="num">w</th><th class="num">h</th>
+            <th class="num grp-a">After x</th><th class="num">y</th><th class="num">w</th><th class="num">h</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="el-body"></tbody>
+      </table>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+      <button class="btn btn-sm" id="add-el" type="button">Add element</button>
+      <button class="btn btn-secondary btn-sm" id="load-demo" type="button">Reset to demo page</button>
+      <button class="btn btn-secondary btn-sm" id="clear-all" type="button">Clear all</button>
+    </div>
+    <p class="note">Elements sharing a <strong>Frame</strong> number shifted in the same animation frame and are merged into one shift record, exactly as the browser does. Coordinates are relative to the viewport origin; a rect may extend outside the viewport and will be clipped.</p>
+  </div>
+
+  <div class="tool-section">
+    <h3>3. Frame timestamps <span class="sub">&mdash; when each shift record was reported, in ms since navigation start</span></h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th class="num">Frame</th><th>Timestamp (ms)</th><th>Elements in frame</th><th class="num">Shift value (sum)</th><th class="num">Spec-exact union</th></tr></thead>
+        <tbody id="frame-body"></tbody>
+      </table>
+    </div>
+    <div class="input-row" style="margin-top:16px;align-items:flex-end">
+      <div class="input-field" style="max-width:330px">
+        <label for="frame-model">Value used for CLS</label>
+        <select id="frame-model">
+          <option value="sum" selected>Sum of per-element scores (attribution view)</option>
+          <option value="union">Spec-exact frame union (browser behaviour)</option>
+        </select>
+      </div>
+    </div>
+    <p class="note">A real browser computes <em>one</em> value per frame: the union of every unstable element's before and after rects, times the single largest move distance in that frame. Summing per-element scores is the attribution view used by most debugging tools &mdash; it is always greater than or equal to the spec value when several elements move together. Both are shown so you can see the gap.</p>
+  </div>
+
+  <div class="tool-section">
+    <h3>4. Result</h3>
+    <div class="res-grid">
+      <div class="res-item"><div class="value" id="out-cls">0.000</div><div class="label">CLS (max window)</div></div>
+      <div class="res-item"><div class="value" id="out-total">0.000</div><div class="label">Naive lifetime total</div></div>
+      <div class="res-item"><div class="value" id="out-windows">0</div><div class="label">Session windows</div></div>
+      <div class="res-item"><div class="value" id="out-worst">&mdash;</div><div class="label">Worst element</div></div>
+    </div>
+    <div style="text-align:center;margin-top:6px"><span class="verdict v-good" id="out-verdict">Good</span></div>
+    <div class="meter"><i id="out-meter" style="width:0%"></i></div>
+    <div class="meter-scale"><span>0</span><span>0.10 good</span><span>0.25 poor</span><span>0.50+</span></div>
+    <p class="note" id="out-summary"></p>
+  </div>
+
+  <div class="tool-section">
+    <h3>5. Per-element breakdown</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>Element</th><th class="num">Frame</th><th class="num">Union &cap; viewport (px&sup2;)</th>
+          <th class="num">Impact fraction</th><th class="num">Move dist (px)</th><th class="num">Distance fraction</th>
+          <th class="num">Shift value</th><th class="num">Share of CLS</th>
+        </tr></thead>
+        <tbody id="score-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="tool-section">
+    <h3>6. Session windows <span class="sub">&mdash; gap &lt; 1000 ms, window capped at 5000 ms, CLS = max sum</span></h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Window</th><th class="num">First shift</th><th class="num">Last shift</th><th class="num">Span (ms)</th><th class="num">Frames</th><th class="num">Window sum</th><th>Status</th></tr></thead>
+        <tbody id="win-body"></tbody>
+      </table>
+    </div>
+    <p class="note">The highlighted row is the winning window. Every other shift on the page is discarded from the reported CLS.</p>
+  </div>
+
+  <div class="tool-section">
+    <h3>7. To-scale overlay</h3>
+    <div class="input-row" style="align-items:flex-end">
+      <div class="input-field" style="max-width:340px"><label for="svg-el">Element to draw</label><select id="svg-el"></select></div>
+    </div>
+    <div class="svg-box" id="svg-box"></div>
+    <div class="legend">
+      <span><i class="swatch" style="background:#1f2937;border:1px solid #4b5563"></i>Viewport</span>
+      <span><i class="swatch" style="background:transparent;border:1px dashed #60A5FA"></i>Before rect</span>
+      <span><i class="swatch" style="background:transparent;border:1px solid #FB923C"></i>After rect</span>
+      <span><i class="swatch" style="background:rgba(251,146,60,.32)"></i>Impact region (union &cap; viewport)</span>
+      <span><i class="swatch" style="background:#34D399"></i>Move distance</span>
+    </div>
+  </div>
+
+  <div class="tool-section">
+    <h3>8. Displacement budget <span class="sub">&mdash; how far this element may move before CLS crosses 0.10</span></h3>
+    <div class="input-row" style="align-items:flex-end">
+      <div class="input-field" style="max-width:300px"><label for="bud-el">Element</label><select id="bud-el"></select></div>
+      <div class="input-field" style="max-width:190px"><label for="bud-axis">Axis</label><select id="bud-axis"><option value="y" selected>Vertical (Y)</option><option value="x">Horizontal (X)</option></select></div>
+    </div>
+    <div class="res-grid" style="margin-top:6px">
+      <div class="res-item"><div class="value" id="bud-current">0 px</div><div class="label">Current displacement</div></div>
+      <div class="res-item"><div class="value" id="bud-max">0 px</div><div class="label">Max affordable</div></div>
+      <div class="res-item"><div class="value" id="bud-head">0 px</div><div class="label">Headroom</div></div>
+      <div class="res-item"><div class="value" id="bud-score">0.000</div><div class="label">CLS at that limit</div></div>
+    </div>
+    <p class="note" id="bud-note"></p>
+  </div>
+
+  <section class="explainer-section">
+    <h2>The method, exactly</h2>
+    <p>The browser does not score layout shifts with a heuristic. The <a href="https://wicg.github.io/layout-instability/" rel="nofollow" target="_blank">Layout Instability API</a> defines a closed-form value per frame, and this page implements it literally.</p>
+
+    <h3>Step 1 &mdash; impact fraction</h3>
+    <p>For every unstable element the browser takes the union of the rectangle it occupied in the previous frame and the rectangle it occupies now, intersects that region with the viewport, and divides by the viewport area. When the before and after rects overlap, the union is smaller than the two areas added together; when the element jumps clear of its old position, the union is the two areas added together.</p>
+    <div class="formula">impactRegion   = (rectBefore &cup; rectAfter) &cap; viewport
+impactFraction = area(impactRegion) / (viewportWidth &times; viewportHeight)</div>
+
+    <h3>Step 2 &mdash; distance fraction</h3>
+    <p>The move distance is the greatest movement along a <em>single</em> axis, not the diagonal. It is divided by the greater of the two viewport dimensions, so on a 390 x 844 phone the denominator is 844 for both vertical and horizontal movement.</p>
+    <div class="formula">moveDistance     = max( |x&#8322; &minus; x&#8321;| , |y&#8322; &minus; y&#8321;| )
+distanceFraction = moveDistance / max(viewportWidth, viewportHeight)</div>
+
+    <h3>Step 3 &mdash; layout shift value</h3>
+    <p>The two fractions are multiplied. Both are bounded by 1, so a single shift record can never exceed 1.0. An element occupying the whole viewport and jumping a full screen height scores close to 1.0; a small button nudged 8 px scores in the thousandths.</p>
+    <div class="formula">layoutShiftValue = impactFraction &times; distanceFraction</div>
+
+    <h3>Step 4 &mdash; session windows</h3>
+    <p>CLS has not been the lifetime sum since Chrome 91. Shift records are bucketed into <strong>session windows</strong>, and only the heaviest window is reported. The rule, taken from the reference implementation in Google's <code>web-vitals</code> library, is:</p>
+    <ul>
+      <li>The first shift opens a window.</li>
+      <li>A new shift joins the current window only if it is <strong>less than 1000 ms</strong> after the previous shift <em>and</em> <strong>less than 5000 ms</strong> after the first shift in that window.</li>
+      <li>Otherwise it closes the window and opens a new one.</li>
+      <li><code>CLS = max(window sums)</code>, never <code>sum(all shifts)</code>.</li>
+    </ul>
+    <p>This is why a page with twenty small shifts spread across a long session can report a better CLS than a page with three shifts fired back to back. Fixing the burst matters far more than fixing the count.</p>
+
+    <h3>Thresholds</h3>
+    <p>Google's Core Web Vitals cut-offs for CLS are <strong>0.10</strong> and <strong>0.25</strong>, evaluated at the 75th percentile of real page loads, segmented separately for mobile and desktop:</p>
+    <ul>
+      <li><strong class="status-ok">Good</strong> &mdash; CLS at or below 0.10</li>
+      <li><strong class="status-warn">Needs improvement</strong> &mdash; above 0.10, at or below 0.25</li>
+      <li><strong class="status-bad">Poor</strong> &mdash; above 0.25</li>
+    </ul>
+
+    <h3>What this calculator deliberately does not model</h3>
+    <ul>
+      <li><strong>Excluded shifts.</strong> Real entries carry <code>hadRecentInput</code>; anything within 500 ms of a discrete user input is dropped by the browser before CLS is computed. Only enter shifts that were not input-driven.</li>
+      <li><strong>Transforms.</strong> Movement produced by <code>transform: translate()</code> never generates a layout shift entry, because layout position is unchanged. That is the whole reason animations should use transforms.</li>
+      <li><strong>Sub-pixel and scroll.</strong> The browser works in physical pixels after device pixel ratio scaling, ignores shifts smaller than the implementation threshold, and does not count movement caused by scrolling.</li>
+      <li><strong>Newly inserted content.</strong> An element appearing for the first time is not itself unstable; the elements it pushes down are.</li>
+    </ul>
+
+    <h3>How to get the numbers to type in here</h3>
+    <p>Open DevTools, run the snippet below, then reload the page. Each logged entry gives you the value, the timestamp, and the before and after rects of every source element, which map one to one onto the fields above.</p>
+    <div class="formula">new PerformanceObserver((list) =&gt; {
+  for (const e of list.getEntries()) {
+    if (e.hadRecentInput) continue;
+    console.log(e.startTime.toFixed(0) + 'ms', e.value.toFixed(4),
+      e.sources.map(s =&gt; ({
+        node: s.node,
+        before: s.previousRect, after: s.currentRect
+      })));
+  }
+}).observe({type: 'layout-shift', buffered: true});</div>
+
+    <h2>Frequently asked questions</h2>
+    <div class="faq-item"><div class="faq-q">Why does my per-element sum differ from the browser's frame value?</div><div class="faq-a">Because the browser unions the regions of <em>all</em> elements moving in that frame before dividing by the viewport area, and applies one distance fraction &mdash; the largest move in the frame &mdash; to that single union. When three stacked elements all slide down together their regions overlap, so the true union is smaller than the sum of the individual unions. Toggle the frame model in section 3 to compare the two figures on your own data.</div></div>
+    <div class="faq-item"><div class="faq-q">Can a single layout shift value be greater than 1?</div><div class="faq-a">No. Both the impact fraction and the distance fraction are clamped to the range 0 to 1 by construction: the impact region is intersected with the viewport before division, and the move distance is divided by the larger viewport dimension. CLS as a whole can exceed 1 only by accumulating many shifts inside one session window.</div></div>
+    <div class="faq-item"><div class="faq-q">Is the move distance the diagonal?</div><div class="faq-a">No. It is the greatest single-axis movement, that is <code>max(|dx|, |dy|)</code>. An element moving 100 px right and 100 px down has a move distance of 100 px, not 141 px.</div></div>
+    <div class="faq-item"><div class="faq-q">Does a taller viewport make CLS better or worse?</div><div class="faq-a">Both denominators grow, but not at the same rate. A taller viewport increases the area, shrinking the impact fraction of a fixed-size element, and increases <code>max(width, height)</code>, shrinking the distance fraction of a fixed vertical jump. So the same absolute shift generally scores lower on a taller screen &mdash; which is exactly why you must test at the viewport your real users have.</div></div>
+    <div class="faq-item"><div class="faq-q">Why is my CLS lower than the sum of everything I entered?</div><div class="faq-a">That is the session window algorithm working as intended. Only the single heaviest burst counts. Section 6 shows which window won and which shifts were discarded.</div></div>
+
+    <div class="author-bio">
+      <p><strong>About the author.</strong> Built by <a href="https://zovo.one" rel="author">Michael Lip</a>, a solo developer shipping performance and developer tooling across the Zovo network. This calculator implements the Layout Instability specification and the session window logic from Google's <code>web-vitals</code> reference implementation. Everything runs client side; nothing you type leaves the page.</p>
+    </div>
+
+    <div class="related-tools">
+      <h3>Related tools</h3>
+      <div class="related-grid">
+        <a href="/tools/core-web-vitals-calculator">Core Web Vitals Calculator<small>Grade LCP, INP and CLS against the thresholds</small></a>
+        <a href="/tools/web-vitals-monitor">Web Vitals Monitor<small>Live field measurement in your own browser</small></a>
+        <a href="/tools/lazy-loading-calculator">Lazy Loading Calculator<small>Thresholds, rootMargin and deferred weight</small></a>
+        <a href="/tools/responsive-breakpoint-tester">Responsive Breakpoint Tester<small>Check layout stability across viewports</small></a>
+      </div>
+    </div>
+
+    <p class="last-updated">Last updated 29 July 2026</p>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">Krzen</div>
+    <div class="footer-tagline">Free web performance tools by a solo dev. No tracking, no uploads.</div>
+    <a href="https://zovo.one/pricing?utm_source=krzen.com&amp;utm_medium=satellite&amp;utm_campaign=footer-link" class="footer-cta">Zovo Lifetime &mdash; $99 once, free forever &rarr;</a>
+    <div class="footer-links">
+      <a href="/tools/">All tools</a>
+      <a href="/tools/core-web-vitals-calculator">Core Web Vitals</a>
+      <a href="/research/">Research</a>
+      <a href="/about.html">About</a>
+      <a href="https://zovo.one">Zovo</a>
+    </div>
+    <div class="footer-copy">&copy; 2026 <a href="https://krzen.com">Krzen</a> &middot; built by <a href="https://zovo.one">Michael Lip</a></div>
+  </div>
+</footer>
+
+<nav class="zovo-network" aria-label="Zovo Tools Network">
+  <div class="zovo-network-inner">
+    <h3 class="zovo-network-title">Explore More Tools</h3>
+    <div class="zovo-network-links">
+      <a href="https://abwex.com">ABWex &mdash; A/B Testing</a>
+      <a href="https://claudflow.com">ClaudFlow &mdash; Workflows</a>
+      <a href="https://claudkit.com">ClaudKit &mdash; API Tools</a>
+      <a href="https://enhio.com">Enhio &mdash; Text Tools</a>
+      <a href="https://epochpilot.com">EpochPilot &mdash; Timestamps</a>
+      <a href="https://gen8x.com">Gen8X &mdash; Color Tools</a>
+      <a href="https://kappafy.com">Kappafy &mdash; JSON</a>
+      <a href="https://kickllm.com">KickLLM &mdash; LLM Costs</a>
+      <a href="https://ml3x.com">ML3X &mdash; Matrix Math</a>
+      <a href="https://viryd.com">Viryd &mdash; Dev Tools</a>
+    </div>
+  </div>
+</nav>
+
+<div class="pow-strip">
+  <div class="pow-strip-inner">
+    <span class="pow-label">By the same builder:</span>
+    <a href="https://github.com/theluckystrike" rel="nofollow">GitHub &mdash; theluckystrike</a>
+    <a href="https://www.belikenative.com" rel="nofollow">BeLikeNative &mdash; Grammar AI</a>
+    <a href="https://earlythunder.com" rel="nofollow">EarlyThunder &mdash; Dev Blog</a>
+    <a href="https://zovo.one" rel="nofollow">Zovo &mdash; AI Dev Tools</a>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- constants fixed by the spec / Core Web Vitals ---------- */
+var GAP_MS = 1000;      /* max gap between consecutive shifts in one session window */
+var WINDOW_MS = 5000;   /* max total span of one session window */
+var GOOD = 0.1;         /* CLS good threshold */
+var POOR = 0.25;        /* CLS needs-improvement upper bound */
+
+/* ---------- state ---------- */
+var uid = 0;
+function demoData(){
+  return [
+    {id:++uid, name:'Hero banner',   frame:1, bx:0,   by:100, bw:390, bh:200, ax:0,   ay:350, aw:390, ah:200},
+    {id:++uid, name:'Intro copy',    frame:1, bx:0,   by:300, bw:390, bh:120, ax:0,   ay:380, aw:390, ah:120},
+    {id:++uid, name:'CTA button',    frame:2, bx:20,  by:600, bw:160, bh:44,  ax:20,  ay:640, aw:160, ah:44},
+    {id:++uid, name:'Cookie banner', frame:3, bx:0,   by:744, bw:390, bh:100, ax:0,   ay:500, aw:390, ah:100},
+    {id:++uid, name:'Ad slot',       frame:4, bx:200, by:200, bw:180, bh:250, ax:200, ay:210, aw:180, ah:250}
+  ];
+}
+var els = demoData();
+var times = {1:520, 2:3400, 3:3900, 4:4300};
+var vw = 390, vh = 844;
+var frameModel = 'sum';
+var lastFrameKey = null;
+
+/* ---------- helpers ---------- */
+function $(id){ return document.getElementById(id); }
+function num(v, fb){ var n = parseFloat(v); return (isFinite(n)) ? n : (fb || 0); }
+function nn(v){ var n = parseFloat(v); return isFinite(n) ? n : 0; }
+function clampPos(n){ return (isFinite(n) && n > 0) ? n : 0; }
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]; }); }
+function fmt(n, d){ if(!isFinite(n)) return '0'; return n.toFixed(d); }
+function fmtInt(n){ if(!isFinite(n)) return '0'; return Math.round(n).toLocaleString('en-US'); }
+
+/* rect helpers: {x0,y0,x1,y1} */
+function toRect(x, y, w, h){
+  w = clampPos(w); h = clampPos(h);
+  x = nn(x); y = nn(y);
+  return {x0:x, y0:y, x1:x + w, y1:y + h};
+}
+function clipRect(r, w, h){
+  var x0 = Math.max(0, r.x0), y0 = Math.max(0, r.y0);
+  var x1 = Math.min(w, r.x1), y1 = Math.min(h, r.y1);
+  if(!(x1 > x0) || !(y1 > y0)) return null;
+  return {x0:x0, y0:y0, x1:x1, y1:y1};
+}
+/* exact area of the union of N axis-aligned rects via coordinate compression */
+function unionArea(rects){
+  var list = [], i, j, k;
+  for(i = 0; i < rects.length; i++){
+    var r = rects[i];
+    if(r && r.x1 > r.x0 && r.y1 > r.y0) list.push(r);
+  }
+  if(!list.length) return 0;
+  if(list.length === 1) return (list[0].x1 - list[0].x0) * (list[0].y1 - list[0].y0);
+  var xs = [], ys = [];
+  for(i = 0; i < list.length; i++){ xs.push(list[i].x0, list[i].x1); ys.push(list[i].y0, list[i].y1); }
+  xs = uniqSort(xs); ys = uniqSort(ys);
+  var total = 0;
+  for(i = 0; i < xs.length - 1; i++){
+    var cx = (xs[i] + xs[i+1]) / 2, wcell = xs[i+1] - xs[i];
+    if(wcell <= 0) continue;
+    for(j = 0; j < ys.length - 1; j++){
+      var cy = (ys[j] + ys[j+1]) / 2, hcell = ys[j+1] - ys[j];
+      if(hcell <= 0) continue;
+      for(k = 0; k < list.length; k++){
+        var q = list[k];
+        if(cx > q.x0 && cx < q.x1 && cy > q.y0 && cy < q.y1){ total += wcell * hcell; break; }
+      }
+    }
+  }
+  return total;
+}
+function uniqSort(a){
+  a.sort(function(p, q){ return p - q; });
+  var out = [];
+  for(var i = 0; i < a.length; i++){ if(i === 0 || a[i] !== a[i-1]) out.push(a[i]); }
+  return out;
+}
+
+/* ---------- core scoring ---------- */
+/* layout shift value for one element, per the Layout Instability formula */
+function scoreElement(e, w, h, ovX, ovY){
+  var area = w * h, maxDim = Math.max(w, h);
+  var out = {unionArea:0, impact:0, dist:0, distFrac:0, value:0, before:null, after:null};
+  if(!(area > 0) || !(maxDim > 0)) return out;
+  var dx = (typeof ovX === 'number') ? ovX : (nn(e.ax) - nn(e.bx));
+  var dy = (typeof ovY === 'number') ? ovY : (nn(e.ay) - nn(e.by));
+  var before = toRect(e.bx, e.by, e.bw, e.bh);
+  var after  = toRect(nn(e.bx) + dx, nn(e.by) + dy, (typeof ovX === 'number' || typeof ovY === 'number') ? e.bw : e.aw, (typeof ovX === 'number' || typeof ovY === 'number') ? e.bh : e.ah);
+  out.before = before; out.after = after;
+  var cb = clipRect(before, w, h), ca = clipRect(after, w, h);
+  out.unionArea = unionArea([cb, ca]);
+  out.impact = out.unionArea / area;
+  out.dist = Math.max(Math.abs(dx), Math.abs(dy));
+  out.distFrac = out.dist / maxDim;
+  out.value = out.impact * out.distFrac;
+  return out;
+}
+
+/* one frame value computed the way the browser does it: union of every
+   source rect in the frame, times the single greatest move distance */
+function frameUnionValue(members, w, h){
+  var area = w * h, maxDim = Math.max(w, h);
+  if(!(area > 0) || !(maxDim > 0) || !members.length) return 0;
+  var rects = [], maxMove = 0, i;
+  for(i = 0; i < members.length; i++){
+    var e = members[i];
+    rects.push(clipRect(toRect(e.bx, e.by, e.bw, e.bh), w, h));
+    rects.push(clipRect(toRect(e.ax, e.ay, e.aw, e.ah), w, h));
+    var d = Math.max(Math.abs(nn(e.ax) - nn(e.bx)), Math.abs(nn(e.ay) - nn(e.by)));
+    if(d > maxMove) maxMove = d;
+  }
+  return (unionArea(rects) / area) * (maxMove / maxDim);
+}
+
+/* build shift records: one per frame, ordered by timestamp */
+function buildShifts(list, w, h, model){
+  var byFrame = {}, order = [], i;
+  for(i = 0; i < list.length; i++){
+    var f = Math.round(nn(list[i].frame));
+    if(!byFrame[f]){ byFrame[f] = []; order.push(f); }
+    byFrame[f].push(list[i]);
+  }
+  var recs = [];
+  for(i = 0; i < order.length; i++){
+    var fid = order[i], members = byFrame[fid];
+    var sum = 0, j, scores = [];
+    for(j = 0; j < members.length; j++){
+      var s = scoreElement(members[j], w, h);
+      scores.push(s); sum += s.value;
+    }
+    var uni = frameUnionValue(members, w, h);
+    recs.push({
+      frame: fid,
+      t: nn(times[fid]),
+      members: members,
+      scores: scores,
+      sum: sum,
+      union: uni,
+      value: (model === 'union') ? uni : sum
+    });
+  }
+  recs.sort(function(a, b){ return a.t - b.t || a.frame - b.frame; });
+  return recs;
+}
+
+/* session window algorithm (web-vitals reference implementation) */
+function sessionWindows(recs){
+  var wins = [], cur = null, i;
+  for(i = 0; i < recs.length; i++){
+    var r = recs[i];
+    if(cur && (r.t - cur.entries[cur.entries.length - 1].t) < GAP_MS && (r.t - cur.entries[0].t) < WINDOW_MS){
+      cur.entries.push(r); cur.sum += r.value;
+    } else {
+      cur = {entries:[r], sum:r.value};
+      wins.push(cur);
+    }
+  }
+  return wins;
+}
+function clsOf(wins){
+  var max = 0;
+  for(var i = 0; i < wins.length; i++){ if(wins[i].sum > max) max = wins[i].sum; }
+  return max;
+}
+function verdictOf(cls){
+  if(cls <= GOOD) return {t:'Good', c:'v-good'};
+  if(cls <= POOR) return {t:'Needs improvement', c:'v-ni'};
+  return {t:'Poor', c:'v-poor'};
+}
+
+/* ---------- rendering: element rows ---------- */
+function numCell(id, field, v, cls){
+  return '<td class="num' + (cls ? ' ' + cls : '') + '"><input type="number" step="1" data-id="' + id + '" data-f="' + field + '" value="' + nn(v) + '"></td>';
+}
+function renderRows(){
+  var html = '', i;
+  for(i = 0; i < els.length; i++){
+    var e = els[i];
+    html += '<tr>' +
+      '<td><input type="text" data-id="' + e.id + '" data-f="name" value="' + esc(e.name) + '"></td>' +
+      '<td class="num"><input class="frame" type="number" step="1" min="1" data-id="' + e.id + '" data-f="frame" value="' + Math.round(nn(e.frame)) + '"></td>' +
+      numCell(e.id, 'bx', e.bx, 'grp-b') + numCell(e.id, 'by', e.by) + numCell(e.id, 'bw', e.bw) + numCell(e.id, 'bh', e.bh) +
+      numCell(e.id, 'ax', e.ax, 'grp-a') + numCell(e.id, 'ay', e.ay) + numCell(e.id, 'aw', e.aw) + numCell(e.id, 'ah', e.ah) +
+      '<td><button type="button" class="row-del" data-del="' + e.id + '">Remove</button></td>' +
+    '</tr>';
+  }
+  if(!els.length){
+    html = '<tr><td colspan="11" style="color:#888;text-align:center;padding:22px">No elements. Add one, or load the demo page.</td></tr>';
+  }
+  $('el-body').innerHTML = html;
+}
+
+/* ---------- rendering: frame timestamps ---------- */
+function frameIds(){
+  var seen = {}, out = [], i;
+  for(i = 0; i < els.length; i++){
+    var f = Math.round(nn(els[i].frame));
+    if(!seen[f]){ seen[f] = 1; out.push(f); }
+  }
+  out.sort(function(a, b){ return a - b; });
+  return out;
+}
+function renderFrames(recs){
+  var ids = frameIds();
+  var key = ids.join(',');
+  var body = $('frame-body');
+  if(key !== lastFrameKey){
+    lastFrameKey = key;
+    var html = '', i;
+    for(i = 0; i < ids.length; i++){
+      var f = ids[i];
+      if(typeof times[f] !== 'number' || !isFinite(times[f])) times[f] = (i === 0 ? 500 : nn(times[ids[i-1]]) + 600);
+      html += '<tr>' +
+        '<td class="num">' + f + '</td>' +
+        '<td><input type="number" step="10" min="0" data-t="' + f + '" value="' + nn(times[f]) + '" style="width:120px"></td>' +
+        '<td id="fm-' + f + '" style="color:#888"></td>' +
+        '<td class="num" id="fs-' + f + '"></td>' +
+        '<td class="num" id="fu-' + f + '"></td>' +
+      '</tr>';
+    }
+    if(!ids.length) html = '<tr><td colspan="5" style="color:#888;text-align:center;padding:18px">No frames yet.</td></tr>';
+    body.innerHTML = html;
+  }
+  for(var j = 0; j < recs.length; j++){
+    var r = recs[j];
+    var nameList = [], k;
+    for(k = 0; k < r.members.length; k++) nameList.push(r.members[k].name || 'element');
+    var cm = $('fm-' + r.frame), cs = $('fs-' + r.frame), cu = $('fu-' + r.frame);
+    if(cm) cm.textContent = nameList.join(', ');
+    if(cs) cs.textContent = fmt(r.sum, 5);
+    if(cu) cu.textContent = fmt(r.union, 5);
+  }
+}
+
+/* ---------- rendering: scores / windows ---------- */
+function renderScores(recs, cls){
+  var html = '', i, j;
+  var worst = null;
+  for(i = 0; i < recs.length; i++){
+    for(j = 0; j < recs[i].members.length; j++){
+      var e = recs[i].members[j], s = recs[i].scores[j];
+      var share = cls > 0 ? (s.value / cls) * 100 : 0;
+      if(!worst || s.value > worst.v) worst = {n:e.name, v:s.value};
+      html += '<tr>' +
+        '<td>' + esc(e.name || 'element') + '</td>' +
+        '<td class="num">' + recs[i].frame + '</td>' +
+        '<td class="num">' + fmtInt(s.unionArea) + '</td>' +
+        '<td class="num">' + fmt(s.impact, 5) + '</td>' +
+        '<td class="num">' + fmt(s.dist, 1) + '</td>' +
+        '<td class="num">' + fmt(s.distFrac, 5) + '</td>' +
+        '<td class="num"><strong>' + fmt(s.value, 5) + '</strong></td>' +
+        '<td class="num">' + (cls > 0 ? fmt(share, 1) + '%' : '&mdash;') + '</td>' +
+      '</tr>';
+    }
+  }
+  if(!html) html = '<tr><td colspan="8" style="color:#888;text-align:center;padding:18px">Nothing to score.</td></tr>';
+  $('score-body').innerHTML = html;
+  return worst;
+}
+function renderWindows(wins, cls){
+  var html = '', i;
+  var winnerIdx = -1, best = -1;
+  for(i = 0; i < wins.length; i++){ if(wins[i].sum > best){ best = wins[i].sum; winnerIdx = i; } }
+  for(i = 0; i < wins.length; i++){
+    var w = wins[i];
+    var first = w.entries[0].t, last = w.entries[w.entries.length - 1].t;
+    var isWin = (i === winnerIdx && wins.length > 0);
+    html += '<tr class="' + (isWin ? 'win-hit' : '') + '">' +
+      '<td>Window ' + (i + 1) + '</td>' +
+      '<td class="num">' + fmt(first, 0) + ' ms</td>' +
+      '<td class="num">' + fmt(last, 0) + ' ms</td>' +
+      '<td class="num">' + fmt(last - first, 0) + '</td>' +
+      '<td class="num">' + w.entries.length + '</td>' +
+      '<td class="num"><strong>' + fmt(w.sum, 5) + '</strong></td>' +
+      '<td>' + (isWin ? '<span class="status-ok">reported as CLS</span>' : '<span style="color:#888">discarded</span>') + '</td>' +
+    '</tr>';
+  }
+  if(!html) html = '<tr><td colspan="7" style="color:#888;text-align:center;padding:18px">No shifts recorded.</td></tr>';
+  $('win-body').innerHTML = html;
+}
+
+/* ---------- SVG overlay ---------- */
+function renderSVG(e){
+  var box = $('svg-box');
+  if(!e || !(vw > 0) || !(vh > 0)){
+    box.innerHTML = '<p style="color:#888;font-size:.85rem;padding:16px">Select an element with a valid viewport to draw the overlay.</p>';
+    return;
+  }
+  var s = scoreElement(e, vw, vh);
+  var b = s.before, a = s.after;
+  var pad = Math.max(12, Math.max(vw, vh) * 0.05);
+  var minX = Math.min(0, b.x0, a.x0) - pad, minY = Math.min(0, b.y0, a.y0) - pad;
+  var maxX = Math.max(vw, b.x1, a.x1) + pad, maxY = Math.max(vh, b.y1, a.y1) + pad;
+  var W = maxX - minX, H = maxY - minY;
+  if(!(W > 0) || !(H > 0)){ box.innerHTML = ''; return; }
+  var fs = Math.max(W / 620 * 13, 1);
+  var bcx = (b.x0 + b.x1) / 2, bcy = (b.y0 + b.y1) / 2;
+  var acx = (a.x0 + a.x1) / 2, acy = (a.y0 + a.y1) / 2;
+  function R(r, attrs){ return '<rect x="' + r.x0 + '" y="' + r.y0 + '" width="' + (r.x1 - r.x0) + '" height="' + (r.y1 - r.y0) + '" ' + attrs + '/>'; }
+  var svg = '<svg viewBox="' + minX + ' ' + minY + ' ' + W + ' ' + H + '" role="img" aria-label="To-scale overlay of the viewport with the before rect, after rect and impact region" xmlns="http://www.w3.org/2000/svg">';
+  svg += '<defs><clipPath id="vpclip"><rect x="0" y="0" width="' + vw + '" height="' + vh + '"/></clipPath></defs>';
+  /* viewport */
+  svg += '<rect x="0" y="0" width="' + vw + '" height="' + vh + '" fill="#111827" stroke="#4b5563" stroke-width="1" vector-effect="non-scaling-stroke"/>';
+  /* impact region: both rects in one group so overlap does not double-darken; clipped to viewport */
+  svg += '<g clip-path="url(#vpclip)" opacity="0.32">' +
+         R(b, 'fill="#FB923C"') + R(a, 'fill="#FB923C"') + '</g>';
+  /* outlines (drawn full, including any part outside the viewport) */
+  svg += R(b, 'fill="none" stroke="#60A5FA" stroke-width="1.5" stroke-dasharray="6 4" vector-effect="non-scaling-stroke"');
+  svg += R(a, 'fill="none" stroke="#FB923C" stroke-width="1.5" vector-effect="non-scaling-stroke"');
+  /* move vector */
+  if(s.dist > 0){
+    svg += '<line x1="' + bcx + '" y1="' + bcy + '" x2="' + acx + '" y2="' + acy + '" stroke="#34D399" stroke-width="1.5" vector-effect="non-scaling-stroke"/>';
+    svg += '<circle cx="' + acx + '" cy="' + acy + '" r="' + (fs * 0.3) + '" fill="#34D399"/>';
+    svg += '<text x="' + ((bcx + acx) / 2 + fs * 0.4) + '" y="' + ((bcy + acy) / 2) + '" fill="#34D399" font-size="' + fs + '" font-family="monospace">' + fmt(s.dist, 0) + 'px</text>';
+  }
+  svg += '<text x="' + (fs * 0.4) + '" y="' + (-fs * 0.4) + '" fill="#9ca3af" font-size="' + fs + '" font-family="monospace">viewport ' + vw + ' x ' + vh + '</text>';
+  svg += '<text x="' + (b.x0 + fs * 0.35) + '" y="' + (b.y0 - fs * 0.3) + '" fill="#60A5FA" font-size="' + fs + '" font-family="monospace">before</text>';
+  svg += '<text x="' + (a.x0 + fs * 0.35) + '" y="' + (a.y1 + fs * 1.1) + '" fill="#FB923C" font-size="' + fs + '" font-family="monospace">after</text>';
+  svg += '</svg>';
+  box.innerHTML = svg;
+}
+
+/* ---------- displacement budget ---------- */
+function clsWithOverride(id, axis, d){
+  var w = vw, h = vh;
+  var byFrame = {}, order = [], i;
+  for(i = 0; i < els.length; i++){
+    var f = Math.round(nn(els[i].frame));
+    if(!byFrame[f]){ byFrame[f] = []; order.push(f); }
+    byFrame[f].push(els[i]);
+  }
+  var recs = [];
+  for(i = 0; i < order.length; i++){
+    var fid = order[i], members = byFrame[fid], sum = 0, j;
+    for(j = 0; j < members.length; j++){
+      var e = members[j];
+      if(e.id === id){
+        sum += scoreElement(e, w, h, axis === 'x' ? d : 0, axis === 'y' ? d : 0).value;
+      } else {
+        sum += scoreElement(e, w, h).value;
+      }
+    }
+    recs.push({frame:fid, t:nn(times[fid]), value:sum});
+  }
+  recs.sort(function(a, b){ return a.t - b.t || a.frame - b.frame; });
+  return clsOf(sessionWindows(recs));
+}
+function renderBudget(){
+  var sel = $('bud-el'), axis = $('bud-axis').value;
+  var id = parseInt(sel.value, 10);
+  var e = null, i;
+  for(i = 0; i < els.length; i++){ if(els[i].id === id) e = els[i]; }
+  if(!e || !(vw > 0) || !(vh > 0)){
+    $('bud-current').textContent = '0 px'; $('bud-max').textContent = '0 px';
+    $('bud-head').textContent = '0 px'; $('bud-score').textContent = '0.000';
+    $('bud-note').textContent = 'Add an element and set a valid viewport to compute a displacement budget.';
+    return;
+  }
+  var cur = axis === 'x' ? Math.abs(nn(e.ax) - nn(e.bx)) : Math.abs(nn(e.ay) - nn(e.by));
+  var base = clsWithOverride(id, axis, 0);
+  var limit = Math.max(vw, vh) * 5;
+  var budget = null;
+  if(base > GOOD){
+    budget = 0;
+  } else {
+    var steps = 400, step = limit / steps, lo = 0, hi = null;
+    for(i = 1; i <= steps; i++){
+      var d = i * step;
+      if(clsWithOverride(id, axis, d) > GOOD){ hi = d; lo = (i - 1) * step; break; }
+    }
+    if(hi === null){ budget = null; }
+    else {
+      for(i = 0; i < 40; i++){
+        var mid = (lo + hi) / 2;
+        if(clsWithOverride(id, axis, mid) > GOOD) hi = mid; else lo = mid;
+      }
+      budget = lo;
+    }
+  }
+  $('bud-current').textContent = fmt(cur, 0) + ' px';
+  if(budget === null){
+    $('bud-max').textContent = '> ' + fmtInt(limit) + ' px';
+    $('bud-head').textContent = 'unbounded';
+    $('bud-score').textContent = fmt(clsWithOverride(id, axis, limit), 4);
+    $('bud-note').innerHTML = 'Even a ' + fmtInt(limit) + ' px move of <strong>' + esc(e.name) + '</strong> keeps CLS at or below 0.10 &mdash; this element is too small, or too far outside the viewport, to matter. Spend your effort elsewhere.';
+    return;
+  }
+  var head = budget - cur;
+  $('bud-max').textContent = fmt(budget, 1) + ' px';
+  $('bud-head').textContent = (head >= 0 ? '+' : '') + fmt(head, 1) + ' px';
+  var atLimit = clsWithOverride(id, axis, budget);
+  $('bud-score').textContent = fmt(atLimit, 4);
+  var el = $('bud-head');
+  el.className = 'value ' + (head >= 0 ? 'status-ok' : 'status-bad');
+  el.style.color = '';
+  if(base > GOOD){
+    $('bud-note').innerHTML = 'The other shifts on this page already push CLS to <strong>' + fmt(base, 4) + '</strong>, above the 0.10 good threshold, even with <strong>' + esc(e.name) + '</strong> frozen in place. There is no budget left for this element until the others are fixed.';
+  } else if(head >= 0){
+    $('bud-note').innerHTML = '<strong>' + esc(e.name) + '</strong> can move up to <strong>' + fmt(budget, 1) + ' px</strong> along the ' + (axis === 'x' ? 'horizontal' : 'vertical') + ' axis before CLS crosses 0.10, given every other shift on this page stays as entered. It currently moves ' + fmt(cur, 0) + ' px, leaving ' + fmt(head, 1) + ' px of headroom. Reserving space with an aspect-ratio box or a min-height placeholder is the usual fix.';
+  } else {
+    $('bud-note').innerHTML = '<strong>' + esc(e.name) + '</strong> moves ' + fmt(cur, 0) + ' px but the budget is only <strong>' + fmt(budget, 1) + ' px</strong>. Cut the displacement by at least ' + fmt(-head, 1) + ' px &mdash; typically by reserving the final height up front so nothing below it is pushed.';
+  }
+}
+
+/* ---------- selects ---------- */
+function syncSelects(){
+  var opts = '', i;
+  for(i = 0; i < els.length; i++){
+    opts += '<option value="' + els[i].id + '">' + esc(els[i].name || ('element ' + (i + 1))) + '</option>';
+  }
+  ['svg-el', 'bud-el'].forEach(function(id){
+    var sel = $(id), prev = sel.value;
+    sel.innerHTML = opts;
+    var found = false;
+    for(i = 0; i < sel.options.length; i++){ if(sel.options[i].value === prev){ found = true; } }
+    if(found) sel.value = prev;
+    else if(sel.options.length) sel.selectedIndex = 0;
+  });
+}
+
+/* ---------- main recompute ---------- */
+function recompute(){
+  vw = Math.round(num($('vw').value, 0));
+  vh = Math.round(num($('vh').value, 0));
+  var valid = vw > 0 && vh > 0;
+  $('vp-area').value = valid ? fmtInt(vw * vh) : 'invalid';
+  $('vp-max').value = valid ? fmtInt(Math.max(vw, vh)) + ' px' : 'invalid';
+
+  var warn = '';
+  if(!valid) warn = 'Viewport width and height must both be greater than zero. All scores are held at zero until they are.';
+  else {
+    var bad = 0, i;
+    for(i = 0; i < els.length; i++){
+      var e = els[i];
+      if(!(clampPos(nn(e.bw)) > 0) || !(clampPos(nn(e.bh)) > 0) || !(clampPos(nn(e.aw)) > 0) || !(clampPos(nn(e.ah)) > 0)) bad++;
+    }
+    if(bad) warn = bad + ' element' + (bad > 1 ? 's have' : ' has') + ' a zero or negative width/height. Those rects contribute no area, so their impact fraction is 0.';
+  }
+  $('geo-warn').innerHTML = warn ? '<div class="warn-box">' + warn + '</div>' : '';
+
+  var w = valid ? vw : 0, h = valid ? vh : 0;
+  var recs = buildShifts(els, w, h, frameModel);
+  var wins = sessionWindows(recs);
+  var cls = clsOf(wins);
+  var total = 0, i2;
+  for(i2 = 0; i2 < recs.length; i2++) total += recs[i2].value;
+
+  renderFrames(recs);
+  var worst = renderScores(recs, cls);
+  renderWindows(wins, cls);
+
+  $('out-cls').textContent = fmt(cls, 4);
+  $('out-total').textContent = fmt(total, 4);
+  $('out-windows').textContent = String(wins.length);
+  $('out-worst').textContent = worst && worst.v > 0 ? worst.n : '—';
+  $('out-worst').style.fontSize = '1.05rem';
+
+  var v = verdictOf(cls);
+  var vEl = $('out-verdict');
+  vEl.className = 'verdict ' + v.c;
+  vEl.textContent = v.t + ' · ' + fmt(cls, 3);
+  $('out-cls').className = 'value ' + (cls <= GOOD ? 'status-ok' : (cls <= POOR ? 'status-warn' : 'status-bad'));
+  $('out-meter').style.width = Math.min(100, (cls / 0.5) * 100) + '%';
+  $('out-meter').style.background = cls <= GOOD ? '#34D399' : (cls <= POOR ? '#FBBF24' : '#F87171');
+
+  var discarded = total - cls;
+  var msg;
+  if(!recs.length) msg = 'No shift records yet.';
+  else {
+    msg = 'CLS is <strong>' + fmt(cls, 4) + '</strong> from the heaviest of ' + wins.length + ' session window' + (wins.length === 1 ? '' : 's') +
+      '. The naive lifetime total is ' + fmt(total, 4) + ', so <strong>' + fmt(discarded, 4) + '</strong> (' +
+      (total > 0 ? fmt((discarded / total) * 100, 1) : '0.0') + '%) of the measured instability falls outside the winning window and is never reported. ' +
+      'Thresholds: good at or below 0.10, poor above 0.25.';
+  }
+  $('out-summary').innerHTML = msg;
+
+  var sel = $('svg-el');
+  var chosen = null, k;
+  for(k = 0; k < els.length; k++){ if(String(els[k].id) === sel.value) chosen = els[k]; }
+  renderSVG(chosen);
+  renderBudget();
+}
+
+/* ---------- events ---------- */
+$('el-body').addEventListener('input', function(ev){
+  var t = ev.target;
+  var id = parseInt(t.getAttribute('data-id'), 10);
+  var f = t.getAttribute('data-f');
+  if(!f || !isFinite(id)) return;
+  for(var i = 0; i < els.length; i++){
+    if(els[i].id === id){
+      if(f === 'name'){ els[i].name = t.value; syncSelects(); }
+      else if(f === 'frame'){ els[i].frame = Math.max(1, Math.round(num(t.value, 1))); }
+      else { els[i][f] = num(t.value, 0); }
+      break;
+    }
+  }
+  recompute();
+});
+$('el-body').addEventListener('click', function(ev){
+  var id = ev.target.getAttribute && ev.target.getAttribute('data-del');
+  if(!id) return;
+  id = parseInt(id, 10);
+  els = els.filter(function(e){ return e.id !== id; });
+  renderRows(); syncSelects(); lastFrameKey = null; recompute();
+});
+$('frame-body').addEventListener('input', function(ev){
+  var f = ev.target.getAttribute && ev.target.getAttribute('data-t');
+  if(f === null || f === undefined) return;
+  times[parseInt(f, 10)] = Math.max(0, num(ev.target.value, 0));
+  recompute();
+});
+$('add-el').addEventListener('click', function(){
+  var f = els.length ? Math.round(nn(els[els.length - 1].frame)) + 1 : 1;
+  els.push({id:++uid, name:'Element ' + (els.length + 1), frame:f, bx:0, by:200, bw:Math.min(300, vw), bh:120, ax:0, ay:300, aw:Math.min(300, vw), ah:120});
+  renderRows(); syncSelects(); lastFrameKey = null; recompute();
+});
+$('clear-all').addEventListener('click', function(){
+  els = []; times = {}; lastFrameKey = null;
+  renderRows(); syncSelects(); recompute();
+});
+$('load-demo').addEventListener('click', function(){
+  els = demoData(); times = {1:520, 2:3400, 3:3900, 4:4300};
+  $('vw').value = 390; $('vh').value = 844;
+  setActivePreset(390, 844);
+  lastFrameKey = null;
+  renderRows(); syncSelects(); recompute();
+});
+function setActivePreset(w, h){
+  var btns = $('vp-presets').querySelectorAll('.vp-btn');
+  for(var i = 0; i < btns.length; i++){
+    var bw = parseInt(btns[i].getAttribute('data-w'), 10), bh = parseInt(btns[i].getAttribute('data-h'), 10);
+    if(bw === w && bh === h) btns[i].classList.add('active'); else btns[i].classList.remove('active');
+  }
+}
+$('vp-presets').addEventListener('click', function(ev){
+  var b = ev.target.closest ? ev.target.closest('.vp-btn') : null;
+  if(!b) return;
+  var w, h;
+  if(b.id === 'vp-detect'){
+    w = Math.round(window.innerWidth || document.documentElement.clientWidth || 0);
+    h = Math.round(window.innerHeight || document.documentElement.clientHeight || 0);
+  } else {
+    w = parseInt(b.getAttribute('data-w'), 10);
+    h = parseInt(b.getAttribute('data-h'), 10);
+  }
+  if(!(w > 0) || !(h > 0)) return;
+  $('vw').value = w; $('vh').value = h;
+  setActivePreset(w, h);
+  recompute();
+});
+$('vw').addEventListener('input', function(){ setActivePreset(-1, -1); recompute(); });
+$('vh').addEventListener('input', function(){ setActivePreset(-1, -1); recompute(); });
+$('frame-model').addEventListener('change', function(){ frameModel = this.value; recompute(); });
+$('svg-el').addEventListener('change', recompute);
+$('bud-el').addEventListener('change', renderBudget);
+$('bud-axis').addEventListener('change', renderBudget);
+
+/* ---------- boot ---------- */
+renderRows();
+syncSelects();
+recompute();
+})();
+</script>
+</body>
+</html>

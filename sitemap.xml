@@ -93,4 +93,8 @@
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
+  <url><loc>https://krzen.com/tools/cls-layout-shift-score-calculator.html</loc></url>
+  <url><loc>https://krzen.com/tools/cwv-p75-sample-size-confidence-calculator.html</loc></url>
+  <url><loc>https://krzen.com/tools/lcp-subpart-breakdown-analyzer.html</loc></url>
+  <url><loc>https://krzen.com/tools/tcp-slow-start-roundtrip-calculator.html</loc></url>
 </urlset>

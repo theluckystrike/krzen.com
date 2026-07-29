@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Core Web Vitals p75 Sample Size Confidence Tool</title>
+<meta name="description" content="Is your Core Web Vitals p75 real or sampling noise? Exact binomial pass probability, Wilson interval, flip risk and the sample size you actually need.">
+<meta name="keywords" content="core web vitals sample size, p75 confidence interval, CrUX sample size, binomial pass probability, Wilson score interval, LCP INP CLS statistics, flip risk, RUM statistical significance">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="canonical" href="https://krzen.com/tools/cwv-p75-sample-size-confidence-calculator">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Core Web Vitals p75 Sample Size Confidence Tool">
+<meta property="og:description" content="Is your Core Web Vitals p75 real or sampling noise? Exact binomial pass probability, Wilson interval, flip risk and the sample size you actually need.">
+<meta property="og:url" content="https://krzen.com/tools/cwv-p75-sample-size-confidence-calculator">
+<meta property="og:site_name" content="Krzen">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Core Web Vitals p75 Sample Size Confidence Tool">
+<meta name="twitter:description" content="Exact binomial statistics for a Core Web Vitals p75: pass probability, Wilson interval, flip risk and required sample size.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Core Web Vitals p75 Sample Size Confidence Tool",
+  "url": "https://krzen.com/tools/cwv-p75-sample-size-confidence-calculator",
+  "description": "Decide whether a measured Core Web Vitals 75th percentile is a real signal or sampling noise. Computes the exact binomial probability that a window of n samples passes the 75 percent rule, a Wilson score interval on the true under-threshold rate, a distribution-free order-statistic rank window for the p75 value, the month-to-month flip risk, and the minimum sample size needed for a target margin of error or an A/B comparison.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+  "author": {"@type": "Person", "name": "Michael Lip", "url": "https://zovo.one"},
+  "publisher": {"@type": "Organization", "name": "Krzen", "url": "https://krzen.com"},
+  "datePublished": "2026-07-29",
+  "dateModified": "2026-07-29",
+  "featureList": ["Exact binomial tail probability via log-gamma summation", "Normal approximation with continuity correction for very large windows", "Wilson score interval on the under-threshold rate", "Distribution-free order-statistic rank window for the p75 value", "Month-to-month verdict flip risk with a confidence range", "Minimum sample size for a target margin of error", "Two-proportion z-test sample size for before and after comparisons", "Design effect adjustment for clustered RUM traffic", "Binomial distribution plot with the 75 percent pass line marked"],
+  "browserRequirements": "Requires JavaScript",
+  "isAccessibleForFree": true
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://krzen.com/"},
+    {"@type": "ListItem", "position": 2, "name": "Tools", "item": "https://krzen.com/tools/"},
+    {"@type": "ListItem", "position": 3, "name": "Core Web Vitals p75 Sample Size Confidence Tool", "item": "https://krzen.com/tools/cwv-p75-sample-size-confidence-calculator"}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Why is passing Core Web Vitals a binomial event?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The 75th percentile of a sample is at or below a threshold exactly when at least 75 percent of the samples are at or below that threshold. So the pass or fail decision depends only on a count: how many of the n samples in the window landed under the threshold. If each sample is an independent draw with true under-threshold probability q, that count follows a Binomial distribution with parameters n and q, and the window passes when the count reaches ceil(0.75 times n)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How many samples do I need before a Core Web Vitals p75 is trustworthy?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "It depends entirely on how far your true under-threshold rate sits from 75 percent, not on how much traffic you have. Take 1.645 squared times q times one minus q, divided by the squared distance between q and 0.75. At a true rate of 78 percent that is about 520 samples. At 76 percent it is about 4,900. At exactly 75 percent no sample size ever stabilises the verdict, because the pass probability converges to one half."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is flip risk for a Core Web Vitals badge?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Flip risk is the probability that the next reporting window returns the opposite pass or fail verdict from the current one, assuming nothing about the site changed and the true under-threshold rate stayed the same. It is the binomial tail on the wrong side of the 75 percent cut. A green field-data badge with a 30 percent flip risk will turn red roughly one month in three for no engineering reason at all."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why use a Wilson score interval instead of the normal approximation?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The textbook Wald interval, the point estimate plus or minus z times the square root of p times one minus p over n, has badly wrong coverage when p is near 0 or 1 or when n is small, and it can produce bounds below 0 or above 1. The Wilson score interval inverts the score test instead, keeps its bounds inside 0 and 1 by construction, and holds close to nominal coverage even for small samples and extreme proportions. Since a good Core Web Vitals rate is usually 0.75 to 0.99, that matters."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What are the Core Web Vitals thresholds evaluated at the 75th percentile?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Largest Contentful Paint is good at 2500 ms or less and poor above 4000 ms. Interaction to Next Paint is good at 200 ms or less and poor above 500 ms. Cumulative Layout Shift is good at 0.10 or less and poor above 0.25. The supporting diagnostic metrics use 1800 ms and 3000 ms for First Contentful Paint and 800 ms and 1800 ms for Time to First Byte. All are assessed at the 75th percentile of page loads, segmented separately for mobile and desktop."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does the order-statistic interval need a normal distribution?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. The rank window is distribution free. It says only that the true 75th percentile of the population lies between the j-th and k-th smallest values of your sorted sample, with ranks derived from the binomial variance of the count below the quantile. Web performance distributions are heavily right skewed and multi modal, so any method that assumes normality of the underlying latency values would be wrong. Ranks are safe because they depend only on ordering."
+      }
+    }
+  ]
+}
+</script>
+<style>
+:root{
+  --font-display:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --font-body:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --bg:#0a0a0a; --bg-card:#141414; --bg-hover:#1a1a1a;
+  --text:#e8e8e8; --text-muted:#888; --border:#222; --radius:6px; --accent:#FB923C;
+  --ok:#34D399; --warn:#FBBF24; --bad:#F87171; --info:#60A5FA;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.container{max-width:1100px;margin:0 auto;padding:0 20px}
+header{border-bottom:1px solid var(--border);padding:16px 0;position:sticky;top:0;background:var(--bg);z-index:100}
+header .container{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.logo{font-family:var(--font-display);font-size:1.4rem;font-weight:700;color:var(--accent)}
+nav{display:flex;align-items:center;flex-wrap:wrap;gap:24px}
+nav a{color:var(--text-muted);font-size:0.9rem;font-weight:500}
+nav a:hover{color:var(--text);text-decoration:none}
+.nav-right{display:flex;align-items:center;gap:0.75rem;margin-left:auto}
+.nav-pro{background:var(--accent);color:#000 !important;padding:5px 13px;border-radius:var(--radius);font-size:0.82rem;font-weight:600;white-space:nowrap}
+.nav-pro:hover{opacity:0.85;text-decoration:none}
+.nav-zovo{color:var(--text-muted) !important;font-size:0.78rem;white-space:nowrap}
+.nav-zovo:hover{color:var(--text) !important;text-decoration:none}
+.hero{padding:44px 0 26px;text-align:center}
+.hero h1{font-family:var(--font-display);font-size:2rem;margin-bottom:12px;line-height:1.25}
+.hero h1 span{color:var(--accent)}
+.hero p{color:var(--text-muted);font-size:1.05rem;max-width:760px;margin:0 auto}
+.tool-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin:20px 0}
+.tool-section h3{font-family:var(--font-display);font-size:0.85rem;text-transform:uppercase;color:var(--accent);margin-bottom:16px;letter-spacing:0.04em}
+.tool-section h3 .sub{text-transform:none;color:var(--text-muted);font-weight:400;letter-spacing:0}
+.input-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.input-row:last-child{margin-bottom:0}
+.input-field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:160px}
+.input-field label{font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;letter-spacing:0.3px}
+.input-field .hint{font-size:0.72rem;color:var(--text-muted);text-transform:none;letter-spacing:0;font-weight:400}
+input[type="number"],input[type="text"],select{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:8px 12px;font-family:var(--font-body);font-size:0.9rem;width:100%}
+input[readonly]{color:var(--text-muted)}
+input:focus,select:focus{outline:none;border-color:var(--accent)}
+.btn{background:var(--accent);color:#000;border:none;border-radius:var(--radius);padding:9px 20px;font-family:var(--font-body);font-weight:600;font-size:0.88rem;cursor:pointer;transition:opacity .2s}
+.btn:hover{opacity:.85}
+.btn-secondary{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.btn-secondary:hover{background:rgba(251,146,60,.08);opacity:1}
+.btn-sm{padding:5px 12px;font-size:0.78rem}
+.preset-btn{background:transparent;color:var(--text-muted);border:1px solid var(--border);border-radius:var(--radius);padding:6px 14px;font-size:0.8rem;font-family:var(--font-body);cursor:pointer;transition:all .2s}
+.preset-btn:hover,.preset-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(251,146,60,.06)}
+.preset-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius)}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:0.82rem}
+th{background:var(--bg);color:var(--text-muted);font-size:0.68rem;text-transform:uppercase;letter-spacing:.4px;text-align:left;padding:9px 10px;border-bottom:1px solid var(--border);white-space:nowrap;font-weight:600}
+td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+td.num,th.num{text-align:right;font-family:var(--font-display)}
+.res-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;text-align:center;margin-bottom:8px}
+.res-item .value{font-family:var(--font-display);font-size:1.55rem;font-weight:700;color:var(--accent);line-height:1.25;word-break:break-word}
+.res-item .label{font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px}
+.verdict{display:inline-block;padding:6px 18px;border-radius:99px;font-family:var(--font-display);font-weight:700;font-size:0.9rem;letter-spacing:.03em}
+.v-good{background:rgba(52,211,153,.12);color:var(--ok);border:1px solid rgba(52,211,153,.4)}
+.v-ni{background:rgba(251,191,36,.12);color:var(--warn);border:1px solid rgba(251,191,36,.4)}
+.v-poor{background:rgba(248,113,113,.12);color:var(--bad);border:1px solid rgba(248,113,113,.4)}
+.v-info{background:rgba(96,165,250,.12);color:var(--info);border:1px solid rgba(96,165,250,.4)}
+.status-ok{color:var(--ok)}.status-warn{color:var(--warn)}.status-bad{color:var(--bad)}.status-info{color:var(--info)}
+.meter{height:10px;background:var(--bg);border:1px solid var(--border);border-radius:99px;overflow:hidden;margin:16px 0 6px;position:relative}
+.meter i{display:block;height:100%;background:var(--accent);transition:width .25s}
+.meter-scale{display:flex;justify-content:space-between;font-size:0.7rem;color:var(--text-muted);font-family:var(--font-display)}
+.ci-track{position:relative;height:56px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);margin:14px 0 6px;overflow:hidden}
+.ci-band{position:absolute;top:14px;height:16px;background:rgba(251,146,60,.35);border-left:2px solid var(--accent);border-right:2px solid var(--accent)}
+.ci-point{position:absolute;top:8px;width:2px;height:28px;background:var(--text)}
+.ci-line{position:absolute;top:0;width:2px;height:100%;background:var(--info)}
+.ci-lbl{position:absolute;bottom:4px;font-size:.66rem;color:var(--text-muted);font-family:var(--font-display);transform:translateX(-50%);white-space:nowrap}
+.svg-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px;overflow-x:auto}
+.svg-box svg{display:block;width:100%;height:auto;max-height:420px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:0.76rem;color:var(--text-muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.swatch{width:13px;height:13px;border-radius:2px;display:inline-block}
+.note{font-size:0.8rem;color:var(--text-muted);margin-top:12px;line-height:1.6}
+.warn-box{border:1px solid rgba(251,191,36,.4);background:rgba(251,191,36,.07);color:var(--warn);border-radius:var(--radius);padding:10px 14px;font-size:0.82rem;margin-bottom:14px}
+.formula{background:var(--bg);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--radius);padding:14px 16px;font-family:var(--font-display);font-size:0.82rem;color:var(--text-muted);overflow-x:auto;white-space:pre;line-height:1.7;margin:14px 0}
+.explainer-section{max-width:800px;margin:44px auto 0}
+.explainer-section h2{font-size:1.28rem;margin:32px 0 12px;color:var(--accent);font-family:var(--font-display)}
+.explainer-section h3{font-size:1.02rem;margin:22px 0 8px}
+.explainer-section p{color:var(--text-muted);margin-bottom:15px;line-height:1.75}
+.explainer-section ul,.explainer-section ol{color:var(--text-muted);margin:0 0 16px 24px}
+.explainer-section li{margin-bottom:7px;line-height:1.7}
+.explainer-section code{font-family:var(--font-display);background:var(--bg-card);padding:2px 6px;border-radius:3px;font-size:0.88em;color:var(--text)}
+.explainer-section table{min-width:420px}
+.faq-item{border-bottom:1px solid var(--border);padding:15px 0}
+.faq-item:first-of-type{border-top:1px solid var(--border)}
+.faq-q{font-weight:600;font-size:0.98rem}
+.faq-a{color:var(--text-muted);font-size:0.92rem;padding-top:7px;line-height:1.7}
+.related-tools{margin:44px 0 0}
+.related-tools h3{font-family:var(--font-display);text-align:center;margin-bottom:16px;font-size:1rem}
+.related-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.related-grid a{display:block;padding:14px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:0.9rem;transition:border-color .2s}
+.related-grid a:hover{border-color:var(--accent);text-decoration:none}
+.related-grid a small{display:block;color:var(--text-muted);font-size:0.77rem;margin-top:4px}
+.author-bio{margin:32px 0 0;padding:20px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius)}
+.author-bio p{color:var(--text-muted);font-size:0.9rem;line-height:1.65;margin:0}
+.author-bio p strong{color:var(--text)}
+.last-updated{text-align:center;color:var(--text-muted);font-size:0.78rem;margin:24px 0 0}
+.site-footer{border-top:1px solid var(--border);margin-top:4rem}
+.footer-inner{max-width:640px;margin:0 auto;padding:3rem 2rem 2rem;text-align:center}
+.footer-brand{font-size:1.05rem;font-weight:700;color:var(--text)}
+.footer-tagline{font-size:.8rem;color:var(--text-muted);margin-top:.3rem;margin-bottom:1.5rem}
+.footer-cta{display:inline-block;padding:.6rem 1.75rem;border:1.5px solid var(--accent);border-radius:6px;color:var(--accent);font-size:.85rem;font-weight:600;transition:background .2s,color .2s}
+.footer-cta:hover{background:var(--accent);color:#000;text-decoration:none}
+.footer-links{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem 1.25rem;margin-top:1.5rem;font-size:.78rem}
+.footer-links a{color:var(--text-muted)}
+.footer-links a:hover{color:var(--accent)}
+.footer-copy{font-size:.7rem;color:var(--text-muted);margin-top:1.25rem}
+.footer-copy a{color:inherit}
+.zovo-network{border-top:1px solid var(--border);padding:2rem 2rem 3rem;text-align:center}
+.zovo-network-inner{max-width:720px;margin:0 auto}
+.zovo-network-title{font-size:.8rem;font-weight:600;color:var(--text);margin-bottom:1rem}
+.zovo-network-links{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem 1.25rem}
+.zovo-network-links a{font-size:.78rem;color:var(--text-muted);white-space:nowrap;line-height:1.9}
+.zovo-network-links a:hover{color:var(--accent)}
+.pow-strip{border-top:1px solid var(--border);padding:.75rem 2rem;text-align:center}
+.pow-strip-inner{max-width:720px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.2rem .9rem}
+.pow-label{font-size:.7rem;color:var(--text-muted);font-weight:600}
+.pow-strip-inner a{font-size:.7rem;color:var(--text-muted)}
+.pow-strip-inner a:hover{color:var(--accent)}
+.breadcrumb{font-size:.82rem;margin:20px 0 0}
+.breadcrumb span{color:var(--text-muted);margin:0 4px}
+@media(max-width:768px){
+  .hero h1{font-size:1.45rem}
+  .tool-section{padding:18px 14px}
+  nav{gap:14px}
+  .input-row{flex-direction:column}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <a href="/" class="logo">krzen</a>
+    <nav>
+      <a href="/">Tool</a>
+      <a href="/research/">Research</a>
+      <a href="/guides/">Guides</a>
+      <a href="/tools/">Tools</a>
+      <a href="/blog/">Blog</a>
+      <a href="/about.html">About</a>
+      <div class="nav-right">
+        <a href="https://zovo.one/pricing?utm_source=krzen.com&amp;utm_medium=satellite&amp;utm_campaign=nav-link" class="nav-pro" target="_blank" rel="noopener">Go Pro</a>
+        <a href="https://zovo.one/tools" class="nav-zovo">Zovo Tools</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">Home</a> <span>/</span> <a href="/tools/">Tools</a> <span>/</span> <span>CWV p75 Sample Size Confidence</span></nav>
+
+  <section class="hero">
+    <h1>Core Web Vitals p75 <span>Sample Size Confidence</span></h1>
+    <p>Your field data says you pass. Is that a real signal or a coin flip? A p75 passes exactly when at least 75&nbsp;percent of samples land under the threshold, so the verdict is a Binomial event. This page computes the exact binomial pass probability, a Wilson interval on the true rate, the rank window your p75 value really sits in, the month-to-month flip risk, and the sample size that would settle it. Everything runs in your browser.</p>
+  </section>
+
+  <div class="tool-section">
+    <h3>1. Metric and threshold</h3>
+    <div class="preset-row" id="scenario-row">
+      <button class="preset-btn" type="button" data-sc="thin">Thin traffic (n=180, 79%)</button>
+      <button class="preset-btn active" type="button" data-sc="border">Borderline green (n=5000, 75.6%)</button>
+      <button class="preset-btn" type="button" data-sc="solid">Solid pass (n=42000, 84%)</button>
+      <button class="preset-btn" type="button" data-sc="fail">Clear fail (n=12000, 68%)</button>
+    </div>
+    <div class="input-row">
+      <div class="input-field">
+        <label for="metric">Metric</label>
+        <select id="metric">
+          <option value="lcp" selected>LCP &mdash; Largest Contentful Paint</option>
+          <option value="inp">INP &mdash; Interaction to Next Paint</option>
+          <option value="cls">CLS &mdash; Cumulative Layout Shift</option>
+          <option value="fcp">FCP &mdash; First Contentful Paint</option>
+          <option value="ttfb">TTFB &mdash; Time to First Byte</option>
+          <option value="custom">Custom threshold</option>
+        </select>
+      </div>
+      <div class="input-field">
+        <label for="thr">Good threshold <span class="hint" id="thr-unit">(ms)</span></label>
+        <input type="number" id="thr" value="2500" min="0" step="1">
+      </div>
+      <div class="input-field">
+        <label for="obsp75">Your reported p75 <span class="hint">(optional)</span></label>
+        <input type="number" id="obsp75" value="" min="0" step="1" placeholder="e.g. 2380">
+      </div>
+      <div class="input-field">
+        <label>Headroom to threshold</label>
+        <input type="text" id="headroom" value="" readonly>
+      </div>
+    </div>
+    <p class="note" id="thr-note"></p>
+  </div>
+
+  <div class="tool-section">
+    <h3>2. Your measurement window</h3>
+    <div class="input-row">
+      <div class="input-field">
+        <label for="n">Samples in window (n)</label>
+        <input type="number" id="n" value="5000" min="1" max="100000000" step="1">
+      </div>
+      <div class="input-field">
+        <label for="pct">Percent at or under threshold</label>
+        <input type="number" id="pct" value="75.6" min="0" max="100" step="0.1">
+      </div>
+      <div class="input-field">
+        <label for="cnt">or count at or under threshold</label>
+        <input type="number" id="cnt" value="3780" min="0" step="1">
+      </div>
+    </div>
+    <div class="input-row">
+      <div class="input-field">
+        <label for="conf">Confidence level</label>
+        <select id="conf">
+          <option value="0.90">90 percent</option>
+          <option value="0.95" selected>95 percent</option>
+          <option value="0.99">99 percent</option>
+        </select>
+      </div>
+      <div class="input-field">
+        <label for="deff">Design effect <span class="hint">(clustering)</span></label>
+        <input type="number" id="deff" value="1" min="1" max="20" step="0.1">
+      </div>
+      <div class="input-field">
+        <label>Effective sample size</label>
+        <input type="text" id="neff-out" value="" readonly>
+      </div>
+      <div class="input-field">
+        <label>Pass needs at least</label>
+        <input type="text" id="kstar-out" value="" readonly>
+      </div>
+    </div>
+    <div id="input-warn"></div>
+    <p class="note">A p75 is at or under the threshold precisely when <strong>ceil(0.75 &times; n)</strong> samples or more are at or under it, so the whole pass or fail decision is one count. The <strong>design effect</strong> divides n before any statistics are computed: real RUM samples are not independent because a handful of returning users, one slow region, or a bot fleet can supply many correlated page views. Leave it at 1.0 for a clean independent sample; 1.5 to 2.5 is a realistic penalty when a small share of visitors dominates the window.</p>
+  </div>
+
+  <div class="tool-section">
+    <h3>3. Verdict</h3>
+    <div style="text-align:center;margin-bottom:6px"><span class="verdict v-good" id="out-verdict">Trustworthy</span></div>
+    <div class="res-grid" style="margin-top:18px">
+      <div class="res-item"><div class="value" id="out-current">&mdash;</div><div class="label">This window</div></div>
+      <div class="res-item"><div class="value" id="out-ppass">0%</div><div class="label">P(pass) at the estimated rate</div></div>
+      <div class="res-item"><div class="value" id="out-flip">0%</div><div class="label">Flip risk next window</div></div>
+      <div class="res-item"><div class="value" id="out-needed">&mdash;</div><div class="label">Samples for a stable verdict</div></div>
+    </div>
+    <div class="meter"><i id="out-meter" style="width:0%"></i></div>
+    <div class="meter-scale"><span>0% confident</span><span>50%</span><span>P(pass)</span><span>100%</span></div>
+    <p class="note" id="out-summary"></p>
+  </div>
+
+  <div class="tool-section">
+    <h3>4. The binomial that decides it <span class="sub">&mdash; distribution of the under-threshold count, with the 75 percent line</span></h3>
+    <div class="svg-box" id="plot-box"></div>
+    <div class="legend">
+      <span><i class="swatch" style="background:#34D399"></i>Counts that pass (at or above the 75 percent line)</span>
+      <span><i class="swatch" style="background:#F87171"></i>Counts that fail</span>
+      <span><i class="swatch" style="background:#60A5FA"></i>Pass line k* = ceil(0.75n)</span>
+      <span><i class="swatch" style="background:#e8e8e8"></i>Your observed count</span>
+    </div>
+    <p class="note" id="plot-note"></p>
+  </div>
+
+  <div class="tool-section">
+    <h3>5. Wilson score interval on the under-threshold rate</h3>
+    <div class="ci-track" id="ci-track"></div>
+    <div class="res-grid" style="margin-top:14px">
+      <div class="res-item"><div class="value" id="out-phat">0%</div><div class="label">Point estimate q-hat</div></div>
+      <div class="res-item"><div class="value" id="out-lo">0%</div><div class="label">Lower bound</div></div>
+      <div class="res-item"><div class="value" id="out-hi">0%</div><div class="label">Upper bound</div></div>
+      <div class="res-item"><div class="value" id="out-moe">0 pp</div><div class="label">Margin of error</div></div>
+    </div>
+    <p class="note" id="ci-note"></p>
+  </div>
+
+  <div class="tool-section">
+    <h3>6. Where the p75 value itself really sits <span class="sub">&mdash; distribution-free order-statistic rank window</span></h3>
+    <div class="res-grid">
+      <div class="res-item"><div class="value" id="out-rankj">&mdash;</div><div class="label">Lower rank j</div></div>
+      <div class="res-item"><div class="value" id="out-rankk">&mdash;</div><div class="label">Upper rank k</div></div>
+      <div class="res-item"><div class="value" id="out-band">&mdash;</div><div class="label">Percentile band</div></div>
+      <div class="res-item"><div class="value" id="out-rankw">&mdash;</div><div class="label">Window width as share of n</div></div>
+    </div>
+    <p class="note" id="rank-note"></p>
+  </div>
+
+  <div class="tool-section">
+    <h3>7. Sample size you would need</h3>
+    <div class="input-row">
+      <div class="input-field">
+        <label for="moe">Target margin of error <span class="hint">(percentage points)</span></label>
+        <input type="number" id="moe" value="2" min="0.05" max="30" step="0.1">
+      </div>
+      <div class="input-field">
+        <label for="power">Power for A/B test</label>
+        <select id="power">
+          <option value="0.80" selected>80 percent</option>
+          <option value="0.90">90 percent</option>
+          <option value="0.95">95 percent</option>
+        </select>
+      </div>
+      <div class="input-field">
+        <label for="abBase">A/B baseline good rate (%)</label>
+        <input type="number" id="abBase" value="75.6" min="0.1" max="99.9" step="0.1">
+      </div>
+      <div class="input-field">
+        <label for="abNew">A/B expected good rate (%)</label>
+        <input type="number" id="abNew" value="80" min="0.1" max="99.9" step="0.1">
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Question</th><th class="num">Effective n</th><th class="num">Raw samples</th><th>Formula</th></tr></thead>
+        <tbody id="size-body"></tbody>
+      </table>
+    </div>
+    <p class="note" id="size-note"></p>
+  </div>
+
+  <section class="explainer-section">
+    <h2>The method, exactly</h2>
+    <p>Core Web Vitals is not scored on an average. It is scored on the 75th percentile of real page loads, and a percentile has a property that makes the whole thing tractable: <strong>the sample p75 is at or below a threshold T if and only if at least 75 percent of the samples are at or below T</strong>. Using the nearest-rank definition, the sample p75 is the value at rank <code>ceil(0.75n)</code> in the sorted sample, so the pass condition collapses to a single count.</p>
+
+    <h3>Step 1 &mdash; the pass event is Binomial</h3>
+    <p>Let <em>q</em> be the true probability that a random page load comes in at or under the threshold, and let <em>X</em> be the number of the <em>n</em> samples in the window that do. If samples are independent draws, <em>X</em> follows a Binomial distribution, and the window passes when <em>X</em> reaches the pass rank.</p>
+    <div class="formula">X ~ Binomial(n, q)
+k* = ceil(0.75 &times; n)
+P(pass) = P(X &ge; k*) = &Sigma;<sub>i=k*</sub><sup>n</sup> C(n, i) q<sup>i</sup> (1&minus;q)<sup>n&minus;i</sup></div>
+    <p>This page evaluates that tail exactly for windows up to 120,000 samples. The binomial coefficient overflows a double long before that, so each term is computed in log space with a Lanczos log-gamma:</p>
+    <div class="formula">log C(n, i) = lnGamma(n+1) &minus; lnGamma(i+1) &minus; lnGamma(n&minus;i+1)
+log pmf(i) = log C(n, i) + i&middot;ln q + (n&minus;i)&middot;ln(1&minus;q)</div>
+    <p>The summation starts at the mode side of the cut and walks outward using the exact term ratio <code>pmf(i+1)/pmf(i) = ((n&minus;i)/(i+1)) &middot; q/(1&minus;q)</code>, so terms shrink monotonically and there is no catastrophic cancellation. Above 120,000 samples the tool switches to the normal approximation with a continuity correction, which by then agrees with the exact value to far more digits than anyone needs:</p>
+    <div class="formula">P(X &ge; k*) &asymp; 1 &minus; &Phi;( (k* &minus; 0.5 &minus; nq) / &radic;(nq(1&minus;q)) )</div>
+
+    <h3>Step 2 &mdash; Wilson score interval on q</h3>
+    <p>You never know <em>q</em>. You know the observed fraction <em>q&#770;</em>. The Wilson score interval inverts the score test, which keeps its bounds inside 0 and 1 and holds coverage far better than the naive Wald interval when the proportion is close to 1 &mdash; which is exactly where a healthy Core Web Vitals rate lives.</p>
+    <div class="formula">centre = (q&#770; + z&sup2;/2n) / (1 + z&sup2;/n)
+half   = z/(1 + z&sup2;/n) &times; &radic;( q&#770;(1&minus;q&#770;)/n + z&sup2;/4n&sup2; )
+CI     = centre &plusmn; half</div>
+    <p>The single question that matters: <strong>does that interval straddle 0.75?</strong> If it does, the true p75 could genuinely be on the other side of the threshold and your green or red badge is not evidence of anything. If the whole interval sits above 0.75, you pass for real.</p>
+
+    <h3>Step 3 &mdash; an interval on the p75 value, not just the rate</h3>
+    <p>Step 2 bounds the <em>rate</em>. To bound the <em>value</em> of the 75th percentile you need a distribution-free order-statistic interval, because web latency distributions are heavily right skewed and nothing about them is normal. The count below the quantile is again Binomial with p = 0.75, so its standard deviation is <code>&radic;(np(1&minus;p))</code>, and the ranks that bracket the true quantile are:</p>
+    <div class="formula">p = 0.75
+j = floor( np &minus; z&radic;(np(1&minus;p)) )
+k = ceil ( np + z&radic;(np(1&minus;p)) ) + 1
+CI on the true p75 = [ x<sub>(j)</sub> , x<sub>(k)</sub> ]   from your sorted sample</div>
+    <p>Sort your raw samples ascending, read off the j-th and k-th values, and that pair brackets the population p75 at your confidence level. The width of that rank window as a share of n is the honest answer to "how sharply is my p75 pinned down". At n = 1,000 and 95 percent confidence the window runs from rank 723 to rank 778 &mdash; your "75th percentile" is really somewhere between the 72.3rd and the 77.8th percentile. On a steep part of a latency curve that can be hundreds of milliseconds.</p>
+
+    <h3>Step 4 &mdash; flip risk</h3>
+    <p>Flip risk answers the question engineering leads actually get asked: <em>will this badge still be green next month if we change nothing?</em> Hold <em>q</em> fixed at the estimate, draw a fresh window of the same size, and ask for the probability of the opposite verdict.</p>
+    <div class="formula">currently passing:  flipRisk = P(X &lt; k*) = 1 &minus; P(X &ge; k*)
+currently failing:  flipRisk = P(X &ge; k*)</div>
+    <p>The pathological case is a true rate sitting exactly at 0.75. Then the pass probability converges to one half no matter how much traffic you collect, and the badge is a coin toss forever. That is not a measurement bug; it is what happens when a continuous quantity is reported through a hard cut-off.</p>
+
+    <h3>Step 5 &mdash; the sample sizes</h3>
+    <p>Three different questions, three different formulas. To resolve <em>q</em> to a margin <em>m</em>:</p>
+    <div class="formula">n &ge; z&sup2; &middot; q(1&minus;q) / m&sup2</div>
+    <p>To stop the verdict flipping more than a fraction <em>&alpha;</em> of the time, invert the normal approximation of the pass probability around the 0.75 cut, using the one-sided z:</p>
+    <div class="formula">n &ge; z<sub>&alpha;</sub>&sup2; &middot; q(1&minus;q) / (q &minus; 0.75)&sup2</div>
+    <p>And to call a before-and-after or A/B change in the good-rate significant, the standard two-proportion z-test size per arm, with p&#772; the pooled rate:</p>
+    <div class="formula">n<sub>per arm</sub> = [ z<sub>&alpha;/2</sub>&radic;(2p&#772;(1&minus;p&#772;)) + z<sub>&beta;</sub>&radic;(p&#8321;(1&minus;p&#8321;) + p&#8322;(1&minus;p&#8322;)) ]&sup2; / (p&#8322; &minus; p&#8321;)&sup2</div>
+    <p>Note the shape of the flip-risk formula: the required n grows with the <em>inverse square</em> of how far your true rate sits from 75 percent. At a true rate of 78 percent you need about 520 samples for a flip rate under 5 percent. At 76 percent you need about 4,900 &mdash; roughly a tenfold jump for a two-point move in the rate.</p>
+
+    <h3>The thresholds this tool loads</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Metric</th><th class="num">Good (p75 at or under)</th><th class="num">Poor (p75 above)</th></tr></thead>
+        <tbody>
+          <tr><td>LCP &mdash; Largest Contentful Paint</td><td class="num">2500 ms</td><td class="num">4000 ms</td></tr>
+          <tr><td>INP &mdash; Interaction to Next Paint</td><td class="num">200 ms</td><td class="num">500 ms</td></tr>
+          <tr><td>CLS &mdash; Cumulative Layout Shift</td><td class="num">0.10</td><td class="num">0.25</td></tr>
+          <tr><td>FCP &mdash; First Contentful Paint</td><td class="num">1800 ms</td><td class="num">3000 ms</td></tr>
+          <tr><td>TTFB &mdash; Time to First Byte</td><td class="num">800 ms</td><td class="num">1800 ms</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">LCP, INP and CLS are the three Core Web Vitals. FCP and TTFB are diagnostic metrics reported alongside them, not part of the Core Web Vitals assessment. Every one of them is assessed at the 75th percentile, segmented separately for mobile and desktop.</p>
+
+    <h3>Assumptions this model makes, stated plainly</h3>
+    <ul>
+      <li><strong>Independence.</strong> The binomial assumes each sample is an independent draw. Field data is clustered by user, session, device, network and geography, which inflates the true variance. The design effect input is the standard correction: divide n by it and everything downstream widens honestly.</li>
+      <li><strong>A stable underlying rate.</strong> Flip risk holds <em>q</em> constant between windows. If your traffic mix shifts &mdash; a campaign brings in a slower country, a new device tier arrives &mdash; the real month-to-month variation is larger than the number shown here, not smaller.</li>
+      <li><strong>Nearest-rank percentile.</strong> The pass rank is <code>ceil(0.75n)</code>. Tools that interpolate between order statistics differ by at most one rank, which is immaterial except at very small n, where nothing is trustworthy anyway.</li>
+      <li><strong>CrUX bucketing.</strong> The Chrome UX Report publishes histogram buckets rather than raw values and derives percentiles from them, and it does not publish its minimum-sample threshold for a URL or origin to appear. Treat CrUX percentile figures as slightly coarser than the model here assumes; the rate-based conclusions still hold.</li>
+      <li><strong>Not a field-versus-lab bridge.</strong> Lighthouse runs a single synthetic load. It cannot produce a p75 at all, so none of this applies to a lab score.</li>
+    </ul>
+
+    <h3>How to get the numbers to type in</h3>
+    <p>If you run your own RUM, the count you need is one query: how many beacons in the window had the metric at or under the threshold, and how many beacons there were in total. If you only have the CrUX API, the histogram gives you the cumulative density under each bucket boundary directly, and the bucket edges for LCP, INP and CLS are exactly the good and poor thresholds above &mdash; so the density of the first bucket <em>is</em> your under-threshold proportion. What CrUX will not give you is n, which is why the design effect and the "samples for a stable verdict" figure matter most for low-traffic origins.</p>
+
+    <h2>Frequently asked questions</h2>
+    <div class="faq-item"><div class="faq-q">My p75 improved from 2600 ms to 2450 ms. Did anything actually change?</div><div class="faq-a">Compare the two under-threshold rates, not the two millisecond figures. Put the before rate and the after rate into section 7 and read the per-arm sample size. If each window is smaller than that number, the movement is inside the noise band and you cannot attribute it to your change. A p75 crossing the threshold is the least informative way to detect an improvement, because it discards everything about the shape of the distribution except one count.</div></div>
+    <div class="faq-item"><div class="faq-q">Why does the tool sometimes say "too few samples" even when the percentage looks great?</div><div class="faq-a">Because a great percentage on tiny n is not evidence. At n = 40 with 85 percent under the threshold, the 95 percent Wilson interval runs from roughly 71 to 93 percent, which straddles 0.75 comfortably. The verdict is flagged when the effective sample size is under 30 or when the margin of error exceeds 10 percentage points, since below that you cannot distinguish a genuine pass from a genuine fail.</div></div>
+    <div class="faq-item"><div class="faq-q">Is the exact binomial really different from the normal approximation?</div><div class="faq-a">At the sizes where the answer matters, yes. For small n the binomial is discrete and skewed and the continuity-corrected normal can be off by several percentage points in the tail, which is precisely the region flip risk lives in. That is why this page sums the exact tail up to 120,000 samples and only falls back to the approximation above it, where the two agree to many decimal places.</div></div>
+    <div class="faq-item"><div class="faq-q">What design effect should I use?</div><div class="faq-a">If you can, measure it: compute the observed variance of the good-rate across your reporting windows and divide by the binomial variance q(1&minus;q)/n you would expect from independent sampling. That ratio is the design effect. If you cannot measure it, 1.0 is optimistic, 1.5 to 2.5 is a reasonable range for consumer traffic where a minority of returning users generates a majority of page views, and higher is plausible if a single slow market dominates your sessions.</div></div>
+    <div class="faq-item"><div class="faq-q">Can a site permanently sit on the boundary?</div><div class="faq-a">Yes, and it is common. If your true under-threshold rate is genuinely 0.75, the pass probability is about one half at every sample size, and the badge will alternate more or less at random forever. No amount of extra traffic fixes it. The only fix is to move the underlying distribution, so aim for a real rate of 0.80 or above and treat the gap between your rate and 0.75 as the actual engineering target.</div></div>
+    <div class="faq-item"><div class="faq-q">Does this replace a proper A/B test?</div><div class="faq-a">No. Section 7 gives you the sample size for a two-proportion z-test on the good-rate, which is the right test when you are comparing two independent groups on a pass or fail outcome. It does not handle sequential peeking, multiple comparisons across metrics, or covariate adjustment. If you check the numbers every day and stop when they look good, your real false-positive rate is far above the nominal one.</div></div>
+
+    <div class="author-bio">
+      <p><strong>About the author.</strong> Built by <a href="https://zovo.one" rel="author">Michael Lip</a>, a solo developer shipping performance and developer tooling across the Zovo network. This calculator implements the exact binomial tail with Lanczos log-gamma summation, the Wilson score interval, and the standard distribution-free order-statistic quantile interval. Everything runs client side; nothing you type leaves the page.</p>
+    </div>
+
+    <div class="related-tools">
+      <h3>Related tools</h3>
+      <div class="related-grid">
+        <a href="/tools/core-web-vitals-calculator">Core Web Vitals Calculator<small>Grade LCP, INP and CLS against the thresholds</small></a>
+        <a href="/tools/cls-layout-shift-score-calculator">CLS Layout Shift Score Calculator<small>Impact times distance, session windows</small></a>
+        <a href="/tools/web-vitals-monitor">Web Vitals Monitor<small>Live field measurement in your own browser</small></a>
+        <a href="/tools/page-speed-analyzer">Page Speed Analyzer<small>Break a page load down by resource</small></a>
+      </div>
+    </div>
+
+    <p class="last-updated">Last updated 29 July 2026</p>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">Krzen</div>
+    <div class="footer-tagline">Free web performance tools by a solo dev. No tracking, no uploads.</div>
+    <a href="https://zovo.one/pricing?utm_source=krzen.com&amp;utm_medium=satellite&amp;utm_campaign=footer-link" class="footer-cta">Zovo Lifetime &mdash; $99 once, free forever &rarr;</a>
+    <div class="footer-links">
+      <a href="/tools/">All tools</a>
+      <a href="/tools/core-web-vitals-calculator">Core Web Vitals</a>
+      <a href="/tools/cls-layout-shift-score-calculator">CLS Calculator</a>
+      <a href="/research/">Research</a>
+      <a href="/about.html">About</a>
+      <a href="https://zovo.one">Zovo</a>
+    </div>
+    <div class="footer-copy">&copy; 2026 <a href="https://krzen.com">Krzen</a> &middot; built by <a href="https://zovo.one">Michael Lip</a></div>
+  </div>
+</footer>
+
+<nav class="zovo-network" aria-label="Zovo Tools Network">
+  <div class="zovo-network-inner">
+    <h3 class="zovo-network-title">Explore More Tools</h3>
+    <div class="zovo-network-links">
+      <a href="https://abwex.com">ABWex &mdash; A/B Testing</a>
+      <a href="https://claudflow.com">ClaudFlow &mdash; Workflows</a>
+      <a href="https://claudkit.com">ClaudKit &mdash; API Tools</a>
+      <a href="https://enhio.com">Enhio &mdash; Text Tools</a>
+      <a href="https://epochpilot.com">EpochPilot &mdash; Timestamps</a>
+      <a href="https://gen8x.com">Gen8X &mdash; Color Tools</a>
+      <a href="https://kappafy.com">Kappafy &mdash; JSON</a>
+      <a href="https://kickllm.com">KickLLM &mdash; LLM Costs</a>
+      <a href="https://ml3x.com">ML3X &mdash; Matrix Math</a>
+      <a href="https://viryd.com">Viryd &mdash; Dev Tools</a>
+    </div>
+  </div>
+</nav>
+
+<div class="pow-strip">
+  <div class="pow-strip-inner">
+    <span class="pow-label">By the same builder:</span>
+    <a href="https://github.com/theluckystrike" rel="nofollow">GitHub &mdash; theluckystrike</a>
+    <a href="https://www.belikenative.com" rel="nofollow">BeLikeNative &mdash; Grammar AI</a>
+    <a href="https://earlythunder.com" rel="nofollow">EarlyThunder &mdash; Dev Blog</a>
+    <a href="https://zovo.one" rel="nofollow">Zovo &mdash; AI Dev Tools</a>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   Constants fixed by Core Web Vitals / the percentile definition
+   ============================================================ */
+var P75 = 0.75;                 /* the percentile Core Web Vitals is graded at */
+var EXACT_MAX = 120000;         /* exact binomial summation up to this n */
+var MIN_N = 30;                 /* below this, nothing is concludable */
+var MAX_MOE = 0.10;             /* margin of error above 10 pp = inconclusive */
+var FLIP_TARGET = 0.05;         /* target flip rate for "stable verdict" sizing */
+
+var METRICS = {
+  lcp : {name:'LCP',  good:2500, poor:4000, unit:'ms', dec:0, core:true},
+  inp : {name:'INP',  good:200,  poor:500,  unit:'ms', dec:0, core:true},
+  cls : {name:'CLS',  good:0.10, poor:0.25, unit:'',   dec:2, core:true},
+  fcp : {name:'FCP',  good:1800, poor:3000, unit:'ms', dec:0, core:false},
+  ttfb: {name:'TTFB', good:800,  poor:1800, unit:'ms', dec:0, core:false}
+};
+
+/* ============================================================
+   Numerics
+   ============================================================ */
+var LG_C = [676.5203681218851, -1259.1392167224028, 771.32342877765313,
+            -176.61502916214059, 12.507343278686905, -0.13857109526572012,
+            9.9843695780195716e-6, 1.5056327351493116e-7];
+
+/* Lanczos log-gamma, g = 7, n = 9 */
+function lgamma(z){
+  if(!isFinite(z)) return Infinity;
+  if(z < 0.5) return Math.log(Math.PI / Math.abs(Math.sin(Math.PI * z))) - lgamma(1 - z);
+  z -= 1;
+  var x = 0.99999999999980993;
+  for(var i = 0; i < 8; i++) x += LG_C[i] / (z + i + 1);
+  var t = z + 7.5;
+  return 0.5 * Math.log(2 * Math.PI) + (z + 0.5) * Math.log(t) - t + Math.log(x);
+}
+
+/* Chebyshev erfc (Numerical Recipes 3rd ed.), relative accuracy ~1e-14 */
+var ERFC_COF = [-1.3026537197817094, 6.4196979235649026e-1, 1.9476473204185836e-2,
+  -9.561514786808631e-3, -9.46595344482036e-4, 3.66839497852761e-4,
+  4.2523324806907e-5, -2.0278578112534e-5, -1.624290004647e-6,
+  1.303655835580e-6, 1.5626441722e-8, -8.5238095915e-8,
+  6.529054439e-9, 5.059343495e-9, -9.91364156e-10, -2.27365122e-10,
+  9.6467911e-11, 2.394038e-12, -6.886027e-12, 8.94487e-13, 3.13092e-13,
+  -1.12708e-13, 3.81e-16, 7.106e-15, -1.523e-15, -9.4e-17, 1.21e-16, -2.8e-17];
+
+function erfc(x){
+  if(!isFinite(x)) return x > 0 ? 0 : 2;
+  var z = Math.abs(x);
+  var t = 2 / (2 + z);
+  var ty = 4 * t - 2;
+  var d = 0, dd = 0, tmp, j;
+  for(j = ERFC_COF.length - 1; j > 0; j--){
+    tmp = d;
+    d = ty * d - dd + ERFC_COF[j];
+    dd = tmp;
+  }
+  var ans = t * Math.exp(-z * z + 0.5 * (ERFC_COF[0] + ty * d) - dd);
+  return (x >= 0) ? ans : 2 - ans;
+}
+function normCDF(x){ return 0.5 * erfc(-x / Math.SQRT2); }
+
+/* Acklam inverse normal CDF plus one Halley refinement */
+var AK_A = [-3.969683028665376e+01, 2.209460984245205e+02, -2.759285104469687e+02,
+            1.383577518672690e+02, -3.066479806614716e+01, 2.506628277459239e+00];
+var AK_B = [-5.447609879822406e+01, 1.615858368580409e+02, -1.556989798598866e+02,
+            6.680131188771972e+01, -1.328068155288572e+01];
+var AK_C = [-7.784894002430293e-03, -3.223964580411365e-01, -2.400758277161838e+00,
+            -2.549732539343734e+00, 4.374664141464968e+00, 2.938163982698783e+00];
+var AK_D = [7.784695709041462e-03, 3.224671290700398e-01, 2.445134137142996e+00,
+            3.754408661907416e+00];
+
+function normInv(p){
+  if(!(p > 0)) return -Infinity;
+  if(!(p < 1)) return Infinity;
+  var pl = 0.02425, x, q, r;
+  if(p < pl){
+    q = Math.sqrt(-2 * Math.log(p));
+    x = (((((AK_C[0]*q+AK_C[1])*q+AK_C[2])*q+AK_C[3])*q+AK_C[4])*q+AK_C[5]) /
+        ((((AK_D[0]*q+AK_D[1])*q+AK_D[2])*q+AK_D[3])*q+1);
+  } else if(p <= 1 - pl){
+    q = p - 0.5; r = q * q;
+    x = (((((AK_A[0]*r+AK_A[1])*r+AK_A[2])*r+AK_A[3])*r+AK_A[4])*r+AK_A[5])*q /
+        (((((AK_B[0]*r+AK_B[1])*r+AK_B[2])*r+AK_B[3])*r+AK_B[4])*r+1);
+  } else {
+    q = Math.sqrt(-2 * Math.log(1 - p));
+    x = -(((((AK_C[0]*q+AK_C[1])*q+AK_C[2])*q+AK_C[3])*q+AK_C[4])*q+AK_C[5]) /
+         ((((AK_D[0]*q+AK_D[1])*q+AK_D[2])*q+AK_D[3])*q+1);
+  }
+  var e = normCDF(x) - p;
+  var u = e * Math.sqrt(2 * Math.PI) * Math.exp(x * x / 2);
+  x = x - u / (1 + x * u / 2);
+  return x;
+}
+function zTwoSided(conf){ return normInv(1 - (1 - conf) / 2); }
+function zOneSided(alpha){ return normInv(1 - alpha); }
+
+/* ============================================================
+   Binomial
+   ============================================================ */
+function logPmf(n, k, q, lgn1){
+  if(k < 0 || k > n) return -Infinity;
+  if(q <= 0) return (k === 0) ? 0 : -Infinity;
+  if(q >= 1) return (k === n) ? 0 : -Infinity;
+  return lgn1 - lgamma(k + 1) - lgamma(n - k + 1) + k * Math.log(q) + (n - k) * Math.log(1 - q);
+}
+
+/* exact P(X >= k), summed from the side where terms decrease */
+function binomUpperExact(n, k, q){
+  var lgn1 = lgamma(n + 1);
+  var mode = Math.floor((n + 1) * q);
+  var sum, t, i, guard = 0;
+  if(k > mode){
+    t = Math.exp(logPmf(n, k, q, lgn1));
+    if(!isFinite(t)) return 0;
+    sum = t;
+    var rUp = q / (1 - q);
+    for(i = k; i < n; i++){
+      t = t * ((n - i) / (i + 1)) * rUp;
+      if(!isFinite(t) || t <= 0) break;
+      sum += t;
+      if(t < sum * 1e-17) break;
+      if(++guard > 4000000) break;
+    }
+    return Math.min(1, Math.max(0, sum));
+  }
+  var m = k - 1;
+  t = Math.exp(logPmf(n, m, q, lgn1));
+  if(!isFinite(t)) return 1;
+  sum = t;
+  var rDn = (1 - q) / q;
+  for(i = m; i > 0; i--){
+    t = t * (i / (n - i + 1)) * rDn;
+    if(!isFinite(t) || t <= 0) break;
+    sum += t;
+    if(t < sum * 1e-17) break;
+    if(++guard > 4000000) break;
+  }
+  return Math.min(1, Math.max(0, 1 - sum));
+}
+
+function binomUpperNormal(n, k, q){
+  var mu = n * q, sd = Math.sqrt(n * q * (1 - q));
+  if(!(sd > 0)) return (k <= mu) ? 1 : 0;
+  return 1 - normCDF((k - 0.5 - mu) / sd);
+}
+
+/* P(X >= k) for X ~ Bin(n, q) */
+function binomUpper(n, k, q){
+  if(!(n > 0) || !isFinite(n)) return 0;
+  if(k <= 0) return 1;
+  if(k > n) return 0;
+  if(q <= 0) return 0;
+  if(q >= 1) return 1;
+  return (n <= EXACT_MAX) ? binomUpperExact(n, k, q) : binomUpperNormal(n, k, q);
+}
+
+/* ============================================================
+   Intervals and sizing
+   ============================================================ */
+function wilson(phat, n, z){
+  if(!(n > 0)) return {lo:0, hi:1, c:phat, half:1};
+  var z2 = z * z;
+  var den = 1 + z2 / n;
+  var c = (phat + z2 / (2 * n)) / den;
+  var h = (z / den) * Math.sqrt(phat * (1 - phat) / n + z2 / (4 * n * n));
+  return {lo: Math.max(0, c - h), hi: Math.min(1, c + h), c: c, half: h};
+}
+
+function rankWindow(n, p, z){
+  var s = Math.sqrt(n * p * (1 - p));
+  var jRaw = Math.floor(n * p - z * s);
+  var kRaw = Math.ceil(n * p + z * s) + 1;
+  return {
+    jRaw: jRaw, kRaw: kRaw,
+    j: Math.max(1, jRaw),
+    k: Math.min(n, kRaw),
+    lowOpen: (jRaw < 1),
+    highOpen: (kRaw > n),
+    width: kRaw - jRaw,
+    frac: (kRaw - jRaw) / n,
+    sd: s
+  };
+}
+
+/* n >= z^2 q(1-q) / m^2 */
+function nForMargin(q, m, z){
+  if(!(m > 0)) return Infinity;
+  return Math.ceil(z * z * q * (1 - q) / (m * m));
+}
+
+/* n >= z_alpha^2 q(1-q) / (q - 0.75)^2 : verdict flips less than alpha of the time */
+function nForStableVerdict(q, alpha){
+  var d = q - P75;
+  if(!(Math.abs(d) > 0)) return Infinity;
+  if(q <= 0 || q >= 1) return 1;
+  var z = zOneSided(alpha);
+  return Math.ceil(z * z * q * (1 - q) / (d * d));
+}
+
+/* two-proportion z-test, per arm */
+function nTwoProportion(p1, p2, zA, zB){
+  var d = Math.abs(p2 - p1);
+  if(!(d > 0)) return Infinity;
+  var pbar = (p1 + p2) / 2;
+  var t = zA * Math.sqrt(2 * pbar * (1 - pbar)) + zB * Math.sqrt(p1 * (1 - p1) + p2 * (1 - p2));
+  return Math.ceil(t * t / (d * d));
+}
+
+/* ============================================================
+   Small helpers
+   ============================================================ */
+function $(id){ return document.getElementById(id); }
+function nn(v, fb){ var x = parseFloat(v); return isFinite(x) ? x : (fb || 0); }
+function clamp(v, lo, hi){ return Math.min(hi, Math.max(lo, v)); }
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){
+  return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]; }); }
+function fmtInt(x){ if(!isFinite(x)) return '&mdash;'; return Math.round(x).toLocaleString('en-US'); }
+function fmtBig(x){
+  if(!isFinite(x)) return 'unbounded';
+  if(x >= 1e9) return (x / 1e9).toFixed(1) + 'B';
+  if(x >= 1e6) return (x / 1e6).toFixed(1) + 'M';
+  if(x >= 1e4) return (x / 1e3).toFixed(0) + 'k';
+  return Math.round(x).toLocaleString('en-US');
+}
+function pct(x, d){ if(!isFinite(x)) return '&mdash;'; return (x * 100).toFixed(d === undefined ? 1 : d) + '%'; }
+function pctSmart(x){
+  if(!isFinite(x)) return '&mdash;';
+  var v = x * 100;
+  if(v > 0 && v < 0.1) return '&lt;0.1%';
+  if(v < 100 && v > 99.9) return '&gt;99.9%';
+  return v.toFixed(1) + '%';
+}
+function fmtVal(v, m){
+  if(!isFinite(v)) return '&mdash;';
+  var dec = m ? m.dec : 0;
+  var unit = m ? m.unit : '';
+  return v.toFixed(dec) + (unit ? ' ' + unit : '');
+}
+
+/* ============================================================
+   Reading the form
+   ============================================================ */
+function readState(){
+  var key = $('metric').value;
+  var m = METRICS[key] || null;
+  var s = {};
+  s.metricKey = key;
+  s.metric = m ? {name:m.name, good:m.good, poor:m.poor, unit:m.unit, dec:m.dec, core:m.core}
+                : {name:'Custom', good:nn($('thr').value, 0), poor:NaN, unit:'', dec:2, core:false};
+  s.thr = nn($('thr').value, s.metric.good);
+  s.metric.good = s.thr;
+  s.obsP75 = ($('obsp75').value === '' ? NaN : nn($('obsp75').value, NaN));
+
+  s.nRaw = Math.floor(clamp(nn($('n').value, 0), 0, 100000000));
+  s.conf = nn($('conf').value, 0.95);
+  s.deff = clamp(nn($('deff').value, 1), 1, 20);
+  s.n = Math.max(0, Math.floor(s.nRaw / s.deff));
+
+  s.phat = clamp(nn($('pct').value, 0) / 100, 0, 1);
+  s.z = zTwoSided(s.conf);
+
+  s.kStar = (s.n > 0) ? Math.ceil(P75 * s.n) : 0;
+  s.obsCount = (s.n > 0) ? Math.round(s.phat * s.n) : 0;
+  s.passes = (s.n > 0) && (s.obsCount >= s.kStar);
+
+  s.moe = clamp(nn($('moe').value, 2) / 100, 0.0005, 0.30);
+  s.power = nn($('power').value, 0.80);
+  s.abBase = clamp(nn($('abBase').value, 75) / 100, 0.001, 0.999);
+  s.abNew = clamp(nn($('abNew').value, 80) / 100, 0.001, 0.999);
+  return s;
+}
+
+/* ============================================================
+   Plot
+   ============================================================ */
+function renderPlot(s){
+  var box = $('plot-box');
+  var n = s.n, q = s.phat, kStar = s.kStar;
+  if(!(n > 0)){
+    box.innerHTML = '<p style="color:#888;font-size:.85rem;padding:18px">Enter a sample count above 0 to draw the distribution.</p>';
+    $('plot-note').innerHTML = '';
+    return;
+  }
+  var mu = n * q;
+  var sd = Math.sqrt(n * q * (1 - q));
+  var pad = (sd > 0) ? 4.5 * sd : Math.max(2, n * 0.02);
+  var lo = Math.floor(Math.min(mu - pad, kStar - 1.6 * pad - 1));
+  var hi = Math.ceil(Math.max(mu + pad, kStar + 1.6 * pad + 1));
+  lo = Math.max(0, lo);
+  hi = Math.min(n, hi);
+  if(hi <= lo){ lo = Math.max(0, Math.min(lo, n - 1)); hi = Math.min(n, lo + 1); }
+
+  var span = hi - lo + 1;
+  var maxBuckets = 120;
+  var step = Math.max(1, Math.ceil(span / maxBuckets));
+  var exactSum = (span <= 40000);
+  var lgn1 = lgamma(n + 1);
+  var buckets = [], maxP = 0, a, b, p, i, mid;
+
+  for(a = lo; a <= hi; a += step){
+    b = Math.min(hi, a + step - 1);
+    p = 0;
+    if(exactSum){
+      for(i = a; i <= b; i++){
+        var t = Math.exp(logPmf(n, i, q, lgn1));
+        if(isFinite(t)) p += t;
+      }
+    } else {
+      mid = Math.round((a + b) / 2);
+      var tm = Math.exp(logPmf(n, mid, q, lgn1));
+      p = (isFinite(tm) ? tm : 0) * (b - a + 1);
+    }
+    buckets.push({a:a, b:b, p:p});
+    if(p > maxP) maxP = p;
+  }
+  if(!(maxP > 0)) maxP = 1;
+
+  var W = 1000, H = 330;
+  var M = {l:52, r:16, t:16, b:56};
+  var pw = W - M.l - M.r, ph = H - M.t - M.b;
+  function X(v){ return M.l + ((v - lo) / span) * pw; }
+
+  var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Binomial distribution of the under-threshold count with the 75 percent pass line" xmlns="http://www.w3.org/2000/svg">';
+  svg += '<rect x="' + M.l + '" y="' + M.t + '" width="' + pw + '" height="' + ph + '" fill="#0f0f0f" stroke="#222"/>';
+
+  /* horizontal gridlines */
+  var g;
+  for(g = 1; g <= 4; g++){
+    var gy = M.t + ph - (g / 4) * ph;
+    svg += '<line x1="' + M.l + '" y1="' + gy.toFixed(1) + '" x2="' + (M.l + pw) + '" y2="' + gy.toFixed(1) + '" stroke="#1c1c1c" stroke-width="1"/>';
+  }
+
+  /* bars */
+  for(i = 0; i < buckets.length; i++){
+    var bk = buckets[i];
+    var x0 = X(bk.a), x1 = X(bk.b + 1);
+    var bw = Math.max(0.6, x1 - x0 - 0.6);
+    var bh = (bk.p / maxP) * ph;
+    if(!(bh > 0)) continue;
+    var midIdx = (bk.a + bk.b) / 2;
+    var fill = (midIdx >= kStar) ? '#34D399' : '#F87171';
+    svg += '<rect x="' + x0.toFixed(2) + '" y="' + (M.t + ph - bh).toFixed(2) + '" width="' + bw.toFixed(2) + '" height="' + bh.toFixed(2) + '" fill="' + fill + '" opacity="0.78"/>';
+  }
+
+  /* pass line */
+  if(kStar >= lo && kStar <= hi + 1){
+    var xk = clamp(X(kStar), M.l, M.l + pw);
+    svg += '<line x1="' + xk.toFixed(2) + '" y1="' + M.t + '" x2="' + xk.toFixed(2) + '" y2="' + (M.t + ph) + '" stroke="#60A5FA" stroke-width="2" stroke-dasharray="6 4"/>';
+    svg += '<text x="' + clamp(xk + 6, M.l + 4, M.l + pw - 110).toFixed(1) + '" y="' + (M.t + 16) + '" fill="#60A5FA" font-family="ui-monospace,monospace" font-size="13">k* = ' + fmtInt(kStar) + '</text>';
+  }
+  /* observed count */
+  if(s.obsCount >= lo && s.obsCount <= hi){
+    var xo = clamp(X(s.obsCount + 0.5), M.l, M.l + pw);
+    svg += '<line x1="' + xo.toFixed(2) + '" y1="' + (M.t + 6) + '" x2="' + xo.toFixed(2) + '" y2="' + (M.t + ph) + '" stroke="#e8e8e8" stroke-width="1.5"/>';
+    svg += '<text x="' + clamp(xo + 6, M.l + 4, M.l + pw - 130).toFixed(1) + '" y="' + (M.t + ph - 8) + '" fill="#e8e8e8" font-family="ui-monospace,monospace" font-size="12">observed ' + fmtInt(s.obsCount) + '</text>';
+  }
+
+  /* axes */
+  svg += '<text x="' + M.l + '" y="' + (H - 30) + '" fill="#888" font-family="ui-monospace,monospace" font-size="12">' + fmtInt(lo) + '</text>';
+  svg += '<text x="' + (M.l + pw) + '" y="' + (H - 30) + '" fill="#888" text-anchor="end" font-family="ui-monospace,monospace" font-size="12">' + fmtInt(hi) + '</text>';
+  svg += '<text x="' + (M.l + pw / 2) + '" y="' + (H - 10) + '" fill="#888" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12">Number of samples at or under the threshold (out of ' + fmtInt(n) + ')</text>';
+  svg += '<text x="14" y="' + (M.t + ph / 2) + '" fill="#888" font-family="system-ui,sans-serif" font-size="12" transform="rotate(-90 14 ' + (M.t + ph / 2) + ')" text-anchor="middle">probability</text>';
+  svg += '</svg>';
+  box.innerHTML = svg;
+}
+
+/* ============================================================
+   Confidence interval strip
+   ============================================================ */
+function renderCiTrack(s, ci){
+  var track = $('ci-track');
+  var lo = Math.min(0.60, Math.min(ci.lo, P75) - 0.03);
+  var hi = Math.max(0.95, Math.max(ci.hi, P75) + 0.03);
+  lo = clamp(lo, 0, 1); hi = clamp(hi, 0, 1);
+  if(hi - lo < 0.02){ lo = clamp(lo - 0.05, 0, 1); hi = clamp(hi + 0.05, 0, 1); }
+  function X(v){ return ((clamp(v, lo, hi) - lo) / (hi - lo)) * 100; }
+  var html = '';
+  html += '<div class="ci-band" style="left:' + X(ci.lo).toFixed(2) + '%;width:' + Math.max(0.4, X(ci.hi) - X(ci.lo)).toFixed(2) + '%"></div>';
+  html += '<div class="ci-point" style="left:' + X(s.phat).toFixed(2) + '%"></div>';
+  html += '<div class="ci-line" style="left:' + X(P75).toFixed(2) + '%"></div>';
+  html += '<div class="ci-lbl" style="left:' + X(ci.lo).toFixed(2) + '%">' + (ci.lo * 100).toFixed(1) + '%</div>';
+  html += '<div class="ci-lbl" style="left:' + X(ci.hi).toFixed(2) + '%">' + (ci.hi * 100).toFixed(1) + '%</div>';
+  html += '<div class="ci-lbl" style="left:' + X(P75).toFixed(2) + '%;bottom:auto;top:2px;color:#60A5FA">75% line</div>';
+  track.innerHTML = html;
+}
+
+/* ============================================================
+   Main recompute
+   ============================================================ */
+function recompute(){
+  var s = readState();
+  var m = s.metric;
+
+  /* --- metric context line --- */
+  var thrNote;
+  if(s.metricKey === 'custom'){
+    thrNote = 'Custom mode: the threshold is only a label here. The statistics depend solely on the proportion of samples at or under it.';
+  } else {
+    thrNote = '<strong>' + esc(m.name) + '</strong> is good at a p75 of ' + fmtVal(METRICS[s.metricKey].good, m) +
+      ' or under and poor above ' + fmtVal(METRICS[s.metricKey].poor, m) + '. ' +
+      (METRICS[s.metricKey].core ? 'It is one of the three Core Web Vitals.' : 'It is a diagnostic metric, not part of the Core Web Vitals assessment.') +
+      ' The threshold value itself does not enter the arithmetic below &mdash; it only defines which samples count as good.';
+  }
+  $('thr-note').innerHTML = thrNote;
+
+  /* headroom */
+  var headEl = $('headroom');
+  if(isFinite(s.obsP75)){
+    var head = s.thr - s.obsP75;
+    headEl.value = (head >= 0 ? '+' : '') + head.toFixed(m.dec) + (m.unit ? ' ' + m.unit : '') + (head >= 0 ? ' under' : ' over');
+  } else {
+    headEl.value = 'enter a p75 value';
+  }
+
+  $('neff-out').value = s.deff > 1 ? (fmtInt(s.n) + '  (' + fmtInt(s.nRaw) + ' / ' + s.deff.toFixed(1) + ')') : fmtInt(s.n);
+  $('kstar-out').value = s.n > 0 ? (fmtInt(s.kStar) + ' of ' + fmtInt(s.n) + ' good') : '0';
+
+  /* --- input warnings --- */
+  var warns = [];
+  if(!(s.nRaw > 0)) warns.push('Enter a sample count of at least 1.');
+  if(s.n > 0 && s.n < MIN_N) warns.push('Effective sample size is ' + fmtInt(s.n) + '. Below about ' + MIN_N + ' samples no percentile claim survives contact with statistics.');
+  if(isFinite(s.obsP75) && s.n > 0){
+    var valuePasses = (s.obsP75 <= s.thr);
+    if(valuePasses !== s.passes){
+      warns.push('Your entered p75 (' + fmtVal(s.obsP75, m) + ') says ' + (valuePasses ? 'pass' : 'fail') +
+                 ', but your under-threshold count says ' + (s.passes ? 'pass' : 'fail') + '. One of the two inputs is wrong &mdash; they cannot disagree on the same data.');
+    }
+  }
+  $('input-warn').innerHTML = warns.length
+    ? warns.map(function(w){ return '<div class="warn-box">' + w + '</div>'; }).join('')
+    : '';
+
+  if(!(s.n > 0)){
+    $('out-verdict').className = 'verdict v-info';
+    $('out-verdict').textContent = 'Waiting for input';
+    $('out-current').innerHTML = '&mdash;';
+    $('out-ppass').innerHTML = '&mdash;';
+    $('out-flip').innerHTML = '&mdash;';
+    $('out-needed').innerHTML = '&mdash;';
+    $('out-meter').style.width = '0%';
+    $('out-summary').innerHTML = '';
+    renderPlot(s);
+    $('ci-track').innerHTML = '';
+    ['out-phat','out-lo','out-hi','out-moe','out-rankj','out-rankk','out-band','out-rankw'].forEach(function(id){ $(id).innerHTML = '&mdash;'; });
+    $('ci-note').innerHTML = '';
+    $('rank-note').innerHTML = '';
+    renderSizes(s, null);
+    return;
+  }
+
+  /* --- core statistics --- */
+  var pPass = binomUpper(s.n, s.kStar, s.phat);
+  var ci = wilson(s.phat, s.n, s.z);
+  var pPassLo = binomUpper(s.n, s.kStar, ci.lo);
+  var pPassHi = binomUpper(s.n, s.kStar, ci.hi);
+
+  var flip = s.passes ? (1 - pPass) : pPass;
+  var flipA = s.passes ? (1 - pPassLo) : pPassLo;
+  var flipB = s.passes ? (1 - pPassHi) : pPassHi;
+  var flipLo = Math.min(flipA, flipB), flipHi = Math.max(flipA, flipB);
+
+  var straddles = (ci.lo <= P75 && ci.hi >= P75);
+  var nStable = nForStableVerdict(s.phat, FLIP_TARGET);
+  var nStableRaw = isFinite(nStable) ? Math.ceil(nStable * s.deff) : Infinity;
+
+  /* --- verdict --- */
+  var vTxt, vCls, summary;
+  var tooFew = (s.n < MIN_N) || (ci.half > MAX_MOE);
+  if(tooFew){
+    vTxt = 'Too few samples to conclude anything';
+    vCls = 'v-poor';
+    summary = 'With ' + fmtInt(s.n) + ' effective samples the ' + Math.round(s.conf * 100) + ' percent interval on the true good-rate is ' +
+      pct(ci.lo) + ' to ' + pct(ci.hi) + ', a margin of error of ' + (ci.half * 100).toFixed(1) +
+      ' percentage points. That window contains both comfortable passes and comfortable failures, so this reading carries no information about whether the site really meets the ' +
+      esc(m.name) + ' threshold. Reporting it as a pass or a fail is reporting noise.';
+  } else if(!straddles && flip < 0.05){
+    vTxt = s.passes ? 'Trustworthy pass' : 'Trustworthy fail';
+    vCls = s.passes ? 'v-good' : 'v-poor';
+    summary = 'The ' + Math.round(s.conf * 100) + ' percent interval on the true good-rate is ' + pct(ci.lo) + ' to ' + pct(ci.hi) +
+      ', entirely ' + (ci.lo > P75 ? 'above' : 'below') + ' the 75 percent line, and a fresh window of the same size would return the opposite verdict only ' +
+      pctSmart(flip) + ' of the time. This is a real signal, not sampling noise.';
+  } else {
+    vTxt = 'Borderline';
+    vCls = 'v-ni';
+    summary = 'The ' + Math.round(s.conf * 100) + ' percent interval on the true good-rate is ' + pct(ci.lo) + ' to ' + pct(ci.hi) + ', which ' +
+      (straddles ? 'straddles the 75 percent line' : 'clears the 75 percent line only narrowly') +
+      '. A fresh window of the same size flips the verdict ' + pctSmart(flip) + ' of the time with nothing changed on the site. ' +
+      (isFinite(nStableRaw)
+        ? 'Roughly ' + fmtBig(nStableRaw) + ' raw samples would be needed before the verdict settles down to a flip rate under 5 percent.'
+        : 'With the observed rate sitting exactly on 0.75, no sample size ever settles this: the pass probability converges to one half.');
+  }
+  $('out-verdict').className = 'verdict ' + vCls;
+  $('out-verdict').textContent = vTxt;
+  $('out-summary').innerHTML = summary;
+
+  $('out-current').innerHTML = s.passes
+    ? '<span class="status-ok">PASS</span>'
+    : '<span class="status-bad">FAIL</span>';
+  $('out-ppass').innerHTML = pctSmart(pPass);
+  $('out-flip').innerHTML = pctSmart(flip);
+  $('out-needed').innerHTML = isFinite(nStableRaw) ? fmtBig(nStableRaw) : 'never';
+
+  var meter = $('out-meter');
+  meter.style.width = (clamp(pPass, 0, 1) * 100).toFixed(1) + '%';
+  meter.style.background = pPass >= 0.95 ? '#34D399' : (pPass >= 0.6 ? '#FBBF24' : '#F87171');
+
+  /* --- plot --- */
+  renderPlot(s);
+  $('plot-note').innerHTML =
+    'X is the number of the ' + fmtInt(s.n) + ' effective samples that land at or under ' + fmtVal(s.thr, m) +
+    '. Holding the true good-rate at the observed ' + pct(s.phat, 2) + ', the green mass to the right of k* = ' + fmtInt(s.kStar) +
+    ' is P(pass) = ' + pctSmart(pPass) + ' and the red mass to its left is P(fail) = ' + pctSmart(1 - pPass) + '. ' +
+    (s.n <= EXACT_MAX
+      ? 'Computed by exact binomial summation in log space.'
+      : 'Above ' + fmtBig(EXACT_MAX) + ' samples the tail uses the normal approximation with a continuity correction.') +
+    ' Allowing for the uncertainty in the rate itself, P(pass) ranges from ' + pctSmart(Math.min(pPassLo, pPassHi)) +
+    ' to ' + pctSmart(Math.max(pPassLo, pPassHi)) + ' across the confidence interval.';
+
+  /* --- Wilson --- */
+  renderCiTrack(s, ci);
+  $('out-phat').innerHTML = pct(s.phat, 2);
+  $('out-lo').innerHTML = pct(ci.lo, 2);
+  $('out-hi').innerHTML = pct(ci.hi, 2);
+  $('out-moe').innerHTML = (ci.half * 100).toFixed(2) + ' pp';
+  $('ci-note').innerHTML =
+    (straddles
+      ? '<strong class="status-warn">The interval straddles 0.75.</strong> The true 75th percentile could sit on either side of the ' + esc(m.name) +
+        ' threshold. Whatever your dashboard says today, the data does not distinguish a passing site from a failing one.'
+      : (ci.lo > P75
+          ? '<strong class="status-ok">The interval is entirely above 0.75.</strong> At ' + Math.round(s.conf * 100) +
+            ' percent confidence the true p75 is genuinely at or under the ' + esc(m.name) + ' threshold.'
+          : '<strong class="status-bad">The interval is entirely below 0.75.</strong> At ' + Math.round(s.conf * 100) +
+            ' percent confidence the true p75 is genuinely above the ' + esc(m.name) + ' threshold. This is a real failure, not noise.')) +
+    ' The Wilson score interval is used rather than the Wald interval because good-rates near 1 break the Wald approximation badly and can push its bounds outside 0 and 1.';
+
+  /* --- order statistic rank window --- */
+  var rw = rankWindow(s.n, P75, s.z);
+  $('out-rankj').innerHTML = rw.lowOpen ? '1 (open)' : fmtInt(rw.j);
+  $('out-rankk').innerHTML = rw.highOpen ? fmtInt(s.n) + ' (open)' : fmtInt(rw.k);
+  $('out-band').innerHTML = (rw.j / s.n * 100).toFixed(1) + '&ndash;' + (rw.k / s.n * 100).toFixed(1) + '%';
+  $('out-rankw').innerHTML = (rw.frac * 100).toFixed(2) + '%';
+  $('rank-note').innerHTML =
+    'Sort your ' + fmtInt(s.n) + ' samples ascending. At ' + Math.round(s.conf * 100) + ' percent confidence the population 75th percentile lies between the ' +
+    fmtInt(rw.j) + '-th and the ' + fmtInt(rw.k) + '-th smallest value &mdash; a window of ' + fmtInt(rw.width) +
+    ' ranks, or ' + (rw.frac * 100).toFixed(2) + ' percent of the sample. In percentile terms your reported "p75" is really pinned down only to the ' +
+    (rw.j / s.n * 100).toFixed(1) + 'th to ' + (rw.k / s.n * 100).toFixed(1) + 'th percentile. ' +
+    (rw.lowOpen || rw.highOpen
+      ? 'At this sample size one side of the window falls outside the data, so that end of the interval is unbounded &mdash; you have no upper or lower evidence there at all. '
+      : '') +
+    'Ranks are computed as j = floor(np &minus; z&radic;(np(1&minus;p))) and k = ceil(np + z&radic;(np(1&minus;p))) + 1 with p = 0.75 and z = ' + s.z.toFixed(4) +
+    '. This interval is distribution free: it assumes nothing about the shape of your latency curve, which matters because those curves are strongly right skewed. ' +
+    'How many milliseconds that rank window spans depends entirely on how steep your distribution is at the 75th percentile.';
+
+  /* --- sizing table --- */
+  renderSizes(s, ci);
+}
+
+function renderSizes(s, ci){
+  var body = $('size-body');
+  if(!s || !(s.n > 0 || s.nRaw > 0)){
+    body.innerHTML = '<tr><td colspan="4" style="color:#888;text-align:center;padding:18px">Enter a sample count to size your window.</td></tr>';
+    $('size-note').innerHTML = '';
+    return;
+  }
+  var z = s.z;
+  var zA = z;
+  var zB = normInv(s.power);
+  var rows = [];
+
+  var nM = nForMargin(s.phat, s.moe, z);
+  rows.push({
+    q: 'Resolve the good-rate to &plusmn;' + (s.moe * 100).toFixed(2) + ' pp at your observed rate',
+    e: nM, r: isFinite(nM) ? Math.ceil(nM * s.deff) : Infinity,
+    f: 'n = z&sup2;&middot;q(1&minus;q)/m&sup2;'
+  });
+
+  var nW = nForMargin(0.5, s.moe, z);
+  rows.push({
+    q: 'Same margin, worst case (q = 0.50, no assumption about the rate)',
+    e: nW, r: isFinite(nW) ? Math.ceil(nW * s.deff) : Infinity,
+    f: 'n = z&sup2;&middot;0.25/m&sup2;'
+  });
+
+  var nS = nForStableVerdict(s.phat, FLIP_TARGET);
+  rows.push({
+    q: 'Verdict flips less than 5 percent of the time',
+    e: nS, r: isFinite(nS) ? Math.ceil(nS * s.deff) : Infinity,
+    f: 'n = z<sub>0.05</sub>&sup2;&middot;q(1&minus;q)/(q&minus;0.75)&sup2;'
+  });
+
+  var nAB = nTwoProportion(s.abBase, s.abNew, zA, zB);
+  rows.push({
+    q: 'Detect ' + (s.abBase * 100).toFixed(1) + '% &rarr; ' + (s.abNew * 100).toFixed(1) + '% at ' + Math.round(s.power * 100) + ' percent power (per arm)',
+    e: nAB, r: isFinite(nAB) ? Math.ceil(nAB * s.deff) : Infinity,
+    f: 'two-proportion z-test'
+  });
+
+  body.innerHTML = rows.map(function(r){
+    return '<tr><td>' + r.q + '</td><td class="num">' + (isFinite(r.e) ? fmtInt(r.e) : 'unbounded') +
+      '</td><td class="num"><strong>' + (isFinite(r.r) ? fmtInt(r.r) : 'unbounded') + '</strong></td><td style="color:#888;font-family:ui-monospace,monospace;font-size:.78rem">' + r.f + '</td></tr>';
+  }).join('');
+
+  var haveIt = (s.n >= nS);
+  $('size-note').innerHTML =
+    'Effective n is what the statistics need; raw samples is that figure multiplied back up by your design effect of ' + s.deff.toFixed(1) +
+    '. You currently have ' + fmtInt(s.nRaw) + ' raw samples (' + fmtInt(s.n) + ' effective). ' +
+    (isFinite(nS)
+      ? (haveIt
+          ? '<span class="status-ok">That already clears the stable-verdict requirement.</span>'
+          : '<span class="status-warn">That is ' + fmtBig(Math.max(0, Math.ceil(nS * s.deff) - s.nRaw)) + ' raw samples short of a stable verdict.</span>')
+      : '<span class="status-bad">With the rate sitting exactly on 0.75 the stable-verdict requirement is unreachable at any sample size.</span>') +
+    ' The A/B row uses the pooled two-proportion z-test with a two-sided alpha of ' + (1 - s.conf).toFixed(2) +
+    ' and z<sub>&beta;</sub> = ' + zB.toFixed(4) + '. Both arms need that many samples, so budget for double the figure in total. Note that the required size scales with the inverse square of the effect you are chasing: halving the improvement you want to detect quadruples the traffic you need.';
+}
+
+/* ============================================================
+   Wiring
+   ============================================================ */
+function syncCountFromPct(){
+  var s = readState();
+  if(s.n > 0) $('cnt').value = Math.round(clamp(nn($('pct').value, 0) / 100, 0, 1) * s.nRaw);
+}
+function syncPctFromCount(){
+  var nRaw = Math.floor(clamp(nn($('n').value, 0), 0, 100000000));
+  var c = clamp(nn($('cnt').value, 0), 0, nRaw);
+  if(nRaw > 0) $('pct').value = (c / nRaw * 100).toFixed(4).replace(/0+$/, '').replace(/\.$/, '');
+}
+
+$('metric').addEventListener('change', function(){
+  var m = METRICS[this.value];
+  if(m){
+    $('thr').value = m.good;
+    $('thr').step = (m.dec > 0) ? 0.01 : 1;
+    $('thr-unit').textContent = m.unit ? '(' + m.unit + ')' : '(unitless)';
+    $('obsp75').step = (m.dec > 0) ? 0.01 : 1;
+  } else {
+    $('thr-unit').textContent = '(custom)';
+  }
+  recompute();
+});
+
+['thr','obsp75','conf','deff','moe','power','abBase','abNew'].forEach(function(id){
+  var el = $(id);
+  el.addEventListener('input', recompute);
+  el.addEventListener('change', recompute);
+});
+
+$('n').addEventListener('input', function(){ syncCountFromPct(); recompute(); });
+$('pct').addEventListener('input', function(){ syncCountFromPct(); recompute(); });
+$('cnt').addEventListener('input', function(){ syncPctFromCount(); recompute(); });
+
+var SCENARIOS = {
+  thin:   {n:180,   pct:79,   metric:'lcp', deff:1,   p75:2410},
+  border: {n:5000,  pct:75.6, metric:'lcp', deff:1,   p75:2480},
+  solid:  {n:42000, pct:84,   metric:'inp', deff:1.5, p75:172},
+  fail:   {n:12000, pct:68,   metric:'lcp', deff:1,   p75:2910}
+};
+$('scenario-row').addEventListener('click', function(ev){
+  var b = ev.target.closest ? ev.target.closest('.preset-btn') : null;
+  if(!b) return;
+  var sc = SCENARIOS[b.getAttribute('data-sc')];
+  if(!sc) return;
+  var btns = $('scenario-row').querySelectorAll('.preset-btn');
+  for(var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+  b.classList.add('active');
+  $('metric').value = sc.metric;
+  var m = METRICS[sc.metric];
+  $('thr').value = m.good;
+  $('thr-unit').textContent = m.unit ? '(' + m.unit + ')' : '(unitless)';
+  $('n').value = sc.n;
+  $('pct').value = sc.pct;
+  $('deff').value = sc.deff;
+  $('obsp75').value = sc.p75;
+  $('abBase').value = sc.pct;
+  $('abNew').value = Math.min(99.9, sc.pct + 4.4).toFixed(1);
+  syncCountFromPct();
+  recompute();
+});
+
+/* ---------- boot ---------- */
+syncCountFromPct();
+recompute();
+})();
+</script>
+</body>
+</html>
