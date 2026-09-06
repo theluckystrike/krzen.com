@@ -97,4 +97,8 @@
   <url><loc>https://krzen.com/tools/cwv-p75-sample-size-confidence-calculator.html</loc></url>
   <url><loc>https://krzen.com/tools/lcp-subpart-breakdown-analyzer.html</loc></url>
   <url><loc>https://krzen.com/tools/tcp-slow-start-roundtrip-calculator.html</loc></url>
+  <url><loc>https://krzen.com/tools/core-web-vitals-estimator</loc></url>
+  <url><loc>https://krzen.com/tools/http2-vs-http3-comparator</loc></url>
+  <url><loc>https://krzen.com/tools/js-bundle-analyzer</loc></url>
+  <url><loc>https://krzen.com/tools/service-worker-cache-builder</loc></url>
 </urlset>
