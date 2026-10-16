@@ -124,6 +124,7 @@ function escapeHtml(str) {
       '<div class="result-item"><div class="value">' + formatSize(compSize) + '</div><div class="label">Compressed</div></div>' +
       '<div class="result-item"><div class="value ' + (savings > 0 ? 'savings-positive' : '') + '">' + savings.toFixed(1) + '%</div><div class="label">Savings</div></div>';
     showPageLoadImpact(origSize, compSize);
+    if (window.sctShown) window.sctShown();
   }
 
   function showComparison(compCanvas) {
