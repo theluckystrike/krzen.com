@@ -18,7 +18,7 @@ Krzen is a free client-side image compressor that processes images entirely in y
 - EXIF metadata stripping for privacy
 - 100% client-side — no data leaves your browser
 - MIT licensed
-- No signup, no tracking
+- No signup
 
 ## Tech Stack
 
@@ -29,7 +29,7 @@ Krzen is a free client-side image compressor that processes images entirely in y
 
 ## Part of Zovo Tools
 
-Krzen is part of [Zovo Tools](https://zovo.one/tools) — free developer tools by a solo developer. No tracking, no signup, no nonsense.
+Krzen is part of [Zovo Tools](https://zovo.one/tools) — free developer tools by a solo developer. No signup, no nonsense.
 
 **Other tools in the network:**
 
