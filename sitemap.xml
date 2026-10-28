@@ -101,4 +101,22 @@
   <url><loc>https://krzen.com/tools/http2-vs-http3-comparator</loc></url>
   <url><loc>https://krzen.com/tools/js-bundle-analyzer</loc></url>
   <url><loc>https://krzen.com/tools/service-worker-cache-builder</loc></url>
+  <url>
+    <loc>https://krzen.com/answers/compress-heic-images.html</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://krzen.com/answers/does-image-compression-remove-exif.html</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://krzen.com/answers/why-compressed-image-is-larger.html</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
 </urlset>

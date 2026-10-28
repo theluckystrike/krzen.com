@@ -41,16 +41,31 @@
   {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    "name": "Krzen — Image Compressor",
-    "url": "https://krzen.com",
-    "description": "Free client-side image compressor. Compress JPEG, PNG, and WebP images with quality control, resizing, format conversion, and before/after comparison.",
+    "name": "Image Compressor",
+    "url": "https://krzen.com/",
+    "description": "Compress images directly in your browser. No uploads, no servers — your files stay private.",
     "applicationCategory": "MultimediaApplication",
     "operatingSystem": "Any",
-    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-    "author": { "@type": "Person", "name": "Michael Lip", "url": "https://zovo.one" },
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "author": {
+      "@type": "Person",
+      "name": "Michael Lip",
+      "url": "https://zovo.one"
+    },
     "datePublished": "2026-04-05",
-    "dateModified": "2026-05-25",
-    "featureList": ["JPEG compression", "PNG compression", "WebP conversion", "AVIF conversion", "Adjustable quality slider", "Image resizing", "Before/after comparison", "Bulk compression", "Page load impact calculator", "Client-side processing"],
+    "dateModified": "2026-10-28",
+    "featureList": [
+      "adjustable quality from 1-100 with real-time preview",
+      "output format selection between JPEG, WebP, PNG, and AVIF",
+      "custom width and height resizing with aspect ratio preservation",
+      "visual before/after comparison with a draggable slider",
+      "bulk compression for processing multiple files simultaneously",
+      "one-click download of compressed output"
+    ],
     "browserRequirements": "Requires JavaScript"
   }
   </script>
@@ -59,14 +74,70 @@
     "@context": "https://schema.org",
     "@type": "FAQPage",
     "mainEntity": [
-      { "@type": "Question", "name": "What is the best free image compressor?", "acceptedAnswer": { "@type": "Answer", "text": "krzen.com compresses images in your browser with no uploads needed. Supports JPEG, PNG, WebP, and AVIF with adjustable quality, resizing, and before/after comparison." } },
-      { "@type": "Question", "name": "WebP vs JPEG quality — which is better?", "acceptedAnswer": { "@type": "Answer", "text": "WebP achieves 25-35% smaller files than JPEG at equivalent quality. AVIF is even better at 50% smaller. Both are supported by all modern browsers." } },
-      { "@type": "Question", "name": "How to reduce image file size without losing quality?", "acceptedAnswer": { "@type": "Answer", "text": "Use quality 70-85% for imperceptible loss. Convert to WebP/AVIF. Resize to display dimensions. This typically achieves 50-70% file size reduction." } },
-      { "@type": "Question", "name": "What is AVIF format?", "acceptedAnswer": { "@type": "Answer", "text": "AVIF is a modern format based on AV1 codec. 50% smaller than JPEG, 20% smaller than WebP. Supported by Chrome, Firefox, Safari 16+." } },
-      { "@type": "Question", "name": "How much does image compression improve page speed?", "acceptedAnswer": { "@type": "Answer", "text": "50-70% size reduction saves 1-5 seconds on 3G and 0.1-0.5 seconds on broadband per image." } },
-      { "@type": "Question", "name": "Is my data safe?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, all processing is client-side in your browser. Images are never uploaded to any server." } },
-      { "@type": "Question", "name": "Can I compress multiple images at once?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, krzen.com supports bulk compression. Drop or select multiple files and compress them all with the same quality and format settings in one batch." } },
-      { "@type": "Question", "name": "What image formats does krzen.com support?", "acceptedAnswer": { "@type": "Answer", "text": "krzen.com supports JPEG, PNG, and WebP as input formats. Output can be JPEG, PNG, WebP, or AVIF (if your browser supports it). Format conversion happens automatically during compression." } }
+      {
+        "@type": "Question",
+        "name": "What is the best free image compressor?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "krzen.com compresses images entirely in your browser with no file uploads, no servers, and no file size limits. It supports JPEG, PNG, WebP, and AVIF formats with adjustable quality, resizing, and before/after comparison. All processing is client-side for maximum privacy."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "WebP vs JPEG quality — which is better?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "WebP typically achieves 25-35% smaller file sizes than JPEG at equivalent visual quality. It supports both lossy and lossless compression, plus transparency. JPEG is more universally supported but WebP is now supported by all modern browsers. AVIF is even better, achieving 50% smaller than JPEG."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How to reduce image file size without losing quality?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Use quality settings between 70-85% for imperceptible quality loss with significant size reduction. Convert to WebP or AVIF format. Resize images to their display dimensions (don't serve 4000px images in 800px containers). Our tool shows the exact savings and visual comparison."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What is AVIF format?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "AVIF (AV1 Image File Format) is a modern image format based on the AV1 video codec. It achieves 50% smaller file sizes than JPEG and 20% smaller than WebP at equivalent quality. Supported by Chrome, Firefox, and Safari 16+. krzen.com automatically detects if your browser supports AVIF encoding."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How much does image compression improve page speed?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Reducing image sizes by 50-70% can save 1-5 seconds on 3G connections and 0.1-0.5 seconds on broadband. For a site with 100,000 monthly visitors, this translates to significant bandwidth savings. Our Page Load Impact calculator shows exact time savings across different connection types."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is my data safe with this image compressor?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes, completely. krzen.com processes all images directly in your browser using the HTML5 Canvas API. Your images are never uploaded to any server. The entire compression happens client-side, so your files remain private on your device."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I compress multiple images at once?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes, krzen.com supports bulk compression. Drop or select multiple image files and compress them all with the same quality and format settings in one batch. Each file shows individual before/after size comparisons and you can download all compressed files."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What image formats does krzen.com support?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "krzen.com accepts JPEG, PNG, and WebP files as input. You can output to JPEG, PNG, WebP, or AVIF format. Format conversion happens automatically during compression, so you can convert a JPEG to WebP in one step."
+        }
+      }
     ]
   }
   </script>
@@ -98,6 +169,11 @@
       <h1>Image <span>Compressor</span></h1>
       <p>Compress images directly in your browser. No uploads, no servers — your files stay private.</p>
     </section>
+
+<div class="answer-block" style="max-width:860px;margin:0 auto 28px;padding:16px 20px;background:#0f172a;border:1px solid #2a3554;border-left:4px solid #00d4aa;border-radius:10px">
+<p style="margin:0 0 8px;font-size:1.02rem;line-height:1.6;color:#e0e6ed">Krzen compresses images in your browser. You drop a JPEG, PNG, or WebP file, set quality from 1 to 100, and download the result. No file goes to a server. You can also resize, convert to AVIF, and compare the before and after size.</p>
+<p style="margin:0;font-size:0.85rem;color:#94a3b8">By Michael Lip &middot; Updated 2026-10-28</p>
+</div>
 
     <div id="drop-zone" class="drop-zone">
       <p>Drop images here or click to select</p>

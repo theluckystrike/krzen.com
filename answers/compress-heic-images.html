@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Can I Compress HEIC Images with krzen.com? | Krzen</title>
+<meta name="description" content="krzen.com accepts JPEG, PNG, and WebP only. Convert an iPhone HEIC photo to JPEG first, then compress it in the browser.">
+<link rel="canonical" href="https://krzen.com/answers/compress-heic-images.html">
+<link rel="alternate" hreflang="en" href="https://krzen.com/answers/compress-heic-images.html">
+<link rel="alternate" hreflang="x-default" href="https://krzen.com/answers/compress-heic-images.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Can I Compress HEIC Images with krzen.com?">
+<meta property="og:description" content="krzen.com accepts JPEG, PNG, and WebP only. Convert an iPhone HEIC photo to JPEG first, then compress it in the browser.">
+<meta property="og:url" content="https://krzen.com/answers/compress-heic-images.html">
+<meta property="og:site_name" content="Zovo Tools">
+<meta property="og:image" content="https://krzen.com/assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Can I Compress HEIC Images with krzen.com?">
+<meta name="twitter:description" content="krzen.com accepts JPEG, PNG, and WebP only. Convert an iPhone HEIC photo to JPEG first, then compress it in the browser.">
+<meta name="twitter:image" content="https://krzen.com/assets/og-image.png">
+<link rel="stylesheet" href="/assets/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "Can I Compress HEIC Images with krzen.com?",
+      "description": "No. krzen.com accepts JPEG, PNG, and WebP files only, and its file input does not list HEIC. Convert the photo to JPEG first, on the phone or in the Photos app, then drag the JPEG into the compressor. The output can be JPEG, PNG, WebP, or AVIF.",
+      "url": "https://krzen.com/answers/compress-heic-images.html",
+      "mainEntityOfPage": "https://krzen.com/answers/compress-heic-images.html",
+      "datePublished": "2026-10-28",
+      "dateModified": "2026-10-28",
+      "author": {
+        "@type": "Person",
+        "name": "Michael Lip",
+        "url": "https://zovo.one"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Krzen",
+        "url": "https://krzen.com"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://krzen.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Answers",
+          "item": "https://krzen.com/answers/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Can I Compress HEIC Images with krzen.com?",
+          "item": "https://krzen.com/answers/compress-heic-images.html"
+        }
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+<header>
+  <div class="container">
+    <a href="/" class="logo">krzen</a>
+    <nav>
+      <a href="/">Tool</a>
+      <a href="/research/">Research</a>
+      <a href="/guides/">Guides</a>
+      <a href="/tools/">Tools</a>
+      <a href="/blog/">Blog</a>
+      <a href="/about.html">About</a>
+      <div class="nav-right">
+        <a href="https://zovo.one/pricing?utm_source=krzen&amp;utm_medium=satellite&amp;utm_campaign=nav-link" class="nav-pro" target="_blank">Go Pro &#10022;</a>
+        <a href="https://zovo.one/tools?utm_source=krzen&amp;utm_medium=nav&amp;utm_campaign=answers-image-optimization-checklist" class="nav-zovo">Zovo Tools</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+<nav class="breadcrumb" aria-label="Breadcrumb" style="font-size:0.82rem;margin:20px 0 0;"><a href="/">Home</a> <span style="color:var(--text-muted);margin:0 4px;">/</span> <a href="/answers/">Answers</a> <span style="color:var(--text-muted);margin:0 4px;">/</span> <span style="color:var(--text-muted);">Can I Compress HEIC Images with krzen.com?</span></nav>
+<h1 style="margin:16px 0 8px;">Can I Compress HEIC Images with krzen.com?</h1>
+<p class="byline" style="font-size:0.85rem;color:var(--text-muted);margin:0 0 18px;">By Michael Lip &middot; Updated 2026-10-28</p>
+<div class="answer-block" style="max-width:860px;padding:16px 20px;background:var(--bg-card);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:10px;margin:0 0 26px;">
+<p style="margin:0;line-height:1.6;">No. krzen.com accepts JPEG, PNG, and WebP files only, and its file input does not list HEIC. Convert the photo to JPEG first, on the phone or in the Photos app, then drag the JPEG into the compressor. The output can be JPEG, PNG, WebP, or AVIF.</p>
+</div>
+
+<h2>What the file input accepts</h2>
+<p>The compressor has one file input. Its <code>accept</code> attribute names three image types and nothing else:</p>
+<pre><code>&lt;input type="file" id="file-input" accept="image/jpeg,image/png,image/webp" multiple&gt;</code></pre>
+<p>The word HEIC does not appear in the site source. A search of the whole repository returns zero files. So there is no HEIC decoder, no HEIC branch, and no fallback path.</p>
+<h2>Why iPhone photos are HEIC</h2>
+<p>An iPhone writes photos as HEIC by default. HEIC is a container for High Efficiency Image Format pictures. It keeps files small, but a browser cannot decode it the way it decodes JPEG, PNG, or WebP.</p>
+<h2>Convert the photo to JPEG</h2>
+<p>On the iPhone, open Settings, then Camera, then Formats, and choose Most Compatible. New photos are then written as JPEG.</p>
+<p>For a photo that already exists, open it in the Photos app, tap Share, and choose an option that exports a JPEG, such as Mail or Save to Files. On a Mac, open the file in Preview, choose File, then Export, and select JPEG.</p>
+<p>Do not rename <code>photo.heic</code> to <code>photo.jpg</code>. The name changes and the bytes do not. The compressor reads bytes, so a renamed file still fails.</p>
+<h2>After the conversion</h2>
+<p>A JPEG from an iPhone usually carries more bytes than the HEIC original. The compressor can remove those extra bytes. Set quality between 70 and 85 for a photo, or resize the image to the width it is shown at. Both controls are on the <a href="/">home page compressor</a>. For format guidance see the <a href="/answers/image-optimization-checklist.html">image optimization checklist</a>.</p>
+
+<div class="last-updated" style="max-width:760px;margin:16px auto;"><time datetime="2026-10-28">Last updated: 2026-10-28</time></div>
+</main>
+
+<footer class="site-footer">
+    <div class="footer-inner">
+        <div class="footer-brand">Zovo Tools</div>
+        <div class="footer-tagline">Free developer tools by a solo dev. Some pages show Google ads.</div>
+        <a href="https://zovo.one/pricing?utm_source=krzen&amp;utm_medium=satellite&amp;utm_campaign=footer-link" class="footer-cta">Zovo Lifetime &mdash; $99 once, free forever &rarr;</a>
+        <div class="footer-copy">&copy; 2026 <a href="https://zovo.one/lifetime?utm_source=krzen&amp;utm_medium=footer&amp;utm_campaign=answers-compress-heic-images">Zovo</a></div>
+    </div>
+</footer>
+
+<section class="sup-block" data-support-cta="footer" aria-label="Support krzen"><div class="sct-maker"><img class="sct-portrait" src="/assets/michael-128.webp" width="40" height="40" loading="lazy" alt="Michael Lip"><h2 class="sup-h">Made by Michael, one person and a lot of coffee.</h2></div><p>If krzen has helped you, you can buy me a coffee. It honestly makes my day, and I read every note that comes with one.</p><div class="sup-actions"><span class="sct-card-option"><a class="sup-btn sct-primary" href="https://paypal.me/najzzz/5USD" target="_blank" rel="noopener" data-rail="paypal">Buy me a coffee · $5</a><small>via PayPal</small></span><a class="sup-btn" href="https://buymeacoffee.com/michaellip" target="_blank" rel="noopener" data-rail="bmc">Card, any amount or monthly</a><a class="sct-github" href="https://github.com/sponsors/theluckystrike" target="_blank" rel="noopener" data-rail="github"><span>Sponsor on GitHub<small>monthly or one-time</small></span></a><a class="sup-why" href="/support/">Why I ask</a></div></section>
+
+
+
+<nav class="zovo-network" aria-label="Zovo Tools Network">
+    <div class="zovo-network-inner">
+        <h3 class="zovo-network-title">Explore More Tools</h3>
+        <div class="zovo-network-links">
+            <a href="https://abwex.com">ABWex — A/B Testing</a>
+            <a href="https://b2berp.com">B2BERP — Business Tools</a>
+            <a href="https://bugbountyreality.com">BugBountyReality — Security</a>
+            <a href="https://claudflow.com">ClaudFlow — Workflows</a>
+            <a href="https://claudkit.com">ClaudKit — API Tools</a>
+            <a href="https://dismissticket.com">DismissTicket — Support</a>
+            <a href="https://enhio.com">Enhio — Text Tools</a>
+            <a href="https://epochpilot.com">EpochPilot — Timestamps</a>
+            <a href="https://gen8x.com">Gen8X — Color Tools</a>
+            <a href="https://gpt0x.com">GPT0X — AI Models</a>
+            <a href="https://heytensor.com">HeyTensor — ML Tools</a>
+            <a href="https://ingredientcalculator.com">IngredientCalc — Recipes</a>
+            <a href="https://invokebot.com">InvokeBot — Webhooks</a>
+            <a href="https://kappafy.com">Kappafy — JSON</a>
+            <a href="https://kappakit.com">KappaKit — Dev Toolkit</a>
+            <a href="https://kickllm.com">KickLLM — LLM Costs</a>
+            <a href="https://lochbot.com">LochBot — Security</a>
+            <a href="https://lockml.com">LockML — ML Security</a>
+            <a href="https://ml0x.com?utm_source=krzen&amp;utm_medium=nav&amp;utm_campaign=answers-compress-heic-images">ML0X — ML Basics</a>
+            <a href="https://ml3x.com">ML3X — Matrix Math</a>
+            <a href="https://pictureeditor.net">PictureEditor — Image Editing</a>
+            <a href="https://recipetool.net">RecipeTool — Cooking</a>
+            <a href="https://viryd.com">Viryd — Dev Tools</a>
+            <a href="https://tg.zovo.one/">Tiny Telegram Tools — Telegram Bots</a>
+        </div>
+    </div>
+</nav>
+
+<div class="pow-strip">
+  <div class="pow-strip-inner">
+    <span class="pow-label">By the same builder:</span>
+    <a href="https://github.com/theluckystrike" rel="nofollow">GitHub — theluckystrike</a>
+    <a href="https://www.belikenative.com" rel="nofollow">BeLikeNative — Grammar AI</a>
+    <a href="https://earlythunder.com" rel="nofollow">EarlyThunder — Dev Blog</a>
+    <a href="https://bugbountyreality.com" rel="nofollow">Bug Bounty Reality</a>
+    <a href="https://zovo.one/lifetime?utm_source=krzen&amp;utm_medium=inline&amp;utm_campaign=answers-compress-heic-images" rel="nofollow">Zovo — AI Dev Tools</a>
+  </div>
+</div>
+
+<script>
+const IOC={
+  file:null,
+  checks:[
+    {id:'format',title:'Optimal Format',desc:'Using the most efficient format for this image type'},
+    {id:'filesize',title:'File Size Budget',desc:'Within recommended size limits for web delivery'},
+    {id:'dimensions',title:'Appropriate Dimensions',desc:'Pixel dimensions suitable for web display'},
+    {id:'compression',title:'Compression Level',desc:'Compressed to appropriate quality level'},
+    {id:'aspect',title:'Standard Aspect Ratio',desc:'Uses a common aspect ratio for consistent layouts'},
+    {id:'transparency',title:'Transparency Usage',desc:'Alpha channel present only when needed'},
+    {id:'metadata',title:'Metadata Stripped',desc:'EXIF and other metadata removed to save bytes'},
+    {id:'progressive',title:'Progressive Loading',desc:'JPEG uses progressive scan for better perceived load'},
+    {id:'color',title:'Color Space',desc:'Using sRGB color space for web compatibility'},
+    {id:'retina',title:'Retina Ready',desc:'Dimensions suitable for 2x display rendering'}
+  ],
+
+  init(){
+    const dz=document.getElementById('drop-zone');
+    const fi=document.getElementById('file-input');
+    dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('dragover');});
+    dz.addEventListener('dragleave',()=>dz.classList.remove('dragover'));
+    dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('dragover');if(e.dataTransfer.files.length)this.analyze(e.dataTransfer.files[0]);});
+    fi.addEventListener('change',e=>{if(e.target.files.length)this.analyze(e.target.files[0]);});
+  },
+
+  analyze(file){
+    this.file=file;
+    const ext=file.name.split('.').pop().toLowerCase();
+    const sizeMB=file.size/(1024*1024);
+    const sizeKB=file.size/1024;
+    const format=this.detectFormat(ext,file.type);
+    const img=new Image();
+    const url=URL.createObjectURL(file);
+    img.onload=()=>{
+      const w=img.naturalWidth,h=img.naturalHeight;
+      URL.revokeObjectURL(url);
+      document.getElementById('results-section').style.display='block';
+      document.getElementById('img-format').textContent=format.toUpperCase();
+      document.getElementById('img-size').textContent=sizeKB<1024?Math.round(sizeKB)+'KB':(sizeMB).toFixed(1)+'MB';
+      document.getElementById('img-dims').textContent=w+'x'+h;
+      this.runChecks(file,format,sizeKB,w,h);
+      this.buildFormatTable(format,sizeKB);
+      document.getElementById('results-section').scrollIntoView({behavior:'smooth'});
+    };
+    img.onerror=()=>{
+      URL.revokeObjectURL(url);
+      document.getElementById('results-section').style.display='block';
+      document.getElementById('img-format').textContent=format.toUpperCase();
+      document.getElementById('img-size').textContent=sizeKB<1024?Math.round(sizeKB)+'KB':(sizeMB).toFixed(1)+'MB';
+      document.getElementById('img-dims').textContent='N/A';
+      this.runChecks(file,format,sizeKB,0,0);
+      this.buildFormatTable(format,sizeKB);
+    };
+    img.src=url;
+  },
+
+  detectFormat(ext,mime){
+    const map={jpg:'jpeg',jpeg:'jpeg',png:'png',webp:'webp',gif:'gif',svg:'svg',avif:'avif',bmp:'bmp',ico:'ico',tiff:'tiff',tif:'tiff'};
+    return map[ext]||ext;
+  },
+
+  runChecks(file,format,sizeKB,w,h){
+    const results=[];
+    let score=0;
+    const isPhoto=(['jpeg','webp','avif'].includes(format));
+    const isVector=(format==='svg');
+
+    // 1. Format check
+    if(format==='avif'){results.push({id:'format',status:'passed',note:'AVIF — best compression available'});score+=10;}
+    else if(format==='webp'){results.push({id:'format',status:'passed',note:'WebP — good modern format'});score+=8;}
+    else if(format==='svg'){results.push({id:'format',status:'passed',note:'SVG — ideal for vector graphics'});score+=10;}
+    else if(format==='jpeg'){results.push({id:'format',status:'warning',note:'JPEG — consider converting to WebP/AVIF for 25-50% savings'});score+=5;}
+    else if(format==='png'){results.push({id:'format',status:sizeKB>100?'failed':'warning',note:'PNG — convert to WebP/AVIF unless lossless transparency is required'});score+=3;}
+    else if(format==='gif'){results.push({id:'format',status:'failed',note:'GIF — use WebP/AVIF for animated, SVG/PNG for static'});score+=1;}
+    else{results.push({id:'format',status:'warning',note:format.toUpperCase()+' — uncommon web format'});score+=2;}
+
+    // 2. File size check
+    if(sizeKB<=50){results.push({id:'filesize',status:'passed',note:Math.round(sizeKB)+'KB — excellent, well under budget'});score+=10;}
+    else if(sizeKB<=100){results.push({id:'filesize',status:'passed',note:Math.round(sizeKB)+'KB — within content image budget'});score+=8;}
+    else if(sizeKB<=200){results.push({id:'filesize',status:'warning',note:Math.round(sizeKB)+'KB — acceptable for hero, large for content images'});score+=5;}
+    else if(sizeKB<=500){results.push({id:'filesize',status:'warning',note:Math.round(sizeKB)+'KB — over budget, compress or resize'});score+=3;}
+    else{results.push({id:'filesize',status:'failed',note:Math.round(sizeKB)+'KB — significantly oversized for web use'});score+=0;}
+
+    // 3. Dimensions check
+    if(isVector){results.push({id:'dimensions',status:'passed',note:'SVG scales to any size'});score+=10;}
+    else if(w<=1920&&h<=1920){results.push({id:'dimensions',status:'passed',note:w+'x'+h+' — appropriate for web'});score+=10;}
+    else if(w<=2560&&h<=2560){results.push({id:'dimensions',status:'warning',note:w+'x'+h+' — consider resizing to max 1920px for web'});score+=6;}
+    else{results.push({id:'dimensions',status:'failed',note:w+'x'+h+' — too large, resize to 1920px max width'});score+=2;}
+
+    // 4. Compression estimate
+    if(isVector){results.push({id:'compression',status:'passed',note:'Vector format — no lossy compression needed'});score+=10;}
+    else{
+      const bytesPerPixel=file.size/(w*h||1);
+      if(bytesPerPixel<0.5){results.push({id:'compression',status:'passed',note:'Well compressed ('+(bytesPerPixel).toFixed(2)+' bytes/pixel)'});score+=10;}
+      else if(bytesPerPixel<1.0){results.push({id:'compression',status:'warning',note:'Moderate compression ('+(bytesPerPixel).toFixed(2)+' bytes/pixel) — can be tighter'});score+=6;}
+      else if(bytesPerPixel<2.0){results.push({id:'compression',status:'warning',note:'Light compression ('+(bytesPerPixel).toFixed(2)+' bytes/pixel) — re-save at 80-85% quality'});score+=3;}
+      else{results.push({id:'compression',status:'failed',note:'Minimal compression ('+(bytesPerPixel).toFixed(2)+' bytes/pixel) — re-save at 80% quality'});score+=0;}
+    }
+
+    // 5. Aspect ratio
+    if(w===0||h===0){results.push({id:'aspect',status:'warning',note:'Cannot determine aspect ratio'});score+=5;}
+    else{
+      const r=w/h;
+      const common=[[16,9],[4,3],[3,2],[1,1],[21,9],[2,1]];
+      let match=false;
+      for(const[a,b]of common){if(Math.abs(r-a/b)<0.05){match=true;break;}}
+      if(match){results.push({id:'aspect',status:'passed',note:'Standard aspect ratio detected'});score+=10;}
+      else{results.push({id:'aspect',status:'warning',note:'Non-standard aspect ratio ('+r.toFixed(2)+':1)'});score+=7;}
+    }
+
+    // 6. Transparency
+    if(['png','webp','avif','gif'].includes(format)){
+      if(format==='png'&&sizeKB>200){results.push({id:'transparency',status:'warning',note:'Large PNG — if no transparency needed, convert to JPEG/WebP'});score+=4;}
+      else{results.push({id:'transparency',status:'passed',note:'Format supports transparency if needed'});score+=10;}
+    }else if(format==='jpeg'){results.push({id:'transparency',status:'passed',note:'No transparency — JPEG is appropriate'});score+=10;}
+    else{results.push({id:'transparency',status:'passed',note:'Format appropriate for content type'});score+=8;}
+
+    // 7. Metadata estimate
+    if(format==='jpeg'&&sizeKB>100){
+      const overhead=Math.max(0,sizeKB-w*h*0.3/1024);
+      if(overhead>50){results.push({id:'metadata',status:'warning',note:'May contain EXIF metadata — strip to save ~20-100KB'});score+=5;}
+      else{results.push({id:'metadata',status:'passed',note:'Metadata appears minimal'});score+=9;}
+    }else{results.push({id:'metadata',status:'passed',note:'Metadata check passed'});score+=10;}
+
+    // 8. Progressive
+    if(format==='jpeg'&&sizeKB>10){results.push({id:'progressive',status:'warning',note:'Ensure JPEG uses progressive scan for better perceived loading'});score+=6;}
+    else{results.push({id:'progressive',status:'passed',note:'Progressive loading check passed'});score+=10;}
+
+    // 9. Color space
+    results.push({id:'color',status:'passed',note:'sRGB assumed for web delivery'});score+=9;
+
+    // 10. Retina
+    if(isVector){results.push({id:'retina',status:'passed',note:'SVG renders crisply at any DPR'});score+=10;}
+    else if(w>=800){results.push({id:'retina',status:'passed',note:'Sufficient resolution for 2x rendering at '+(Math.round(w/2))+'px display width'});score+=10;}
+    else if(w>=400){results.push({id:'retina',status:'warning',note:'May appear blurry on retina at display widths above '+Math.round(w/2)+'px'});score+=6;}
+    else{results.push({id:'retina',status:'failed',note:'Too small for retina — will appear blurry above '+Math.round(w/2)+'px display width'});score+=2;}
+
+    this.renderChecklist(results);
+    this.renderScore(score);
+    this.renderRecommendations(results,format,sizeKB,w,h);
+  },
+
+  renderChecklist(results){
+    const grid=document.getElementById('checklist-grid');
+    grid.innerHTML='';
+    results.forEach(r=>{
+      const check=this.checks.find(c=>c.id===r.id);
+      const icon=r.status==='passed'?'&#10003;':r.status==='failed'?'&#10007;':'!';
+      grid.innerHTML+=`<div class="check-item ${r.status}"><div class="check-icon">${icon}</div><div class="check-details"><div class="check-title">${check.title}</div><div class="check-desc">${r.note}</div></div></div>`;
+    });
+  },
+
+  renderScore(score){
+    const pct=Math.round(score);
+    const circle=document.getElementById('score-circle');
+    const circumference=2*Math.PI*52;
+    const offset=circumference-(pct/100)*circumference;
+    circle.style.strokeDashoffset=offset;
+    document.getElementById('score-val').textContent=pct;
+    document.getElementById('img-score').textContent=pct+'/100';
+    document.getElementById('img-score').className='val '+(pct>=80?'status-ok':pct>=50?'status-warn':'status-bad');
+    const label=pct>=90?'Excellent':pct>=75?'Good':pct>=50?'Needs Work':'Poor';
+    document.getElementById('score-text').textContent=label;
+  },
+
+  buildFormatTable(currentFormat,currentKB){
+    const ratios={jpeg:1.0,png:1.3,webp:0.72,avif:0.52,gif:1.1};
+    const support={jpeg:'100%',png:'100%',webp:'97%',avif:'92%',gif:'100%'};
+    const baseKB=(currentFormat==='jpeg')?currentKB:currentKB/(ratios[currentFormat]||1);
+    const formats=['jpeg','webp','avif','png'];
+    const tbody=document.getElementById('format-table');
+    tbody.innerHTML='';
+    formats.forEach(f=>{
+      const estKB=Math.round(baseKB*(ratios[f]||1));
+      const savings=Math.round((1-estKB/currentKB)*100);
+      const isCurrent=f===currentFormat;
+      tbody.innerHTML+=`<tr><td>${f.toUpperCase()}${isCurrent?' (current)':''}</td><td>${estKB}KB</td><td class="${savings>0?'savings':savings<0?'current':''}">${savings>0?'-'+savings+'%':savings===0?'—':'+'+Math.abs(savings)+'%'}</td><td>${support[f]||'—'}</td></tr>`;
+    });
+  },
+
+  renderRecommendations(results,format,sizeKB,w,h){
+    const recs=[];
+    const failed=results.filter(r=>r.status==='failed');
+    const warnings=results.filter(r=>r.status==='warning');
+
+    if(format==='jpeg'||format==='png'||format==='gif'){
+      recs.push('<strong>Convert to WebP/AVIF:</strong> Save 25-50% file size by converting to a modern format. Use the &lt;picture&gt; element for browser fallback.');
+    }
+    if(sizeKB>200){
+      recs.push('<strong>Reduce file size:</strong> This image is '+Math.round(sizeKB)+'KB. Target under 200KB for hero images and under 100KB for content images. Re-compress at quality 80-85%.');
+    }
+    if(w>1920){
+      recs.push('<strong>Resize dimensions:</strong> At '+w+'px wide, this image is larger than most displays need. Resize to 1920px max width and use srcset for responsive delivery.');
+    }
+    if(recs.length===0){
+      recs.push('<strong>Well optimized!</strong> This image passes all major checks. Consider adding it to a responsive srcset for even better performance across devices.');
+    }
+    recs.push('<strong>Always test visually:</strong> After any optimization, compare the before and after images side-by-side to ensure acceptable quality for your use case.');
+    document.getElementById('recommendations').innerHTML='<ul>'+recs.map(r=>'<li>'+r+'</li>').join('')+'</ul>';
+  }
+};
+document.addEventListener('DOMContentLoaded',()=>IOC.init());
+</script>
+<script src="/assets/js/krz-ui.js" defer></script>
+</body>
+</html>
