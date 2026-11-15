@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en"><head>
+<script data-cro="sprint-20261113-ga">(function(){var w=window,d=document,n=navigator;if(!/^(www\.)?krzen\.com$/.test(location.hostname))return;w.dataLayer=w.dataLayer||[];w.gtag=w.gtag||function(){w.dataLayer.push(arguments)};var tz="";try{tz=Intl.DateTimeFormat().resolvedOptions().timeZone||""}catch(e){}var eu=!tz||/^(Europe\/|Atlantic\/(Reykjavik|Canary|Madeira|Azores|Faroe))/.test(tz);var opt=n.globalPrivacyControl===true||n.doNotTrack==="1";gtag("consent","default",{analytics_storage:(eu||opt)?"denied":"granted"});gtag("js",new Date());gtag("config","G-XRSLLRN4BY");var s=d.createElement("script");s.async=true;s.src="https://www.googletagmanager.com/gtag/js?id=G-XRSLLRN4BY";(d.head||d.documentElement).appendChild(s)})();</script>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Your Image CDN Cost Sheet download | krzen.com</title>
+<link rel="icon" href="/favicon.svg">
+<style>body{margin:0;font:17px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#111;background:#f7f7f8}main{max-width:640px;margin:48px auto;padding:28px 24px;background:#fff;border:1px solid #e3e3e6;border-radius:12px}h1{font-size:1.5rem;line-height:1.3;margin:0 0 12px}.btn{display:inline-flex;align-items:center;min-height:48px;padding:0 20px;border-radius:8px;background:#2563eb;color:#fff;font-weight:700;text-decoration:none}.btn:hover{background:#1d4ed8}.n{font-size:.9rem;color:#555}@media(max-width:600px){main{margin:16px 12px;padding:20px 16px}}</style>
+</head><body>
+<main data-cro="sprint-20261115-purchase" data-sku="krzen-image-cdn-sheet">
+<p class="n"><a href="/">krzen.com</a></p>
+<h1>Your Image CDN Cost Sheet</h1>
+<p id="msg" role="status" aria-live="polite">Checking your payment with Stripe&hellip;</p>
+<p><a id="dl" class="btn" href="#" style="display:none">Download krzen-image-cdn-cost-sheet-2026-11.xlsx</a></p>
+<p class="n">Bookmark this page: the download link keeps working for this purchase. Problems? Email lipmichal@gmail.com with your Stripe receipt and we send the file.</p>
+<noscript><p>This page needs JavaScript to check your payment. Email lipmichal@gmail.com with your Stripe receipt and we send the file.</p></noscript>
+</main>
+<script data-cro="sprint-20261115-purchase">(function(){var SKU="krzen-image-cdn-sheet",SITE="krzen.com",NAME="Image CDN Cost Sheet",EP="https://sprint-delivery.lipmichal.workers.dev";
+var q=new URLSearchParams(location.search),sid=q.get("session_id")||"",msg=document.getElementById("msg"),dl=document.getElementById("dl");
+if(!/^cs_live_[A-Za-z0-9]+$/.test(sid)){msg.textContent="This page opens after a purchase. If you paid, use the link in your Stripe receipt or email us with the receipt.";return}
+function fire(r){var key="sprint_purchase_"+sid,n=0;try{if(localStorage.getItem(key))return}catch(e){}(function t(){if(typeof window.gtag==="function"){var v=(Number(r.amount_total)-Number(r.amount_tax||0))/100;
+window.gtag("event","purchase",{transaction_id:sid,value:v,currency:String(r.currency||"usd").toUpperCase(),site:SITE,product:SKU,items:[{item_id:SKU,item_name:NAME,price:v,quantity:1}]});
+try{localStorage.setItem(key,"1")}catch(e){}}else if(n++<60)setTimeout(t,1000)})()}
+function check(t){fetch(EP+"/claim?sku="+SKU+"&session_id="+encodeURIComponent(sid),{cache:"no-store",credentials:"omit"}).then(function(r){return r.json().catch(function(){return null})}).then(function(j){
+if(j&&!j.ok&&j.retry&&t<8){msg.textContent="Your payment is coming through. This page checks again in a few seconds.";setTimeout(function(){check(t+1)},5000);return}
+if(!j||!j.ok){msg.textContent=(j&&j.reason)||"Stripe did not confirm this payment. Email us with your Stripe receipt.";return}
+msg.textContent="Payment confirmed. Your file is ready.";dl.href=j.download;dl.style.display="";if(j.payment_receipt&&j.payment_receipt.transaction_id===sid)fire(j.payment_receipt)})
+.catch(function(){msg.textContent="The download service could not be reached. Reload this page in a minute."})}check(0)})();</script>
+</body></html>
